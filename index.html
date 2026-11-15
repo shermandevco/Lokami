@@ -401,6 +401,21 @@ button.av{font-size:22px}
 .top .seg button{white-space:nowrap;padding:0 10px}
 .amean{display:flex;gap:12px;align-items:flex-start;margin-top:18px;padding:14px 16px;border-radius:18px;background:rgba(255,255,255,.14);-webkit-backdrop-filter:blur(8px);backdrop-filter:blur(8px);max-width:52ch;animation:rise .6s .2s both}.amean p{margin:0!important;font-size:15px!important;opacity:.95!important}.amean .lo{font-size:26px;animation:bob 3s ease-in-out infinite alternate}
 .aload{min-height:100%;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:14px;font-family:var(--display);font-size:22px}.aload .lg{width:64px;height:64px;border-radius:22px;background:rgba(255,255,255,.25);animation:beat 1.4s infinite}.aload .lg::before,.aload .lg::after{top:21px;width:22px;height:22px;border-width:4px}.aload .lg::before{left:10px}.aload .lg::after{right:10px}
+
+.bell{position:relative;flex:none;width:42px;height:42px;border-radius:50%;background:var(--surface);box-shadow:var(--shadow);font-size:19px;display:grid;place-items:center;transition:transform .2s}
+.bell:active{transform:scale(.88) rotate(-12deg)}.bell i{position:absolute;top:-3px;right:-3px;min-width:19px;height:19px;padding:0 5px;border-radius:99px;background:var(--pri);color:#fff;font-style:normal;font-size:11px;font-weight:800;display:grid;place-items:center;animation:pop .4s}
+#side .brand{justify-content:space-between}#side .brand .bell{width:36px;height:36px;font-size:16px;margin-left:auto}
+.fi{display:flex;gap:10px;align-items:center;padding:10px;border-radius:16px;transition:background .3s}.fi.new{background:var(--soft)}.fi .av{width:36px;height:36px;font-size:18px;box-shadow:none;background:var(--surface2);flex:none}.dotnew{width:9px;height:9px;border-radius:50%;background:var(--pri);flex:none}
+.livebar{display:flex;align-items:center;justify-content:center;gap:8px;width:100%;padding:10px 14px;border-radius:16px;background:linear-gradient(135deg,#f2462e,#e6336e);color:#fff;font-weight:800;font-size:14px;animation:livepulse 1.6s ease-in-out infinite;column-span:all;margin-bottom:12px}
+@keyframes livepulse{0%,100%{box-shadow:0 0 0 0 rgba(242,70,46,.45)}50%{box-shadow:0 0 0 10px rgba(242,70,46,0)}}
+.livehero{text-align:center;background:radial-gradient(120% 140% at 50% 0%,#ff7a59,#e6336e 50%,#5e1f6e)}.livehero .big{font-size:68px;margin:6px 0 4px}.livehero.on{animation:livepulse 1.6s ease-in-out infinite}
+.livebtn{background:#fff!important;color:#e6336e!important;min-width:180px;min-height:54px;font-size:17px;margin-top:6px}.livebtn.stop{color:#b62a14!important}
+.lvst{display:flex;align-items:center;gap:10px}.lvst .rank{width:24px;text-align:center;font-size:18px}
+.lvsum{text-align:center;padding:18px;border-radius:20px;background:var(--soft)}.lvsum small{display:block;font-weight:800;color:var(--mut);text-transform:uppercase;font-size:11px}.lvsum b{font-family:var(--display);font-size:44px}
+.poohero{background:radial-gradient(120% 140% at 0% 0%,#c99a6b,#8a5a33 55%,#3d2616)}
+.poobtn{width:96px;height:96px;border-radius:50%;background:rgba(255,255,255,.2);font-size:52px;transition:transform .15s;animation:bob 2.4s ease-in-out infinite alternate}.poobtn:active{transform:scale(.85) rotate(-15deg)}
+.pq{font-size:40px;width:56px;height:56px;border-radius:18px;background:var(--surface2);transition:transform .15s}.pq:active{transform:scale(1.25)}
+.cal.pc .d{font-size:12px}.cal.pc .pn{font-size:13px;line-height:1}
 </style>
 </head>
 <body>
@@ -1259,6 +1274,100 @@ const I={
 };
 document.addEventListener('input',e=>{const k=e.target.dataset&&e.target.dataset.i;if(k&&I[k])I[k](e.target)});
 if(window.matchMedia)matchMedia('(prefers-color-scheme:dark)').addEventListener('change',applyTheme);
+
+/* ================= v6: live timer, poo calendar, activity feed ================= */
+Object.assign(T,{
+m_live:['Live 🔥','Live 🔥','Live 🔥'],m_live_d:['Таймер, статус і статистика','Timer, status and stats','Stoper, status i statystyki'],m_poo:['Kupometr','Poo log','Kupometr'],m_poo_d:['Календар і рейтинг 💩','Calendar and ranking 💩','Kalendarz i ranking 💩'],
+lv_start:['Почати','Start','Start'],lv_stop:['Завершити','Finish','Zakończ'],lv_busy:['{0} зараз зайнятий(а) 🔥','{0} is busy right now 🔥','{0} jest teraz zajęty(-a) 🔥'],lv_idle:['Натисніть, коли почнете. Учасники простору побачать статус і таймер.','Tap when you start. Members of the space will see the status and the timer.','Naciśnij, gdy zaczniesz. Osoby z przestrzeni zobaczą status i stoper.'],
+lv_sum:['Підсумок','Summary','Podsumowanie'],lv_dur:['Тривалість','Duration','Czas trwania'],lv_save:['Зберегти','Save','Zapisz'],lv_discard:['Не зберігати','Don’t save','Nie zapisuj'],lv_stats:['Статистика','Stats','Statystyki'],lv_cnt:['разів','times','razy'],lv_avg:['середньо','average','średnio'],lv_max:['рекорд','record','rekord'],lv_tot:['загалом','total','łącznie'],lv_month:['цього місяця','this month','w tym miesiącu'],lv_hist:['Історія','History','Historia'],lv_e:['Ще немає записів.','No entries yet.','Brak wpisów.'],
+lv_other:['Зараз зайнятий(а) {0}. Зачекайте, поки закінчить.','{0} is busy right now. Wait until they finish.','Teraz zajęty(-a) jest {0}. Poczekaj, aż skończy.'],
+po_add:['💩 Записати','💩 Log it','💩 Zapisz'],po_rank:['Рейтинг місяця','Ranking of the month','Ranking miesiąca'],po_today:['сьогодні','today','dziś'],po_streak:['днів поспіль','days in a row','dni z rzędu'],po_q:['Як пройшло?','How did it go?','Jak poszło?'],po_e:['Ще нікого. Будь першим 💩','Nobody yet. Be the first 💩','Jeszcze nikt. Bądź pierwszy 💩'],
+f_t:['Сповіщення','Notifications','Powiadomienia'],f_e:['Поки тихо. Тут з’являтимуться всі зміни в цьому просторі.','All quiet. Every change in this space will show up here.','Na razie cisza. Tu pojawią się wszystkie zmiany w tej przestrzeni.'],f_push:['🔔 Увімкнути сповіщення на пристрої','🔔 Turn on device notifications','🔔 Włącz powiadomienia na urządzeniu'],f_push_on:['Сповіщення на пристрої увімкнено','Device notifications are on','Powiadomienia na urządzeniu włączone'],f_push_no:['Браузер не дозволив сповіщення. Їх можна ввімкнути в налаштуваннях сайту.','The browser blocked notifications. You can allow them in the site settings.','Przeglądarka zablokowała powiadomienia. Możesz je włączyć w ustawieniach strony.'],f_push_note:['Працює, поки застосунок відкритий або згорнутий.','Works while the app is open or in the background.','Działa, gdy aplikacja jest otwarta lub zminimalizowana.'],f_all:['Позначити все прочитаним','Mark all as read','Oznacz wszystko jako przeczytane'],
+fe_add:['додав(ла) «{0}»','added “{0}”','dodał(a) „{0}”'],fe_done:['відмітив(ла) «{0}»','ticked “{0}”','odhaczył(a) „{0}”'],fe_note:['написав(ла): «{0}»','wrote: “{0}”','napisał(a): „{0}”'],fe_cpn:['подарував(ла) купон «{0}» для {1}','gave {1} a coupon “{0}”','dał(a) {1} kupon „{0}”'],fe_cpnu:['використав(ла) купон «{0}»','redeemed the coupon “{0}”','wykorzystał(a) kupon „{0}”'],fe_exp:['витратив(ла) {0} на «{1}»','spent {0} on “{1}”','wydał(a) {0} na „{1}”'],fe_ev:['додав(ла) подію «{0}» на {1}','added the event “{0}” on {1}','dodał(a) wydarzenie „{0}” na {1}'],fe_evu:['змінив(ла) подію «{0}»','edited the event “{0}”','zmienił(a) wydarzenie „{0}”'],fe_mv:['додав(ла) фільм «{0}»','added the film “{0}”','dodał(a) film „{0}”'],fe_mvw:['подивився(лась) «{0}»','watched “{0}”','obejrzał(a) „{0}”'],fe_lvs:['почав(ла) 🔥','started 🔥','zaczął(-ęła) 🔥'],fe_lve:['закінчив(ла) 🔥 · {0}','finished 🔥 · {0}','skończył(a) 🔥 · {0}'],fe_poo:['записав(ла) 💩 {0}','logged 💩 {0}','zapisał(a) 💩 {0}'],fe_mood:['має настрій {0}','is feeling {0}','ma nastrój {0}'],fe_chal:['виконав(ла) виклик тижня 🏆','completed the weekly challenge 🏆','ukończył(a) wyzwanie tygodnia 🏆']
+});
+MODS.live={em:'🔥',c:'#f2462e',ty:['couple','friends','mates'],adult:true};MODS.poo={em:'💩',c:'#9a6b3f',ty:['friends','mates','family','solo']};
+SUB.splice(SUB.indexOf('wheel'),0,'live','poo');
+const POO=['😌','😐','😣','🔥','💀'];
+const hms=ms=>{const s=Math.max(0,Math.floor(ms/1000)),h=Math.floor(s/3600),m=Math.floor(s%3600/60),x=s%60;return(h?h+':'+pad(m):m)+':'+pad(x)};
+const dur=ms=>{if(ms<60000)return Math.max(1,Math.round(ms/1000))+' s';const m=Math.round(ms/60000);return m<60?m+' min':Math.floor(m/60)+' h '+pad(m%60)+' min'};
+
+/* ---- feed ---- */
+function feed(k,...a){if(!S||S.type==='solo'||!ME)return;S.feed=S.feed||[];S.feed.push({id:uid(),k,a:a.map(x=>String(x).slice(0,60)),who:ME.id,at:new Date().toISOString()});if(S.feed.length>150)S.feed.splice(0,S.feed.length-150);markSeen(S)}
+const feedTxt=f=>t(f.k,...(f.a||[]));
+const seenOf=s=>(ME.ui.seen||{})[s.id]||'';
+function markSeen(s){ME.ui.seen=Object.assign({},ME.ui.seen||{},{[s.id]:new Date().toISOString()})}
+const unread=s=>(s.feed||[]).filter(f=>f.who!==ME.id&&f.at>seenOf(s)).length;
+const unreadAll=()=>ME?mySpaces().reduce((n,s)=>n+unread(s),0):0;
+function ago(iso){const m=Math.round((Date.now()-new Date(iso))/60000);const r=new Intl.RelativeTimeFormat(LOCS[L],{numeric:'auto'});return m<1?r.format(0,'minute'):m<60?r.format(-m,'minute'):m<1440?r.format(-Math.round(m/60),'hour'):fmt(iso.slice(0,10))}
+function feedSheet(){const s=S;const items=mySpaces().flatMap(sp=>(sp.feed||[]).map(f=>({...f,sp}))).sort((a,b)=>a.at<b.at?1:-1).slice(0,80);
+  const perm=typeof Notification!=='undefined'?Notification.permission:'unsupported';
+  sheet(`<div class="row sp"><h1>${t('f_t')}</h1>${unreadAll()?`<button class="btn ghost sm" data-a="feedRead">${t('f_all')}</button>`:''}</div>
+  ${perm==='default'?`<button class="btn ghost" data-a="pushOn">${t('f_push')}</button><span class="mut sm" style="margin-top:-8px">${t('f_push_note')}</span>`:''}
+  <div class="col" style="gap:4px">${items.map(f=>{const u=mem(f.who)||{a:'·',n:'—'},nw=f.who!==ME.id&&f.at>seenOf(f.sp);return `<div class="fi ${nw?'new':''}"><span class="av">${u.a}</span><div class="grow"><div><b>${esc(u.n)}</b> ${esc(feedTxt(f))}</div><div class="mut sm">${TYPES[f.sp.type].em} ${esc(sname(f.sp))} · ${ago(f.at)}</div></div>${nw?'<i class="dotnew"></i>':''}</div>`}).join('')||`<div class="empty"><b>🔔</b>${t('f_e')}</div>`}</div>`)}
+function readAll(){mySpaces().forEach(markSeen);save();chrome()}
+let notified=new Set();
+function announce(s,f){const u=mem(f.who)||{n:'—',a:''},msg=u.a+' '+u.n+' '+feedTxt(f);
+  if(typeof Notification!=='undefined'&&Notification.permission==='granted'&&document.visibilityState==='hidden'){try{new Notification('Lokami · '+sname(s),{body:msg,icon:'icon-192.png',tag:f.id})}catch(e){toast(msg)}}else toast(msg)}
+const _applyRow=applyRow;
+applyRow=function(sid,row){const s=ROOT.spaces[sid],before=new Set(((s&&s.feed)||[]).map(f=>f.id));_applyRow(sid,row);const n=ROOT.spaces[sid];if(!n||!ME)return;
+  (n.feed||[]).filter(f=>!before.has(f.id)&&f.who!==ME.id&&!notified.has(f.id)&&Date.now()-new Date(f.at)<10*60000).forEach(f=>{notified.add(f.id);announce(n,f)})};
+
+/* bell in the chrome */
+const _chrome=chrome;
+chrome=function(){_chrome();if(!ME)return;const n=unreadAll(),b=`<button class="bell" data-a="feed" aria-label="${t('f_t')}">🔔${n?`<i>${n>9?'9+':n}</i>`:''}</button>`;
+  const mb=$('#modebar');if(mb)mb.insertAdjacentHTML('afterbegin',b);const br=$('#side .brand');if(br)br.insertAdjacentHTML('beforeend',b);
+  if(S&&S.live&&S.live.who&&cur!=='live'){const u=mem(S.live.who)||{n:'—',a:''};const mb2=$('#modebar');const bar=`<button class="livebar" data-a="go" data-v="live">🔥 ${esc(t('lv_busy',u.n))} <b class="livet" data-s="${S.live.start}">${hms(Date.now()-new Date(S.live.start))}</b></button>`;if(mb2)mb2.insertAdjacentHTML('afterend','');const sc=$('#screen');if(sc&&!sc.querySelector('.livebar'))sc.insertAdjacentHTML('afterbegin',bar)}};
+setInterval(()=>{document.querySelectorAll('.livet').forEach(e=>e.textContent=hms(Date.now()-new Date(e.dataset.s)))},1000);
+
+/* ---- live 🔥 ---- */
+R.live=()=>{const lv=S.live&&S.live.who?S.live:null,mine=lv&&lv.who===ME.id,ses=(S.sessions||[]).slice().sort((a,b)=>a.end<b.end?1:-1),ym=today().slice(0,7);
+  const st=M().map(m=>{const a=ses.filter(x=>x.who===m.id),d=a.map(x=>new Date(x.end)-new Date(x.start));return{m,c:a.length,mc:a.filter(x=>x.end.startsWith(ym)).length,tot:d.reduce((p,x)=>p+x,0),avg:d.length?d.reduce((p,x)=>p+x,0)/d.length:0,mx:Math.max(0,...d)}}).sort((a,b)=>b.c-a.c);
+  return subTop(t('m_live'))+`<div class="hero st livehero ${lv?'on':''}"><div class="lbl">${lv?esc(t('lv_busy',(mem(lv.who)||{n:'—'}).n)):t('m_live')}</div>
+    <div class="big num livet" ${lv?`data-s="${lv.start}"`:''}>${lv?hms(Date.now()-new Date(lv.start)):'0:00'}</div>
+    ${lv?(mine?`<button class="btn livebtn stop" data-a="lvStop">⏹ ${t('lv_stop')}</button>`:`<p style="margin:8px 0 0;opacity:.9">${esc(t('lv_other',(mem(lv.who)||{n:'—'}).n))}</p>`):`<button class="btn livebtn" data-a="lvStart">▶ ${t('lv_start')}</button><p style="margin:10px 0 0;opacity:.85;font-size:13px">${t('lv_idle')}</p>`}</div>
+  <div class="card st col"><h2>${t('lv_stats')}</h2>${st.map((x,i)=>`<div class="lvst"><span class="rank">${['🥇','🥈','🥉'][i]||'·'}</span><span class="av" style="box-shadow:none;background:var(--surface2)">${x.m.a}</span><div class="grow"><b>${esc(x.m.n)}</b><div class="mut sm">${x.c} ${t('lv_cnt')} · ${x.mc} ${t('lv_month')}</div></div><div class="sm" style="text-align:right">${x.c?`<div>${t('lv_avg')} <b>${dur(x.avg)}</b></div><div class="mut">${t('lv_max')} ${dur(x.mx)}</div>`:'—'}</div></div>`).join('')}</div>
+  <div class="card st"><h2 style="margin-bottom:4px">${t('lv_hist')}</h2>${ses.slice(0,30).map(x=>`<div class="it"><span class="av" style="box-shadow:none;background:var(--surface2)">${(mem(x.who)||{a:'·'}).a}</span><div class="grow"><b>${dur(new Date(x.end)-new Date(x.start))}</b> <span style="color:var(--pri)">${'♥'.repeat(x.r||0)}</span><div class="mut sm">${fmt(x.end.slice(0,10))} · ${new Date(x.start).toTimeString().slice(0,5)}${x.n?' · '+esc(x.n):''}</div></div>${x.who===ME.id?`<button class="xb" data-a="lvDel" data-v="${x.id}" aria-label="${t('del')}">×</button>`:''}</div>`).join('')||`<p class="mut sm" style="margin:8px 0 0">${t('lv_e')}</p>`}</div>`};
+function lvSum(){const x=ui.lv;sheet(`<h1>${t('lv_sum')} 🔥</h1><div class="lvsum"><small>${t('lv_dur')}</small><b class="num">${hms(new Date(x.end)-new Date(x.start))}</b></div>
+  <div class="f">${t('in_rate')}<div class="hearts">${[1,2,3,4,5].map(n=>`<button type="button" data-a="lvR" data-v="${n}" aria-label="${n}/5">${n<=x.r?'❤️':'🤍'}</button>`).join('')}</div></div>
+  <label class="f" for="lv-n">${t('in_note')}<input class="inp" id="lv-n" maxlength="60" autocomplete="off"></label><button class="btn" data-a="lvSave">${t('lv_save')}</button><button class="btn ghost" data-a="lvDiscard">${t('lv_discard')}</button>`)}
+
+/* ---- poo 💩 ---- */
+let pM=new Date();pM.setDate(1);
+R.poo=()=>{const P0=S.poo||[],td=today(),ym=pM.getFullYear()+'-'+pad(pM.getMonth()+1),mine=P0.filter(x=>x.who===ME.id);let streak=0;for(let d=new Date();mine.some(x=>x.at.startsWith(dstr(d)));d.setDate(d.getDate()-1))streak++;
+  const cnt=ds=>P0.filter(x=>x.at.startsWith(ds)).length,rank=M().map(m=>({m,c:P0.filter(x=>x.who===m.id&&x.at.startsWith(ym)).length})).sort((a,b)=>b.c-a.c);
+  return subTop(t('m_poo'))+`<div class="hero st poohero"><div class="row sp"><div><div class="lbl">${t('po_today')}</div><div class="big num">${mine.filter(x=>x.at.startsWith(td)).length}</div><div style="font-weight:700;margin-top:6px">🔥 ${streak} ${t('po_streak')}</div></div><button class="poobtn" data-a="pooAdd" aria-label="${t('po_add')}">💩</button></div></div>
+  ${M().length>1?`<div class="card st col"><h2>${t('po_rank')}</h2>${rank.map((x,i)=>`<div class="lvst"><span class="rank">${['🥇','🥈','🥉'][i]||'·'}</span><span class="av" style="box-shadow:none;background:var(--surface2)">${x.m.a}</span><b class="grow">${esc(x.m.n)}</b><b class="num">${x.c} 💩</b></div>`).join('')}</div>`:''}
+  <div class="card st">${monthNav(pM,'pMonth')}<div class="cal pc">${wdays()+'<div></div>'.repeat((new Date(pM.getFullYear(),pM.getMonth(),1).getDay()+6)%7)+[...Array(new Date(pM.getFullYear(),pM.getMonth()+1,0).getDate())].map((_,i)=>{const ds=ym+'-'+pad(i+1),c=cnt(ds);return `<div class="d ${ds===td?'today':''}">${c?`<span class="pn">${c>2?'💩'+c:'💩'.repeat(c)}</span>`:i+1}</div>`}).join('')}</div></div>
+  <div class="card st"><h2 style="margin-bottom:4px">${t('lv_hist')}</h2>${P0.slice().reverse().slice(0,25).map(x=>`<div class="it"><span class="av" style="box-shadow:none;background:var(--surface2)">${(mem(x.who)||{a:'·'}).a}</span><div class="grow"><b>${esc(wn(x.who))}</b> ${x.r!=null?POO[x.r]:''}<div class="mut sm">${fmt(x.at.slice(0,10))} · ${new Date(x.at).toTimeString().slice(0,5)}</div></div>${x.who===ME.id?`<button class="xb" data-a="pooDel" data-v="${x.id}" aria-label="${t('del')}">×</button>`:''}</div>`).join('')||`<p class="mut sm" style="margin:8px 0 0">${t('po_e')}</p>`}</div>`};
+
+/* ---- actions ---- */
+Object.assign(A,{
+ feed:()=>feedSheet(),feedRead:()=>{readAll();feedSheet()},
+ pushOn:async()=>{try{const p=await Notification.requestPermission();toast(p==='granted'?t('f_push_on'):t('f_push_no'))}catch(e){toast(t('f_push_no'))}feedSheet()},
+ lvStart:(d,el)=>{if(S.live&&S.live.who&&S.live.who!==ME.id)return toast(t('lv_other',wn(S.live.who)));S.live={who:ME.id,start:new Date().toISOString()};feed('fe_lvs');save();sync();burst(el,['🔥','💥','✨']);refresh()},
+ lvStop:()=>{if(!S.live||S.live.who!==ME.id)return;ui.lv={id:uid(),who:ME.id,start:S.live.start,end:new Date().toISOString(),r:4,n:''};S.live=null;feed('fe_lve',dur(new Date(ui.lv.end)-new Date(ui.lv.start)));save();sync();refresh();lvSum()},
+ lvR:d=>{ui.lv.r=+d.v;const n=$('#lv-n').value;lvSum();$('#lv-n').value=n},
+ lvSave:()=>{ui.lv.n=$('#lv-n').value.trim();S.sessions=S.sessions||[];S.sessions.push(ui.lv);ui.lv=null;save();closeSheet();confetti();refresh()},
+ lvDiscard:()=>{ui.lv=null;closeSheet()},
+ lvDel:d=>{S.sessions=(S.sessions||[]).filter(x=>x.id!==d.v);save();refresh();toast(t('deleted'))},
+ pooAdd:(d,el)=>{burst(el,['💩','✨','🧻']);sheet(`<h1>${t('po_q')}</h1><div class="row" style="justify-content:space-between">${POO.map((p,i)=>`<button class="pq" data-a="pooR" data-v="${i}">${p}</button>`).join('')}</div>`)},
+ pooR:d=>{S.poo=S.poo||[];S.poo.push({id:uid(),who:ME.id,at:new Date().toISOString(),r:+d.v});feed('fe_poo',POO[+d.v]);save();closeSheet();refresh()},
+ pooDel:d=>{S.poo=(S.poo||[]).filter(x=>x.id!==d.v);save();refresh()},
+ pMonth:d=>{pM.setMonth(pM.getMonth()+ +d.v);refresh()}
+});
+/* feed hooks on existing actions */
+const wrapA=(k,fn)=>{const o=A[k];A[k]=(d,el,e)=>{const r=fn(d,'before');o(d,el,e);fn(d,'after',r)}},wrapF=(k,fn)=>{const o=F[k];F[k]=(d,f)=>{const r=fn(d,'before',f);const res=o(d,f);fn(d,'after',r);return res}};
+const _addItem=addItem;addItem=function(k,text){_addItem(k,text);if(['shop','chores','wishes','bucket','dates'].includes(k))feed('fe_add',text)};
+const _addNote=addNote;addNote=function(text){feed('fe_note',text);_addNote(text)};
+const _addCoupon=addCoupon;addCoupon=function(text){if(ui.cpnTo)feed('fe_cpn',text,wn(ui.cpnTo));_addCoupon(text)};
+wrapA('tog',(d,ph,r)=>{const it=S[d.k]&&S[d.k][+d.i];if(ph==='before')return it&&it.done;if(it&&it.done&&!r&&['shop','chores','wishes','bucket','dates'].includes(d.k))feed('fe_done',it.t)});
+wrapA('cpnUse',(d,ph)=>{if(ph==='before'){const c=S.coupons[+d.i];if(c)feed('fe_cpnu',c.t)}});
+wrapA('mvNext',(d,ph)=>{if(ph==='after'){const m=S.movies[+d.i];if(m&&m.s===2)feed('fe_mvw',m.t)}});
+wrapA('chalDone',(d,ph)=>{if(ph==='before')feed('fe_chal')});
+wrapA('mood',(d,ph)=>{if(ph==='before'&&(!d.d||d.d===today())&&S.type!=='solo')feed('fe_mood',d.v)});
+wrapF('movie',(d,ph,f)=>{if(ph==='before'){const v=$('#in-mv').value.trim();if(v)feed('fe_mv',v)}});
+wrapF('exp',(d,ph)=>{if(ph==='before'){const a=nf($('#in-amt').value);if(a)feed('fe_exp',money(a),$('#in-exp').value.trim()||cn(BCATS,ui.bc).slice(3))}});
+wrapF('ev',(d,ph)=>{if(ph==='before'){const v=$('#in-ev').value.trim();if(v)ui.evEd!=null?feed('fe_evu',v):feed('fe_ev',v,fmt($('#ev-d').value||sel))}});
 
 /* ================= boot ================= */
 applyTheme();loading(true);
