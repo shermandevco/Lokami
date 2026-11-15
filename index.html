@@ -905,15 +905,15 @@ R.intim=()=>{const td=today(),solo=S.type==='solo',list=S.intim.map((e,i)=>[e,i]
     <div class="col" style="gap:4px;text-align:right;font-weight:700"><div><b class="num" style="font-family:var(--display);font-size:20px">${mc}</b> ${t('in_month')}</div><div><b class="num" style="font-family:var(--display);font-size:20px">${S.intim.length}</b> ${t('in_total')}</div>${solo?`<div><b class="num" style="font-family:var(--display);font-size:20px">${pc}</b> ${t('in_partners')}</div>`:''}</div></div></div>
   <div class="card st">${monthNav(iM,'iMonth')}<div class="cal hc">${grid(iM,ds=>S.intim.some(e=>e.d===ds),'inSheet')}</div></div>
   ${solo?`<div class="card st col"><label class="f" for="sti">🩺 ${t('sti')}<input class="inp" type="date" id="sti" data-c="sti" value="${S.sti}" max="${td}"></label><span class="mut sm">${S.sti?rel(-diff(S.sti,td)):t('sti_none')}</span></div>`:''}
-  <div class="card st"><h2 style="margin-bottom:4px">${t('in_log')}</h2>${list.map(([e,i])=>`<div class="it ${ui.newItem==='intim'+i?'new':''}"><div class="grow"><b>${fmt(e.d)}</b> <span style="color:var(--pri)">${'♥'.repeat(e.r||0)}</span>${e.prot?' 🛡️':''}${e.p?` <span class="tag">${esc(e.p)}</span>`:''}<div class="mut sm">${(e.tags||[]).map(x=>cn(ITAGS,x)).join(' · ')}${e.n?((e.tags||[]).length?' · ':'')+esc(e.n):''}</div></div><button class="xb" data-a="del" data-k="intim" data-i="${i}" aria-label="${t('del')}">×</button></div>`).join('')||`<p class="mut sm" style="margin:8px 0 0">${t('in_e')}</p>`}</div>
+  <div class="card st"><h2 style="margin-bottom:4px">${t('in_log')}</h2>${list.map(([e,i])=>`<div class="it ${ui.newItem==='intim'+i?'new':''}"><div class="grow"><b>${fmt(e.d)}</b> <span style="color:var(--pri)">${'♥'.repeat(e.r||0)}</span>${e.prot?' 🛡️':''}${e.p?` <span class="tag">${esc(e.p)}</span>`:''}<div class="mut sm">${(e.tags||[]).map(x=>cn(ITAGS,x)).join(' · ')}${e.n?((e.tags||[]).length?' · ':'')+esc(e.n):''}</div></div><button class="xb" data-a="inEdit" data-i="${i}" aria-label="${t('edit')}">✏️</button><button class="xb" data-a="del" data-k="intim" data-i="${i}" aria-label="${t('del')}">×</button></div>`).join('')||`<p class="mut sm" style="margin:8px 0 0">${t('in_e')}</p>`}</div>
   <p class="mut sm st" style="margin:0;text-align:center">🔒 ${t('in_priv')}</p>`};
 function inForm(){const e=ui.ie,solo=S.type==='solo',ps=[...new Set(S.intim.map(x=>x.p).filter(Boolean))].slice(0,6);
   return `<h1>${t('in_add')}</h1><form class="col" data-f="intim"><label class="f" for="ie-d">${t('in_date')}<input class="inp" type="date" id="ie-d" value="${e.d}" max="${today()}"></label>
   <div class="f">${t('in_rate')}<div class="hearts">${[1,2,3,4,5].map(n=>`<button type="button" data-a="ieR" data-v="${n}" aria-label="${n}/5">${n<=e.r?'❤️':'🤍'}</button>`).join('')}</div></div>
   <div class="chips wrap">${ITAGS.map((x,i)=>`<button type="button" class="chip ${e.tags.includes(i)?'on':''}" data-a="ieTag" data-v="${i}">${cn(ITAGS,i)}</button>`).join('')}</div>
   <div class="row sp" style="font-weight:700"><span>🛡️ ${t('in_prot')}</span>${sw(e.prot,'ieProt',1)}</div>
-  ${solo?`<label class="f" for="ie-p">${t('in_partner')}<input class="inp" id="ie-p" maxlength="24" autocomplete="off"></label>${ps.length?`<div class="chips">${ps.map(p=>`<button type="button" class="chip add" data-a="ieP" data-v="${esc(p)}">${esc(p)}</button>`).join('')}</div>`:''}`:''}
-  <label class="f" for="ie-n">${t('in_note')}<input class="inp" id="ie-n" maxlength="80" autocomplete="off"></label><button class="btn">${t('save')}</button></form>`}
+  ${solo||e.p?`<label class="f" for="ie-p">${t('in_partner')}<input class="inp" id="ie-p" maxlength="24" autocomplete="off" value="${esc(e.p||'')}"></label>${ps.length?`<div class="chips">${ps.map(p=>`<button type="button" class="chip add" data-a="ieP" data-v="${esc(p)}">${esc(p)}</button>`).join('')}</div>`:''}`:''}
+  <label class="f" for="ie-n">${t('in_note')}<input class="inp" id="ie-n" maxlength="120" autocomplete="off" value="${esc(e.n||'')}"></label><button class="btn">${t('save')}</button></form>`}
 
 R.dlog=()=>{const y=today().slice(0,4),list=S.dlog.map((e,i)=>[e,i]).sort((a,b)=>a[0].d<b[0].d?1:-1);
   return subTop(mt('dlog'),`<button class="btn sm" data-a="dlSheet">＋</button>`)+
@@ -1006,7 +1006,7 @@ const A={
  bc:d=>{ui.bc=+d.v;refresh()},bw:d=>{ui.bw=d.v;refresh()},
  budSet:()=>sheet(`<h1>${t('bud_set')}</h1><form class="col" data-f="bud"><label class="f" for="bud-l">${t('bud_lim')}<input class="inp amt" id="bud-l" inputmode="decimal" value="${S.bud||''}" placeholder="0"></label><div class="f">${t('bud_cur')}<div class="chips wrap">${CURL.map(c=>`<button type="button" class="chip ${S.cur===c?'on':''}" data-a="cur" data-v="${c}">${c}</button>`).join('')}</div></div><button class="btn">${t('save')}</button></form>`),
  cur:d=>{S.cur=d.v;save();A.budSet();refresh()},
- inSheet:d=>{ui.ie={d:d.v||today(),r:3,tags:[],prot:false};sheet(inForm())},
+ inSheet:d=>{ui.ieEd=null;ui.ie={d:d.v||today(),r:3,tags:[],prot:false,p:'',n:''};sheet(inForm())},inEdit:d=>{ui.ieEd=+d.i;const e=S.intim[ui.ieEd];ui.ie={d:e.d,r:e.r||0,tags:(e.tags||[]).slice(),prot:!!e.prot,p:e.p||'',n:e.n||''};sheet(inForm())},
  ieR:d=>{ui.ie.r=+d.v;sheet(inForm())},ieTag:d=>{const i=+d.v,a=ui.ie.tags,x=a.indexOf(i);x<0?a.push(i):a.splice(x,1);sheet(inForm())},ieProt:()=>{ui.ie.prot=!ui.ie.prot;sheet(inForm())},ieP:d=>{$('#ie-p').value=d.v},
  dlSheet:()=>{ui.dst=0;sheet(dlForm())},deSt:d=>{ui.dst=+d.v;sheet(dlForm())},
  dlSt:d=>{const e=S.dlog[+d.i];e.st=(e.st+1)%DST.length;save();refresh()},dlRate:(d,el)=>{S.dlog[+d.i].r=+d.v;save();burst(el,['⭐','✨']);refresh()},
@@ -1045,7 +1045,7 @@ const F={
  exp:()=>{const a=parseFloat($('#in-amt').value.replace(',','.').replace(/\s/g,''));if(!(a>0)){toast(t('bud_bad'));return}const td=today(),ym=bM.getFullYear()+'-'+pad(bM.getMonth()+1);
    S.exp.push({d:td.startsWith(ym)?td:ym+'-01',a:Math.round(a*100)/100,c:ui.bc,who:ui.bw,t:$('#in-exp').value.trim().slice(0,40)});$('#in-amt').value='';$('#in-exp').value='';save();ui.newItem='exp'+(S.exp.length-1);refresh()},
  bud:()=>{const a=parseFloat(($('#bud-l').value||'0').replace(',','.'));S.bud=a>0?a:0;save();closeSheet();refresh()},
- intim:()=>{const e=ui.ie,p=$('#ie-p');S.intim.push({d:$('#ie-d').value||today(),r:e.r,tags:e.tags.slice(),prot:e.prot,p:p?p.value.trim():'',n:$('#ie-n').value.trim()});save();closeSheet();ui.newItem='intim'+(S.intim.length-1);refresh();toast(t('in_saved'))},
+ intim:()=>{const e=ui.ie,p=$('#ie-p'),ed=ui.ieEd!=null?S.intim[ui.ieEd]:null,ne={d:$('#ie-d').value||today(),r:e.r,tags:e.tags.slice(),prot:e.prot,p:p?p.value.trim():'',n:$('#ie-n').value.trim()};if(ed){if(ed.sid){ne.sid=ed.sid;if(typeof syncSessR==='function')syncSessR(ed.sid,ne)}S.intim[ui.ieEd]=ne}else S.intim.push(ne);ui.ieEd=null;save();closeSheet();if(!ed)ui.newItem='intim'+(S.intim.length-1);refresh();toast(t(ed?'ev_saved':'in_saved'))},
  dlog:()=>{const n=$('#de-n').value.trim();if(!n)return;S.dlog.push({n,d:$('#de-d').value||today(),st:ui.dst,r:0,note:$('#de-note').value.trim()});save();closeSheet();ui.newItem='dlog'+(S.dlog.length-1);refresh()}
 };
 const C={
@@ -1408,7 +1408,7 @@ function feedTo(s,k,...a){const keep=S;S=s;feed(k,...a);S=keep}
 function pushStatus(){const st=myStatus();mySpaces().forEach(s=>{if(s.type==='solo')return;s.status=s.status||{};if(shareOn(s)&&!(st.k==='sex'&&!s.adultOk&&false))s.status[ME.id]={k:st.k,start:st.start};else delete s.status[ME.id]})}
 function saveSession(x){const H0=H();H0.sessions=H0.sessions||[];if(!H0.sessions.some(y=>y.id===x.id))H0.sessions.push(x);
   if((x.k||'sex')==='sex'&&!H0.intim.some(e=>e.sid===x.id)){const st=new Date(x.start),hr=st.getHours(),tags=[];if(hr>=22||hr<5)tags.push(7);else if(hr>=5&&hr<11)tags.push(6);
-    H0.intim.push({sid:x.id,d:dstr(st),r:x.r||0,tags,prot:false,p:'',n:'⏱ '+dur(new Date(x.end)-st)+' · '+st.toTimeString().slice(0,5)+'–'+new Date(x.end).toTimeString().slice(0,5)+(x.n?' · '+x.n:'')});H0.intim.sort((a,b)=>a.d<b.d?-1:1)}
+    H0.intim.push({sid:x.id,d:dstr(st),r:x.r||0,tags,prot:!!x.prot,p:x.p||'',n:'⏱ '+dur(new Date(x.end)-st)+' · '+st.toTimeString().slice(0,5)+'–'+new Date(x.end).toTimeString().slice(0,5)+(x.n?' · '+x.n:'')});H0.intim.sort((a,b)=>a.d<b.d?-1:1)}
   mySpaces().forEach(s=>{if(s.type!=='solo'&&shareOn(s)){s.sessions=s.sessions||[];if(!s.sessions.some(y=>y.id===x.id))s.sessions.push(Object.assign({},x))}})}
 function shareSync(s){if(s.type==='solo')return;s.sessions=s.sessions||[];if(shareOn(s)){(H().sessions||[]).forEach(x=>{if(!s.sessions.some(y=>y.id===x.id))s.sessions.push(Object.assign({},x))})}else s.sessions=s.sessions.filter(x=>x.who!==ME.id);pushStatus()}
 function setStatus(k,el){if(STS[k].adult&&!ME.adult){gate('status',k);return}const prev=myStatus(),now=new Date().toISOString();if(prev.k===k)return closeSheet();
@@ -1467,6 +1467,16 @@ Object.assign(A,{
    mySpaces().forEach(s=>{if(s.type!=='solo'&&shareOn(s))feedTo(s,'fe_ste',stLbl(m.k),dur(en-st))});ui.lvm=null;save();closeSheet();confetti();refresh()}
 });
 delete A.lvStart;delete A.lvStop;
+
+function syncSessR(sid,e){mySpaces().forEach(s=>(s.sessions||[]).forEach(x=>{if(x.id===sid&&x.who===ME.id)x.r=e.r}))}
+function lvSum(){const x=ui.lv,ps=[...new Set(H().intim.map(e=>e.p).filter(Boolean))].slice(0,6);sheet(`<h1>${t('lv_sum')} 🔞</h1><div class="lvsum"><small>${t('lv_dur')}</small><b class="num">${hms(new Date(x.end)-new Date(x.start))}</b></div>
+  <div class="f">${t('in_rate')}<div class="hearts">${[1,2,3,4,5].map(n=>`<button type="button" data-a="lvR" data-v="${n}" aria-label="${n}/5">${n<=x.r?'❤️':'🤍'}</button>`).join('')}</div></div>
+  <div class="row sp" style="font-weight:700"><span>🛡️ ${t('in_prot')}</span>${sw(x.prot,'lvProt',1)}</div>
+  <label class="f" for="lv-p">${t('in_partner')}<input class="inp" id="lv-p" maxlength="24" autocomplete="off" value="${esc(x.p||'')}"></label>${ps.length?`<div class="chips">${ps.map(p=>`<button type="button" class="chip add" data-a="lvP" data-v="${esc(p)}">${esc(p)}</button>`).join('')}</div>`:''}
+  <label class="f" for="lv-n">${t('in_note')}<input class="inp" id="lv-n" maxlength="60" autocomplete="off" value="${esc(x.n||'')}"></label><button class="btn" data-a="lvSave">${t('lv_save')}</button><button class="btn ghost" data-a="lvDiscard">${t('lv_discard')}</button>`)}
+const lvRd=()=>{const x=ui.lv;if(!x)return;const p=$('#lv-p'),n=$('#lv-n');if(p)x.p=p.value.trim();if(n)x.n=n.value.trim()};
+Object.assign(A,{lvR:d=>{lvRd();ui.lv.r=+d.v;lvSum()},lvProt:()=>{lvRd();ui.lv.prot=!ui.lv.prot;lvSum()},lvP:d=>{lvRd();ui.lv.p=d.v;lvSum()},
+ lvSave:()=>{lvRd();saveSession(ui.lv);ui.lv=null;save();closeSheet();confetti();refresh()}});
 
 /* ================= boot ================= */
 applyTheme();loading(true);
