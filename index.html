@@ -1407,6 +1407,8 @@ const myStatus=()=>H().mest||{k:'free',start:new Date().toISOString()};
 function feedTo(s,k,...a){const keep=S;S=s;feed(k,...a);S=keep}
 function pushStatus(){const st=myStatus();mySpaces().forEach(s=>{if(s.type==='solo')return;s.status=s.status||{};if(shareOn(s)&&!(st.k==='sex'&&!s.adultOk&&false))s.status[ME.id]={k:st.k,start:st.start};else delete s.status[ME.id]})}
 function saveSession(x){const H0=H();H0.sessions=H0.sessions||[];if(!H0.sessions.some(y=>y.id===x.id))H0.sessions.push(x);
+  if((x.k||'sex')==='sex'&&!H0.intim.some(e=>e.sid===x.id)){const st=new Date(x.start),hr=st.getHours(),tags=[];if(hr>=22||hr<5)tags.push(7);else if(hr>=5&&hr<11)tags.push(6);
+    H0.intim.push({sid:x.id,d:dstr(st),r:x.r||0,tags,prot:false,p:'',n:'⏱ '+dur(new Date(x.end)-st)+' · '+st.toTimeString().slice(0,5)+'–'+new Date(x.end).toTimeString().slice(0,5)+(x.n?' · '+x.n:'')});H0.intim.sort((a,b)=>a.d<b.d?-1:1)}
   mySpaces().forEach(s=>{if(s.type!=='solo'&&shareOn(s)){s.sessions=s.sessions||[];if(!s.sessions.some(y=>y.id===x.id))s.sessions.push(Object.assign({},x))}})}
 function shareSync(s){if(s.type==='solo')return;s.sessions=s.sessions||[];if(shareOn(s)){(H().sessions||[]).forEach(x=>{if(!s.sessions.some(y=>y.id===x.id))s.sessions.push(Object.assign({},x))})}else s.sessions=s.sessions.filter(x=>x.who!==ME.id);pushStatus()}
 function setStatus(k,el){if(STS[k].adult&&!ME.adult){gate('status',k);return}const prev=myStatus(),now=new Date().toISOString();if(prev.k===k)return closeSheet();
@@ -1457,7 +1459,7 @@ Object.assign(A,{
  stSheet:()=>statusSheet(),setSt:(d,el)=>setStatus(d.v,el),trk:d=>{ui.trk=d.v;refresh()},
  shareTog:d=>{ME.ui.share=Object.assign({},ME.ui.share||{});const s=ROOT.spaces[d.v];ME.ui.share[d.v]=!shareOn(s);shareSync(s);save();statusSheet();refresh()},
  lvSave:()=>{ui.lv.n=$('#lv-n').value.trim();saveSession(ui.lv);ui.lv=null;save();closeSheet();confetti();refresh()},
- lvDel:d=>{mySpaces().forEach(s=>{if(s.sessions)s.sessions=s.sessions.filter(x=>!(x.id===d.v&&x.who===ME.id))});save();refresh();toast(t('deleted'))},
+ lvDel:d=>{mySpaces().forEach(s=>{if(s.sessions)s.sessions=s.sessions.filter(x=>!(x.id===d.v&&x.who===ME.id))});H().intim=H().intim.filter(e=>e.sid!==d.v);save();refresh();toast(t('deleted'))},
  lvMan:()=>{ui.lvm={k:ui.trk||'sex',d:today(),s:'21:00',e:'21:30',r:4,n:''};lvMan()},
  lmK:d=>{lmRead();if(STS[d.v].adult&&!ME.adult)return gate('status','free');ui.lvm.k=d.v;lvMan()},lmR:d=>{lmRead();ui.lvm.r=+d.v;lvMan()},
  lmSave:()=>{lmRead();const m=ui.lvm,[st,en]=lmSpan();if(isNaN(st)||isNaN(en)||en<=st)return toast(t('lv_badend'));
