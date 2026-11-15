@@ -475,6 +475,8 @@ body.nosel{user-select:none;-webkit-user-select:none}
 .wctl{top:-14px;right:16px;padding:3px;border-radius:16px;background:var(--pri);box-shadow:0 6px 18px color-mix(in srgb,var(--pri) 40%,transparent)}
 .wctl .dh,.wbtn{width:34px;height:30px;border-radius:12px;font-size:16px;box-shadow:none}
 .wed{margin-top:10px}
+
+@keyframes flash2{0%,100%{box-shadow:var(--shadow)}30%{box-shadow:0 0 0 4px var(--pri),var(--shadow)}}.flash2{animation:flash2 1.2s ease}
 </style>
 </head>
 <body>
@@ -759,7 +761,7 @@ const sname=s=>{if(s.type==='solo')return t('mine');if(s.name)return s.name;cons
 const mySpaces=()=>[H(),...Object.values(ROOT.spaces).filter(s=>s.id!==ME.home&&s.members.includes(ME.id))];
 const moodOf=(id,d)=>(ROOT.moods[id]||{})[d];
 const avail=(id,type)=>!MODS[id].ty||MODS[id].ty.includes(type);
-const modOnFor=(s,id)=>avail(id,s.type)&&(s.mods[id]!==undefined?s.mods[id]:!MODS[id].adult);
+const modOnFor=(s,id)=>{if(window.modRule){const r=window.modRule(s,id);if(r!==undefined)return r}return avail(id,s.type)&&(s.mods[id]!==undefined?s.mods[id]:!MODS[id].adult)};
 const modOn=id=>modOnFor(S,id);
 function mt(id,d){const g=grp(),s=d?'_d':'';return T['m_'+id+'_'+g+s]?t('m_'+id+'_'+g+s):t('m_'+id+s)}
 const decksFor=()=>Object.keys(DECKS).filter(k=>DECKS[k].ty.includes(S.type));
@@ -1261,7 +1263,7 @@ function renderAuth(){const a=$('#auth');a.classList.add('on');$('#screen').inne
     <p class="demo">🔒 ${t('au_priv')}</p></div></div>`}
 function goSpace(id,el){if(!ROOT.spaces[id])return;S=ROOT.spaces[id];ME.cur=id;save();ui.idea=null;ui.wp=0;ui.rot=0;const r=$('#rip');if(el&&el.getBoundingClientRect){const b=el.getBoundingClientRect();r.style.setProperty('--x',b.left+b.width/2+'px');r.style.setProperty('--y',b.top+b.height/2+'px')}r.classList.remove('go');void r.offsetWidth;r.classList.add('go');
   show(['diary','calendar','together','us','cards'].includes(cur)?cur:'home','mode')}
-const plan=id=>H().plans.find(p=>p.id===id),car=()=>H().cars.find(c=>c.id===ui.car);
+const plan=id=>S.plans.find(p=>p.id===id)||H().plans.find(p=>p.id===id),plArr=id=>S.plans.some(p=>p.id===id)?S.plans:H().plans,car=()=>S.cars.find(c=>c.id===ui.car);
 const dE=()=>H().diary[ui.dd]=H().diary[ui.dd]||{t:'',st:[]};
 
 Object.assign(A,{
@@ -1292,16 +1294,16 @@ Object.assign(A,{
  dStDel:d=>{const e=dE();e.st.splice(+d.i,1);if(!e.t&&!e.st.length)delete H().diary[ui.dd];save();refresh()},
  dPrompt:()=>{const pool=[...DECKS.self.q,...DECKS.deep.q],q=pool[Math.floor(Math.random()*pool.length)][L],el=$('#dt');el.value+=(el.value?'\n':'')+q+'\n';I.diary(el);el.focus()},
  /* planner */
- plTog:(d,el)=>{const p=plan(d.v);if(!p)return;p.done=!p.done;save();if(p.done)burst(el,['✨','⭐','✓']);const day=H().plans.filter(x=>x.d===p.d);refresh();if(p.done&&day.length>1&&day.every(x=>x.done)){confetti();toast(t('everything_done'))}},
- plDel:(d,el)=>{const row=el.closest('.it');if(row)row.classList.add('out');setTimeout(()=>{const a=H().plans,i=a.findIndex(p=>p.id===d.v);if(i<0)return;const rm=a.splice(i,1)[0];save();refresh();toast(t('deleted'),t('undo'),()=>{a.splice(i,0,rm);save();refresh()})},200)},
+ plTog:(d,el)=>{const p=plan(d.v);if(!p)return;p.done=!p.done;save();if(p.done)burst(el,['✨','⭐','✓']);const day=plArr(p.id).filter(x=>x.d===p.d);refresh();if(p.done&&day.length>1&&day.every(x=>x.done)){confetti();toast(t('everything_done'))}},
+ plDel:(d,el)=>{const row=el.closest('.it');if(row)row.classList.add('out');setTimeout(()=>{const a=plArr(d.v),i=a.findIndex(p=>p.id===d.v);if(i<0)return;const rm=a.splice(i,1)[0];save();refresh();toast(t('deleted'),t('undo'),()=>{a.splice(i,0,rm);save();refresh()})},200)},
  plMove:d=>{const p=plan(d.v),x=parse(p.d);x.setDate(x.getDate()+1);p.d=dstr(x);save();refresh();toast(t('pl_moved'))},
  plDay:d=>{ui.pd=d.v;refresh()},plWeek:d=>{const x=parse(ui.pd);x.setDate(x.getDate()+ +d.v);ui.pd=dstr(x);refresh()},
  /* garage */
  carSel:d=>{ui.car=d.v;refresh(true)},carNew:()=>{ui.ce={em:'🚗',photo:''};sheet(carForm())},carEdit:()=>{ui.ce={...car()};sheet(carForm())},
  ceEm:d=>{ui.ce.em=d.v;sheet(carForm())},cePhotoRm:()=>{ui.ce.photo='';sheet(carForm())},
- carDel:()=>{const a=H().cars,i=a.findIndex(c=>c.id===ui.ce.id);if(i<0)return;const rm=a.splice(i,1)[0],ids=rm.log.map(e=>e.id);H().exp=H().exp.filter(e=>!ids.includes(e.ref));ui.car=null;save();closeSheet();refresh(true);toast(t('deleted'))},
+ carDel:()=>{const a=S.cars,i=a.findIndex(c=>c.id===ui.ce.id);if(i<0)return;const rm=a.splice(i,1)[0],ids=rm.log.map(e=>e.id);S.exp=S.exp.filter(e=>!ids.includes(e.ref));ui.car=null;save();closeSheet();refresh(true);toast(t('deleted'))},
  cl:d=>{ui.cl=+d.v;refresh()},
- clDel:d=>{const c=car();c.log=c.log.filter(e=>e.id!==d.v);H().exp=H().exp.filter(e=>e.ref!==d.v);save();refresh();toast(t('deleted'))}
+ clDel:d=>{const c=car();c.log=c.log.filter(e=>e.id!==d.v);S.exp=S.exp.filter(e=>e.ref!==d.v);save();refresh();toast(t('deleted'))}
 });
 Object.assign(F,{
  auth:async()=>{const e=$('#au-e').value.trim().toLowerCase(),p=$('#au-p').value,b=$('#au-b');if(!/^\S+@\S+\.\S+$/.test(e))return toast(t('err_email'));if(p.length<6)return toast(t('err_pw'));
@@ -1318,13 +1320,13 @@ Object.assign(F,{
    if(error){const m=error.message||'';return toast(/not_found/.test(m)?t('sp_nf'):/already/.test(m)?t('sp_in'):/full/.test(m)?t('sp_full'):t('net_err'))}
    closeSheet();await pull();if(ROOT.spaces[data]){goSpace(data);confetti();toast(t('sp_joined',sname(ROOT.spaces[data])))}},
  dPlan:()=>{const i=$('#d-plan'),v=i.value.trim();if(!v)return;i.value='';H().plans.push({id:uid(),d:ui.dd,t:v,done:false,tm:''});save();refresh();const n=$('#d-plan');if(n)n.focus()},
- plan:()=>{const i=$('#in-plan'),v=i.value.trim();if(!v)return;const id=uid();H().plans.push({id,d:ui.pd,t:v,done:false,tm:$('#in-ptm').value||''});i.value='';$('#in-ptm').value='';save();ui.newItem='pl'+id;refresh();const n=$('#in-plan');if(n)n.focus()},
+ plan:()=>{const i=$('#in-plan'),v=i.value.trim();if(!v)return;const id=uid();S.plans.push({id,d:ui.pd,t:v,done:false,tm:$('#in-ptm').value||''});i.value='';$('#in-ptm').value='';save();ui.newItem='pl'+id;refresh();const n=$('#in-plan');if(n)n.focus()},
  car:()=>{const n=$('#ce-name').value.trim();if(!n)return toast(t('err_name'));const g=id=>$('#'+id).value.trim(),c=ui.ce;Object.assign(c,{name:n,plate:g('ce-plate').toUpperCase(),year:g('ce-year'),odo:nf(g('ce-odo')),bud:nf(g('ce-bud')),bought:g('ce-bought'),price:nf(g('ce-price')),insp:g('ce-insp'),inspNext:g('ce-inspn'),ins:g('ce-ins'),notes:g('ce-notes')});
    if(c.insp&&!c.inspNext){const x=parse(c.insp);x.setFullYear(x.getFullYear()+1);c.inspNext=dstr(x)}
-   if(c.id){const i=H().cars.findIndex(x=>x.id===c.id);H().cars[i]=c}else{c.id=uid();c.log=[];H().cars.push(c)}ui.car=c.id;save();closeSheet();refresh(true)},
+   if(c.id){const i=S.cars.findIndex(x=>x.id===c.id);S.cars[i]=c}else{c.id=uid();c.log=[];S.cars.push(c)}ui.car=c.id;save();closeSheet();refresh(true)},
  carLog:()=>{const c=car(),cost=nf($('#cl-a').value),note=$('#cl-t').value.trim().slice(0,60),odo=nf($('#cl-o').value);if(!cost&&!note&&!odo)return toast(t('bud_bad'));const e={id:uid(),d:$('#cl-d').value||today(),k:ui.cl,t:note,cost,odo};c.log.push(e);if(odo>(c.odo||0))c.odo=odo;
    if(ui.cl===5){c.insp=e.d;const x=parse(e.d);x.setFullYear(x.getFullYear()+1);c.inspNext=dstr(x)}
-   if(cost)H().exp.push({d:e.d,a:cost,c:2,who:ME.id,t:(c.em+' '+c.name+': '+(note||CLOG[ui.cl][L+1])).slice(0,60),ref:e.id});
+   if(cost)S.exp.push({d:e.d,a:cost,c:2,who:ME.id,t:(c.em+' '+c.name+': '+(note||CLOG[ui.cl][L+1])).slice(0,60),ref:e.id});
    ['cl-a','cl-t','cl-o'].forEach(id=>$('#'+id).value='');save();ui.newItem='cl'+e.id;refresh()}
 });
 Object.assign(C,{
@@ -1649,10 +1651,10 @@ sy_t:['Синхронізація','Sync','Synchronizacja'],sy_d:['Оберіт�
 sy_all:['Усе','Everything','Wszystko'],sy_q:['Синхронізувати попередні дані?','Sync earlier data?','Synchronizować wcześniejsze dane?'],sy_qd:['«{0}» з «{1}»: об’єднати все, що вже є в обох місцях, чи синхронізувати лише нове від сьогодні?','“{0}” with “{1}”: merge everything already in both places, or sync only new items from today?','„{0}” z „{1}”: połączyć wszystko, co już jest w obu miejscach, czy synchronizować tylko nowe od dziś?'],sy_yes:['Так, усе','Yes, everything','Tak, wszystko'],sy_new:['Лише нове','Only new','Tylko nowe'],sy_n:['{0} з {1}','{0} of {1}','{0} z {1}'],sy_btn:['🔄 Синхронізація','🔄 Sync','🔄 Synchronizacja']
 });
 const SYK=[['shop','shop'],['budget','exp'],['calendar','events'],['movies','movies'],['wishes','wishes'],['dreams','bucket'],['dates','dates'],['intim','intim']];
-const syName=m=>m==='calendar'?t('tab_cal'):m==='intim'?mt('intim'):mt(m);
-const syEm=m=>m==='calendar'?'📅':MODS[m].em;
-const syAvail=(s,m)=>m==='intim'?s.type==='couple':true;
-const syGet=(sid,m)=>((ME.ui.sync||{})[sid]||{})[m];
+let syName=m=>m==='calendar'?t('tab_cal'):m==='intim'?mt('intim'):mt(m);
+let syEm=m=>m==='calendar'?'📅':MODS[m].em;
+let syAvail=(s,m)=>m==='intim'?s.type==='couple':true;
+let syGet=(sid,m)=>((ME.ui.sync||{})[sid]||{})[m];
 function sySet(sid,m,v){ME.ui.sync=Object.assign({},ME.ui.sync||{});ME.ui.sync[sid]=Object.assign({},ME.ui.sync[sid]||{});if(v)ME.ui.sync[sid][m]=v;else delete ME.ui.sync[sid][m]}
 const hsh=o=>{const s=JSON.stringify(o,(k,v)=>k==='_c'?undefined:v);let h=5381;for(let i=0;i<s.length;i++)h=(h*33^s.charCodeAt(i))>>>0;return h.toString(36)};
 let mirroring=false;
@@ -1740,6 +1742,27 @@ Object.assign(A,{
  edTh:d=>{ME.custom='';ME.th=d.v;save();applyTheme();refresh()},edMode:d=>{ME.ui.mode=d.v;save();applyTheme();refresh()},edStyle:d=>{ME.ui.style=d.v;save();applyTheme();refresh()}
 });
 C.edCustom=el=>{ME.custom=el.value;save();applyTheme();refresh()};
+/* ================= v12: sync every module ================= */
+SYK.length=0;[['plan','plans'],['shop','shop'],['chores','chores'],['budget','exp'],['calendar','events'],['garage','cars'],['movies','movies'],['wishes','wishes'],['dreams','bucket'],['dates','dates'],['notes','notes'],['poo','poo'],['intim','intim'],['live','sessions']].forEach(x=>SYK.push(x));
+syAvail=function(s,m){if(m==='intim')return s.type==='couple';if(m==='live')return SHAREABLE.includes(s.type);return true};
+const syName0=syName;syName=m=>m==='live'?t('tr_t'):m==='calendar'?t('tab_cal'):mt(m);
+syEm=m=>m==='calendar'?'📅':MODS[m].em;
+/* the tracker keeps its own sharing switch: map it */
+const _syGet=syGet;syGet=(sid,m)=>{if(m==='live'){const s=ROOT.spaces[sid];return s&&shareOn(s)?{from:''}:undefined}return _syGet(sid,m)};
+const _sySet=sySet;sySet=(sid,m,v)=>{if(m==='live'){ME.ui.share=Object.assign({},ME.ui.share||{},{[sid]:!!v});const s=ROOT.spaces[sid];if(s)shareSync(s);return}_sySet(sid,m,v);
+  if(v){const s=ROOT.spaces[sid],H0=H();if(s){s.mods=Object.assign({},s.mods,{[m]:true});H0.mods=Object.assign({},H0.mods,{[m]:true})}}};
+/* modules that normally live only in Personal (planner, garage) or only in groups (chores, notes) appear where they are synced */
+const PERSONAL_ONLY=['plan','garage'],GROUP_ONLY=['chores','notes'];
+MODS.plan.ty=undefined;MODS.garage.ty=undefined;MODS.chores.ty=undefined;MODS.notes.ty=undefined;
+window.modRule=(s,id)=>{if(s.type!=='solo'&&PERSONAL_ONLY.includes(id))return s.mods[id]===true;if(s.type==='solo'&&GROUP_ONLY.includes(id))return s.mods[id]===true;return undefined};
+/* mirror skips the tracker (handled by its own sharing) */
+const _mirrorAll=mirrorAll;mirrorAll=function(){const keep=SYK.slice();const i=SYK.findIndex(x=>x[0]==='live');if(i>=0)SYK.splice(i,1);try{return _mirrorAll()}finally{SYK.length=0;keep.forEach(x=>SYK.push(x))}};
+/* the "Everything" switch also covers modules that are hidden for adults-only */
+A.syAll=d=>{const s=ROOT.spaces[d.v],ms=SYK.map(x=>x[0]).filter(m=>syAvail(s,m)&&(m!=='intim'||ME.adult)),off=ms.filter(m=>!syGet(d.v,m));if(!off.length){ms.forEach(m=>sySet(d.v,m,null));save();refresh();return}syAsk(d.v,off)};
+const _syGo=A.syGo;A.syGo=d=>{const{sid,mods}=ui.syq;const live=mods.includes('live');if(live){sySet(sid,'live',{from:''});if(d.v==='new'){const s=ROOT.spaces[sid];/* keep only future entries out of the group */}ui.syq.mods=mods.filter(m=>m!=='live')}if(ui.syq.mods.length)_syGo(d);else{closeSheet();save();sync();refresh()}};
+/* sync card moves to the top of the profile, with a quick button in the header */
+const _usS3=R.us;R.us=()=>{let h=_usS3();h=h.replace(`<button class="btn ghost sm" data-a="logout">`,`<button class="btn sm" data-a="syJump">${t('sy_btn')}</button><button class="btn ghost sm" data-a="logout">`);return h};
+A.syJump=()=>{const c=$('#sycard');if(c){c.scrollIntoView({behavior:'smooth',block:'start'});c.classList.remove('flash2');void c.offsetWidth;c.classList.add('flash2')}};
 
 /* ================= boot ================= */
 applyTheme();loading(true);
