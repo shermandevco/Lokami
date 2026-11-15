@@ -439,6 +439,10 @@ button.av{font-size:22px}
 .trkb.on{background:color-mix(in srgb,var(--sc) 18%,var(--surface));box-shadow:inset 0 0 0 2px var(--sc)}
 @media (min-width:960px){.trkgrid{grid-template-columns:repeat(7,1fr)}}
 @media (max-width:959px){.trkgrid{grid-template-columns:repeat(4,1fr);gap:6px}.trkb{padding:10px 2px;font-size:11.5px}.trkb span{font-size:20px}.trkring{width:72px;height:72px;font-size:32px}}
+
+.pp{display:flex;align-items:center;gap:12px;padding:8px 10px;border-radius:16px}.pp.mine{background:var(--soft)}
+.ppav{position:relative;width:46px;height:36px;flex:none;font-size:22px}.ppav i{position:absolute;left:18px;top:6px;font-style:normal;font-size:22px;filter:drop-shadow(0 0 0 var(--surface))}
+.ppn{display:flex;flex-direction:column;align-items:flex-end;line-height:1}.ppn b{font-family:var(--display);font-size:20px}.ppn small{font-size:11px;color:var(--mut);font-weight:700}
 </style>
 </head>
 <body>
@@ -1498,6 +1502,37 @@ function lvSum(){const x=ui.lv,ps=[...new Set(H().intim.map(e=>e.p).filter(Boole
 const lvRd=()=>{const x=ui.lv;if(!x)return;const p=$('#lv-p'),n=$('#lv-n');if(p)x.p=p.value.trim();if(n)x.n=n.value.trim()};
 Object.assign(A,{lvR:d=>{lvRd();ui.lv.r=+d.v;lvSum()},lvProt:()=>{lvRd();ui.lv.prot=!ui.lv.prot;lvSum()},lvP:d=>{lvRd();ui.lv.p=d.v;lvSum()},
  lvSave:()=>{lvRd();saveSession(ui.lv);ui.lv=null;save();closeSheet();confetti();refresh()}});
+/* ================= v8: who knows whom since when + shared intimacy ================= */
+Object.assign(T,{
+pp_t:['Хто з ким і скільки','Who and for how long','Kto z kim i jak długo'],pp_me:['Ти і {0}','You and {0}','Ty i {0}'],pp_set:['Вказати дату','Set the date','Ustaw datę'],pp_when:['Коли ви познайомились?','When did you meet?','Kiedy się poznaliście?'],pp_none:['дата не вказана','no date yet','brak daty'],pp_hint:['Кожна пара сама вказує свою дату знайомства.','Each pair sets their own date of meeting.','Każda para ustawia własną datę poznania.'],pp_clear:['Прибрати дату','Remove date','Usuń datę'],
+is_t:['Спільна близькість з партнером','Shared intimacy with your partner','Wspólna bliskość z partnerem'],is_d:['Увімкнено: ваші записи близькості бачить партнер, а його записи (якщо він теж увімкнув) з’являються у вашому журналі й статистиці.','When on, your partner sees your intimacy entries, and their entries (if they turned it on too) appear in your journal and stats.','Gdy włączone, partner widzi twoje wpisy bliskości, a jego wpisy (jeśli też włączył) pojawiają się w twoim dzienniku i statystykach.'],is_wait:['Чекаємо, поки {0} теж увімкне','Waiting for {0} to turn it on too','Czekamy, aż {0} też włączy'],is_on:['Синхронізовано з {0}','Synced with {0}','Zsynchronizowano z {0}'],is_from:['від {0}','from {0}','od {0}']
+});
+const pairKey=(a,b)=>[a,b].sort().join('|');
+const metOf=(s,a,b)=>(s.met||{})[pairKey(a,b)]||'';
+function pairsCard(){if(!['friends','mates','family'].includes(S.type)||S.members.length<2)return'';const ms=M(),td=today(),rows=[];
+  for(let i=0;i<ms.length;i++)for(let j=i+1;j<ms.length;j++){const a=ms[i],b=ms[j],d=metOf(S,a.id,b.id),mine=a.id===ME.id||b.id===ME.id;rows.push({a,b,d,mine,n:d?Math.max(0,diff(d,td)):-1})}
+  rows.sort((x,y)=>(y.mine-x.mine)||(y.n-x.n));
+  return `<div class="card st col"><div class="row sp"><h2>🤝 ${t('pp_t')}</h2></div>${rows.map(r=>{const o=r.a.id===ME.id?r.b:r.a;return `<div class="pp ${r.mine?'mine':''}"><span class="ppav">${r.a.a}<i>${r.b.a}</i></span><div class="grow"><b>${r.mine?esc(t('pp_me',o.n)):esc(r.a.n)+' '+t('and')+' '+esc(r.b.n)}</b><div class="mut sm">${r.d?fmtY(r.d):t('pp_none')}</div></div>${r.d?`<span class="ppn"><b class="num">${num(r.n)}</b><small>${pl(r.n,'day')}</small></span>`:''}${r.mine?`<button class="xb" data-a="ppEdit" data-v="${o.id}" aria-label="${t('pp_set')}">✏️</button>`:''}</div>`}).join('')}<span class="mut sm">${t('pp_hint')}</span></div>`}
+const _homeP=R.home;R.home=()=>{const h=_homeP(),c=pairsCard();if(!c)return h;const i=h.indexOf('<div class="hero');if(i<0)return h+c;const j=h.indexOf('</div></div>',h.indexOf('class="ring"',i));const k=j<0?-1:j+12;return k>0?h.slice(0,k)+c+h.slice(k):c+h};
+
+/* shared intimacy between partners */
+const coupleSp=()=>mySpaces().filter(s=>s.type==='couple');
+const isOn=s=>!!((ME.ui.intimShare||{})[s.id]);
+function mirrorIntim(){coupleSp().forEach(s=>{s.intimS=s.intimS||{};if(isOn(s)){const cp=JSON.stringify(H().intim||[]);if(JSON.stringify(s.intimS[ME.id]||[])!==cp)s.intimS[ME.id]=JSON.parse(cp)}else if(s.intimS[ME.id])delete s.intimS[ME.id]})}
+const _saveI=save;save=function(){if(ME&&H())mirrorIntim();_saveI()};
+function partnerIntim(){const out=[];coupleSp().forEach(s=>{if(!isOn(s))return;Object.entries(s.intimS||{}).forEach(([id,arr])=>{if(id===ME.id||!s.members.includes(id))return;(arr||[]).forEach(e=>out.push(Object.assign({},e,{who:id})))})});return out}
+function intimShareCard(){const cs=coupleSp();if(!cs.length)return'';return `<div class="card st col"><div><h2>💞 ${t('is_t')}</h2><p class="mut sm" style="margin:4px 0 0">${t('is_d')}</p></div>${cs.map(s=>{const p=s.members.find(x=>x!==ME.id),pn=p?wn(p):'—',theirs=p&&(s.intimS||{})[p];return `<div class="row"><span style="font-size:22px">${p?wa(p):'💞'}</span><div class="grow"><b>${esc(sname(s))}</b>${isOn(s)?`<div class="mut sm">${theirs?'✓ '+esc(t('is_on',pn)):'⏳ '+esc(t('is_wait',pn))}</div>`:''}</div>${sw(isOn(s),'isTog',s.id)}</div>`}).join('')}</div>`}
+const _intimR=R.intim;R.intim=()=>{if(S.type!=='solo')return _intimR();const own=S.intim,pe=partnerIntim(),n0=own.length;if(!pe.length)return _intimR()+intimShareCard();
+  S.intim=own.concat(pe);let h;try{h=_intimR()}finally{S.intim=own}
+  h=h.replace(/<button class="xb" data-a="inEdit" data-i="(\d+)"[^>]*>✏️<\/button><button class="xb" data-a="del" data-k="intim" data-i="\1"[^>]*>×<\/button>/g,(m,i)=>{i=+i;if(i<n0)return m;const e=pe[i-n0];return `<span class="tag">${wa(e.who)} ${esc(t('is_from',wn(e.who)))}</span>`});
+  return h+intimShareCard()};
+Object.assign(A,{
+ ppEdit:d=>{ui.pp=d.v;const cur=metOf(S,ME.id,d.v);sheet(`<h1>${wa(d.v)} ${esc(t('pp_me',wn(d.v)))}</h1><label class="f" for="pp-d">${t('pp_when')}<input class="inp" type="date" id="pp-d" value="${cur}" max="${today()}"></label><button class="btn" data-a="ppSave">${t('save')}</button>${cur?`<button class="btn danger" data-a="ppClear">${t('pp_clear')}</button>`:''}`)},
+ ppSave:()=>{const v=$('#pp-d').value;S.met=Object.assign({},S.met||{});if(v)S.met[pairKey(ME.id,ui.pp)]=v;else delete S.met[pairKey(ME.id,ui.pp)];save();closeSheet();refresh()},
+ ppClear:()=>{S.met=Object.assign({},S.met||{});delete S.met[pairKey(ME.id,ui.pp)];save();closeSheet();refresh()},
+ isTog:d=>{ME.ui.intimShare=Object.assign({},ME.ui.intimShare||{});ME.ui.intimShare[d.v]=!isOn(ROOT.spaces[d.v]);save();refresh()}
+});
+const _usR=R.us;R.us=()=>{const h=_usR(),c=intimShareCard();if(!c||!ME.adult)return h;const i=h.indexOf('<div class="card st col"><div class="f">'+t('lang'));return i<0?h+c:h.slice(0,i)+c+h.slice(i)};
 
 /* ================= boot ================= */
 applyTheme();loading(true);
