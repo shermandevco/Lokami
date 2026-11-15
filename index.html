@@ -456,6 +456,25 @@ button.av{font-size:22px}
 .sfold summary{list-style:none;cursor:pointer}.sfold summary::-webkit-details-marker{display:none}.sfold summary i{margin-left:auto;font-style:normal;font-size:11px;color:var(--mut);background:var(--surface2);border-radius:99px;padding:1px 7px}
 .sfold>.sn{padding-left:26px}
 .syg{border-radius:18px;background:var(--surface2);padding:6px 8px}.syh{display:flex;align-items:center;gap:10px;width:100%;text-align:left;padding:6px 4px}
+
+body.nosel{user-select:none;-webkit-user-select:none}
+.wed{position:relative;border-radius:26px;animation:wig .5s ease-in-out}
+@keyframes wig{0%{transform:rotate(0)}25%{transform:rotate(-.6deg)}75%{transform:rotate(.6deg)}100%{transform:rotate(0)}}
+.wed>:first-child{margin:0!important;pointer-events:none}
+.wed::after{content:"";position:absolute;inset:-3px;border-radius:28px;border:2px dashed color-mix(in srgb,var(--pri) 55%,transparent);pointer-events:none}
+.wed.off{opacity:.45;filter:saturate(.4)}
+.wctl{position:absolute;top:10px;right:10px;display:flex;gap:6px;z-index:3}
+.wctl .dh,.wbtn{width:38px;height:38px;border-radius:13px;display:grid;place-items:center;background:var(--surface);box-shadow:0 4px 14px rgba(0,0,0,.18);font-size:18px;padding:0;color:var(--ink)}
+.dragging{z-index:50!important;position:relative;box-shadow:0 26px 60px rgba(0,0,0,.35)!important;cursor:grabbing;opacity:.96}
+.wed.dragging::after{border-style:solid;border-color:var(--pri)}
+.sorting>[data-id]:not(.dragging){transition:transform .28s cubic-bezier(.2,.8,.2,1)}
+.edbar{display:flex;flex-direction:column;gap:12px;box-shadow:inset 0 0 0 2px var(--pri),var(--shadow)}
+.slbl2{display:flex;align-items:center;justify-content:space-between}.sedit{font-size:13px;width:28px;height:24px;border-radius:8px;background:var(--surface2)}
+#sidemods{display:flex;flex-direction:column;gap:2px}#sidemods.editing .sn{background:var(--surface2);cursor:default}#sidemods.editing .sn:hover{transform:none}
+#sidemods .dh{font-size:14px;padding:2px 6px;background:none}
+.wctl{top:-14px;right:16px;padding:3px;border-radius:16px;background:var(--pri);box-shadow:0 6px 18px color-mix(in srgb,var(--pri) 40%,transparent)}
+.wctl .dh,.wbtn{width:34px;height:30px;border-radius:12px;font-size:16px;box-shadow:none}
+.wed{margin-top:10px}
 </style>
 </head>
 <body>
@@ -1573,7 +1592,7 @@ R.home=()=>{const raw=_homeL(),tpl=document.createElement('template');tpl.innerH
   const wrap=(w,on)=>`<div class="wbox ${on?'':'off'}" data-id="${w}"><div class="wbar"><span class="dh" aria-label="drag">⠿</span><b>${t('w_'+w)}</b><button class="xb" data-a="wTog" data-v="${w}" aria-label="👁">${on?'👁':'🙈'}</button></div><div class="wbody">${blocks[w].outerHTML}</div></div>`;
   const vis=order.filter(w=>blocks[w]&&!hid.has(w)),hidden=order.filter(w=>blocks[w]&&hid.has(w));
   return top+`<p class="mut sm st span" style="margin:0">${t('lo_hint')}</p><div class="wlist span" id="wlist">${vis.map(w=>wrap(w,true)).join('')}</div>${hidden.length?`<h3 class="mut span" style="margin:6px 0 0">${t('lo_hidden')}</h3><div class="wlist span">${hidden.map(w=>wrap(w,false)).join('')}</div>`:''}`};
-const _afterHome=AFTER.home;AFTER.home=a=>{if(_afterHome)_afterHome(a);if(ui.homeEdit){$('#screen').querySelectorAll('.wbody [data-a]').forEach(e=>e.removeAttribute('data-a'));sortable($('#wlist'),ids=>{const L0=lay(),hid=L0.hidden||[];L0.home=[...ids,...WIDS.filter(w=>!ids.includes(w))];save()})}};
+var _afterHome=AFTER.home;AFTER.home=a=>{if(_afterHome)_afterHome(a);if(ui.homeEdit){$('#screen').querySelectorAll('.wbody [data-a]').forEach(e=>e.removeAttribute('data-a'));sortable($('#wlist'),ids=>{const L0=lay(),hid=L0.hidden||[];L0.home=[...ids,...WIDS.filter(w=>!ids.includes(w))];save()})}};
 
 /* ---- modules order + folders ---- */
 const BASEMODS=()=>['cards',...SUB.filter(modOn)];
@@ -1671,6 +1690,56 @@ Object.assign(A,{
 const _usS=R.us;R.us=()=>{const h=_usS(),c=syncCard();if(!c)return h;const i=h.indexOf('<div class="card st col"><div><h2>'+t('mods'));return i<0?h+c:h.slice(0,i)+c+h.slice(i)};
 /* carry over earlier intimacy-sharing choices */
 const _startS=startSession;startSession=async function(user){await _startS(user);if(!ME)return;const old=ME.ui.intimShare||{};let ch=false;Object.keys(old).forEach(sid=>{if(old[sid]&&ROOT.spaces[sid]&&!syGet(sid,'intim')){sySet(sid,'intim',{from:(ME.ui.intimFrom||{})[sid]?(ME.ui.intimFrom[sid]+'T00:00:00.000Z'):''});ch=true}});if(ch){ME.ui.intimShare={};save()}};
+/* ================= v11: in-place editing, animated drag & drop, sidebar editing, colours ================= */
+Object.assign(T,{lo_colors:['Кольори','Colours','Kolory'],lo_hintH:['Перетягуйте блоки за ⠿, ховайте 👁. Порядок бачать усі в просторі, кольори — лише ви.','Drag blocks by ⠿, hide with 👁. Everyone in the space sees the order; colours are just for you.','Przeciągaj bloki za ⠿, ukrywaj 👁. Kolejność widzą wszyscy w przestrzeni, kolory tylko ty.'],lo_side:['Редагувати меню','Edit menu','Edytuj menu']});
+/* animated, pointer-based drag & drop with FLIP; listeners live on window so moving the node never breaks the drag */
+sortable=function(box,onDone,opts){if(!box||box._sortable)return;box._sortable=true;opts=opts||{};
+  box.addEventListener('pointerdown',e=>{const h=e.target.closest('.dh');if(!h||!box.contains(h))return;let it=h.closest('[data-id]');while(it&&it.parentElement!==box)it=it.parentElement&&it.parentElement.closest('[data-id]');if(!it)return;
+    e.preventDefault();e.stopPropagation();const r0=it.getBoundingClientRect(),gx=e.clientX-r0.left,gy=e.clientY-r0.top;let px=e.clientX,py=e.clientY,raf=0,scrollT=0;
+    it.classList.add('dragging');box.classList.add('sorting');document.body.classList.add('nosel');
+    const kids=()=>[...box.children].filter(c=>c.dataset&&c.dataset.id);
+    const place=()=>{it.style.transform='none';const r=it.getBoundingClientRect();it.style.transform=`translate(${px-gx-r.left}px,${py-gy-r.top}px) scale(1.03)`};
+    const flip=(fn)=>{const sib=kids().filter(c=>c!==it),before=new Map(sib.map(c=>[c,c.getBoundingClientRect()]));fn();sib.forEach(c=>{const a=before.get(c),b=c.getBoundingClientRect(),dx=a.left-b.left,dy=a.top-b.top;if(!dx&&!dy)return;c.style.transition='none';c.style.transform=`translate(${dx}px,${dy}px)`;requestAnimationFrame(()=>{c.style.transition='transform .28s cubic-bezier(.2,.8,.2,1)';c.style.transform=''})})};
+    const hit=()=>{for(const c of kids()){if(c===it)continue;const r=c.getBoundingClientRect();if(px>=r.left&&px<=r.right&&py>=r.top&&py<=r.bottom){const wide=r.width>r.height*1.6,after=wide?py>r.top+r.height/2:(px>r.left+r.width/2||py>r.top+r.height*.7);
+        const ref=after?c.nextSibling:c;if(ref!==it&&it.nextSibling!==ref||(!after&&c!==it.nextSibling)){flip(()=>box.insertBefore(it,ref))}return}}};
+    const tick=()=>{raf=0;place();hit();place()};
+    const mv=ev=>{px=ev.clientX;py=ev.clientY;if(!raf)raf=requestAnimationFrame(tick);clearInterval(scrollT);const edge=70;if(py<edge||py>innerHeight-edge){const dir=py<edge?-1:1;scrollT=setInterval(()=>{window.scrollBy(0,dir*14);place()},16)}};
+    const up=()=>{removeEventListener('pointermove',mv);removeEventListener('pointerup',up);removeEventListener('pointercancel',up);clearInterval(scrollT);if(raf)cancelAnimationFrame(raf);
+      it.style.transition='transform .25s cubic-bezier(.2,.8,.2,1)';it.style.transform='';setTimeout(()=>{it.style.transition='';it.classList.remove('dragging')},260);box.classList.remove('sorting');document.body.classList.remove('nosel');
+      onDone(kids().map(c=>c.dataset.id))};
+    addEventListener('pointermove',mv,{passive:true});addEventListener('pointerup',up);addEventListener('pointercancel',up)})};
+
+/* ---- home: edit in place, same look ---- */
+R.home=()=>{const raw=_homeL(),tpl=document.createElement('template');tpl.innerHTML=raw;const kids=[...tpl.content.children],head=[],blocks={},rest=[];
+  kids.forEach(k=>{const w=k.dataset&&k.dataset.w;if(w&&!blocks[w])blocks[w]=k;else if(!w&&k.classList.contains('top'))head.push(k);else rest.push(k)});
+  const L0=lay(),order=[...(L0.home||[]).filter(w=>WIDS.includes(w)),...WIDS.filter(w=>!(L0.home||[]).includes(w))],hid=new Set(L0.hidden||[]),ed=ui.homeEdit;
+  const top=head.map(h=>{const g=h.querySelector('.grow');if(g)g.insertAdjacentHTML('afterend',`<button class="btn ${ed?'':'ghost'} sm" data-a="homeEdit">${ed?'✓ '+t('lo_done'):'✏️ '+t('lo_edit')}</button>`);return h.outerHTML}).join('');
+  if(!ed)return top+order.filter(w=>blocks[w]&&!hid.has(w)).map(w=>blocks[w].outerHTML).join('')+rest.map(r=>r.outerHTML).join('');
+  const box=w=>{const b=blocks[w],wide=b.classList.contains('hero')||b.classList.contains('inv');b.classList.remove('st');return `<div class="wed st ${wide?'span':''} ${hid.has(w)?'off':''}" data-id="${w}">${b.outerHTML}<div class="wctl"><span class="dh" title="⠿">⠿</span><button class="wbtn" data-a="wTog" data-v="${w}" aria-label="👁">${hid.has(w)?'🙈':'👁'}</button></div></div>`};
+  return top+edBar()+order.filter(w=>blocks[w]).map(box).join('')};
+function edBar(){const m=ME.ui.mode,st=ME.ui.style;return `<div class="card st span edbar"><div class="row sp" style="flex-wrap:wrap;gap:10px"><b>🎨 ${t('lo_colors')}</b>
+  <div class="row" style="flex-wrap:wrap;gap:8px">${Object.keys(THEMES).map(k=>`<button class="tsw ${!ME.custom&&ME.th===k?'on':''}" style="--a:${THEMES[k][0]};--b:${THEMES[k][1]}" data-a="edTh" data-v="${k}" aria-label="${t('th_'+k)}" title="${t('th_'+k)}"></button>`).join('')}<label class="tsw cst ${ME.custom?'on':''}" style="--a:${ME.custom||'#9a9a9a'};--b:${ME.custom||'#d0d0d0'}" title="${t('ap_custom')}">🎨<input type="color" data-i="pCustom" data-c="edCustom" value="${ME.custom||'#e6336e'}" aria-label="${t('ap_custom')}"></label></div></div>
+  <div class="row" style="flex-wrap:wrap;gap:8px"><div class="seg" style="flex:1;min-width:200px">${['auto','light','dark'].map(k=>`<button class="${m===k?'on':''}" data-a="edMode" data-v="${k}">${t('ap_'+k)}</button>`).join('')}</div><div class="seg" style="flex:1;min-width:160px">${['glass','vivid'].map(k=>`<button class="${st===k?'on':''}" data-a="edStyle" data-v="${k}">${t('ap_'+k)}</button>`).join('')}</div></div>
+  <span class="mut sm">${t('lo_hintH')}</span></div>`}
+AFTER.home=a=>{if(_afterHome)_afterHome(a);if(!ui.homeEdit)return;const sc=$('#screen');sc.querySelectorAll('.wed > :not(.wctl) [data-a], .wed > [data-a]:not(.wctl)').forEach(e=>e.removeAttribute('data-a'));sc._sortable=false;
+  sortable(sc,ids=>{const L0=lay();L0.home=[...ids,...WIDS.filter(w=>!ids.includes(w))];save();sync()})};
+
+/* ---- hub uses the animated sorter ---- */
+AFTER.together=()=>{if(!ui.hubEdit)return;const hb=$('#hub');sortable(hb,ids=>{const tree=modTree(),by={};tree.forEach(e=>by[typeof e==='string'?e:e.f]=e);const nt=ids.map(id=>by[id]).filter(Boolean);tree.forEach(e=>{const id=typeof e==='string'?e:e.f;if(!ids.includes(id))nt.push(e)});saveTree(nt);sync();chrome()})};
+
+/* ---- sidebar: edit button + drag & drop (top level and inside folders) ---- */
+const _chromeE=chrome;
+chrome=function(){_chromeE();const sd=$('#side');if(!sd||!S||!ME)return;const items=[...sd.querySelectorAll(':scope > .sn, :scope > details.sfold')].filter(b=>b.tagName==='DETAILS'||SUB.includes(b.dataset.v)||b.dataset.v==='cards');if(!items.length)return;
+  const lbl=[...sd.querySelectorAll('.slbl')].pop();lbl.classList.add('slbl2');lbl.innerHTML=`<span>${esc(sname(S))}</span><button class="sedit" data-a="sideEdit" aria-label="${t('lo_side')}" title="${t('lo_side')}">${ui.sideEdit?'✓':'✏️'}</button>`;
+  const wrap=document.createElement('div');wrap.id='sidemods';wrap.className=ui.sideEdit?'editing':'';lbl.after(wrap);items.forEach(b=>{b.dataset.id=b.tagName==='DETAILS'?b.dataset.f:b.dataset.v;wrap.appendChild(b)});
+  if(!ui.sideEdit)return;wrap.querySelectorAll('.sn').forEach(b=>{b.removeAttribute('data-a');if(!b.querySelector('.dh'))b.insertAdjacentHTML('afterbegin','<span class="dh">⠿</span>')});wrap.querySelectorAll('details').forEach(d=>{d.open=true;d.querySelectorAll(':scope > .sn').forEach(b=>b.dataset.id=b.dataset.v)});
+  sortable(wrap,ids=>{const tree=modTree(),by={};tree.forEach(e=>by[typeof e==='string'?e:e.f]=e);saveTree(ids.map(id=>by[id]).filter(Boolean));sync();if(cur==='together')refresh()});
+  wrap.querySelectorAll('details').forEach(d=>{d.addEventListener('click',e=>{if(ui.sideEdit&&e.target.closest('summary'))e.preventDefault()});sortable(d,ids=>{const tree=modTree(),f=tree.find(e=>e.f===d.dataset.f);if(f)f.items=ids.filter(x=>f.items.includes(x));saveTree(tree);sync()})})};
+Object.assign(A,{
+ sideEdit:()=>{ui.sideEdit=!ui.sideEdit;chrome()},
+ edTh:d=>{ME.custom='';ME.th=d.v;save();applyTheme();refresh()},edMode:d=>{ME.ui.mode=d.v;save();applyTheme();refresh()},edStyle:d=>{ME.ui.style=d.v;save();applyTheme();refresh()}
+});
+C.edCustom=el=>{ME.custom=el.value;save();applyTheme();refresh()};
 
 /* ================= boot ================= */
 applyTheme();loading(true);
