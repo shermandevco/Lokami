@@ -455,6 +455,7 @@ button.av{font-size:22px}
 .fold .fmini{font-size:20px;letter-spacing:2px;width:auto;height:44px;display:flex;align-items:center;padding:0 10px;border-radius:15px;background:var(--surface2);align-self:flex-start}
 .sfold summary{list-style:none;cursor:pointer}.sfold summary::-webkit-details-marker{display:none}.sfold summary i{margin-left:auto;font-style:normal;font-size:11px;color:var(--mut);background:var(--surface2);border-radius:99px;padding:1px 7px}
 .sfold>.sn{padding-left:26px}
+.syg{border-radius:18px;background:var(--surface2);padding:6px 8px}.syh{display:flex;align-items:center;gap:10px;width:100%;text-align:left;padding:6px 4px}
 </style>
 </head>
 <body>
@@ -1623,6 +1624,53 @@ Object.assign(F,{
 /* share only entries from the chosen date */
 mirrorIntim=function(){coupleSp().forEach(s=>{s.intimS=s.intimS||{};if(isOn(s)){const from=(ME.ui.intimFrom||{})[s.id]||'',arr=(H().intim||[]).filter(e=>!from||e.d>=from),cp=JSON.stringify(arr);if(JSON.stringify(s.intimS[ME.id]||[])!==cp)s.intimS[ME.id]=JSON.parse(cp)}else if(s.intimS[ME.id])delete s.intimS[ME.id]})};
 const _isCard=intimShareCard;intimShareCard=function(){let h=_isCard();coupleSp().forEach(s=>{const f=(ME.ui.intimFrom||{})[s.id];if(isOn(s)&&f)h=h.replace(`data-a="isTog" data-v="${s.id}"`,`data-a="isTog" data-v="${s.id}" title="${esc(t('is_from_d',fmtY(f)))}"`)});return h};
+/* ================= v10: two-way sync between "Personal" and groups ================= */
+Object.assign(T,{
+sy_t:['Синхронізація','Sync','Synchronizacja'],sy_d:['Оберіть, що синхронізувати між «Моє» і кожною групою. Працює в обидва боки: додали в групі — з’явиться у вас, додали в себе — з’явиться в групі. Видалення теж синхронізується.','Choose what to sync between “Personal” and each group. It works both ways: add in the group and it shows up for you, add in Personal and it shows up in the group. Deleting syncs too.','Wybierz, co synchronizować między „Moje” a każdą grupą. Działa w obie strony: dodasz w grupie, pojawi się u ciebie; dodasz u siebie, pojawi się w grupie. Usuwanie też się synchronizuje.'],
+sy_all:['Усе','Everything','Wszystko'],sy_q:['Синхронізувати попередні дані?','Sync earlier data?','Synchronizować wcześniejsze dane?'],sy_qd:['«{0}» з «{1}»: об’єднати все, що вже є в обох місцях, чи синхронізувати лише нове від сьогодні?','“{0}” with “{1}”: merge everything already in both places, or sync only new items from today?','„{0}” z „{1}”: połączyć wszystko, co już jest w obu miejscach, czy synchronizować tylko nowe od dziś?'],sy_yes:['Так, усе','Yes, everything','Tak, wszystko'],sy_new:['Лише нове','Only new','Tylko nowe'],sy_n:['{0} з {1}','{0} of {1}','{0} z {1}'],sy_btn:['🔄 Синхронізація','🔄 Sync','🔄 Synchronizacja']
+});
+const SYK=[['shop','shop'],['budget','exp'],['calendar','events'],['movies','movies'],['wishes','wishes'],['dreams','bucket'],['dates','dates'],['intim','intim']];
+const syName=m=>m==='calendar'?t('tab_cal'):m==='intim'?mt('intim'):mt(m);
+const syEm=m=>m==='calendar'?'📅':MODS[m].em;
+const syAvail=(s,m)=>m==='intim'?s.type==='couple':true;
+const syGet=(sid,m)=>((ME.ui.sync||{})[sid]||{})[m];
+function sySet(sid,m,v){ME.ui.sync=Object.assign({},ME.ui.sync||{});ME.ui.sync[sid]=Object.assign({},ME.ui.sync[sid]||{});if(v)ME.ui.sync[sid][m]=v;else delete ME.ui.sync[sid][m]}
+const hsh=o=>{const s=JSON.stringify(o,(k,v)=>k==='_c'?undefined:v);let h=5381;for(let i=0;i<s.length;i++)h=(h*33^s.charCodeAt(i))>>>0;return h.toString(36)};
+let mirroring=false;
+function mirrorAll(){if(mirroring||!ME||!H())return false;mirroring=true;let touched=false;const now=new Date().toISOString(),home=H();
+  try{for(const s of mySpaces()){if(s.type==='solo')continue;const cfg=(ME.ui.sync||{})[s.id]||{};
+    for(const[m,k] of SYK){const c=cfg[m];if(!c||!syAvail(s,m))continue;const lk=s.id+':'+k;home.snap=home.snap||{};const snap=home.snap[lk]=home.snap[lk]||{};
+      const A0=home[k]=home[k]||[],B0=s[k]=s[k]||[];[A0,B0].forEach((arr,ai)=>arr.forEach(it=>{if(!it._id){it._id=uid()+uid();if(ai===0&&!it.who&&(k==='intim'||k==='exp'))it.who=ME.id;touched=true}if(!it._c){it._c=now;touched=true}}));
+      const from=c.from||'',inScope=it=>!from||it._c>=from;const ia={},ib={};A0.forEach((x,i)=>ia[x._id]=i);B0.forEach((x,i)=>ib[x._id]=i);
+      const ids=new Set([...Object.keys(ia),...Object.keys(ib)]),delA=new Set(),delB=new Set();
+      ids.forEach(id=>{const a=id in ia?A0[ia[id]]:null,b=id in ib?B0[ib[id]]:null;if(!(a&&inScope(a)||b&&inScope(b)))return;const sv=snap[id];
+        if(a&&b){const ha=hsh(a),hb=hsh(b);if(ha===hb){snap[id]=ha;return}if(ha===sv){B0[ib[id]]=JSON.parse(JSON.stringify(b));A0[ia[id]]=JSON.parse(JSON.stringify(b));snap[id]=hb}else{B0[ib[id]]=JSON.parse(JSON.stringify(a));snap[id]=ha}touched=true}
+        else if(a){if(sv){delA.add(id);delete snap[id]}else{B0.push(JSON.parse(JSON.stringify(a)));snap[id]=hsh(a)}touched=true}
+        else{if(sv){delB.add(id);delete snap[id]}else{A0.push(JSON.parse(JSON.stringify(b)));snap[id]=hsh(b)}touched=true}});
+      if(delA.size)home[k]=A0.filter(x=>!delA.has(x._id));if(delB.size)s[k]=B0.filter(x=>!delB.has(x._id));
+      if(k==='events'||k==='intim'||k==='exp'){home[k].sort((x,y)=>x.d<y.d?-1:1);s[k].sort((x,y)=>x.d<y.d?-1:1)}}}}
+  finally{mirroring=false}return touched}
+const _saveS=save;save=function(){if(ME&&H())mirrorAll();_saveS()};
+const _applyS=applyRow;applyRow=function(sid,row){_applyS(sid,row);if(ME&&H()&&(ME.ui.sync||{})[sid]&&mirrorAll()){clearTimeout(syncT);syncT=setTimeout(sync,400)}};
+/* intimacy sharing now runs through the same two-way sync */
+mirrorIntim=function(){};partnerIntim=function(){return[]};
+intimShareCard=function(){return''};
+function syncCard(){const gs=mySpaces().filter(s=>s.type!=='solo');if(!gs.length)return'';
+  return `<div class="card st col" id="sycard"><div><h2>${t('sy_t')}</h2><p class="mut sm" style="margin:4px 0 0">${t('sy_d')}</p></div>${gs.map(s=>{const ms=SYK.map(x=>x[0]).filter(m=>syAvail(s,m)&&(m!=='intim'||ME.adult)),on=ms.filter(m=>syGet(s.id,m)).length,op=(ui.syOpen||{})[s.id];
+    return `<div class="syg"><button class="syh" data-a="syOpen" data-v="${s.id}"><span style="font-size:22px">${TYPES[s.type].em}</span><b class="grow">${esc(sname(s))}</b><span class="tag">${t('sy_n',on,ms.length)}</span><span>${op?'▴':'▾'}</span></button>
+      ${op?`<div class="col" style="gap:8px;padding:6px 4px 4px"><div class="row sp"><b>${t('sy_all')}</b>${sw(on===ms.length,'syAll',s.id)}</div>${ms.map(m=>`<div class="row"><span class="mic" style="--c:${m==='calendar'?'#3f7ae0':MODS[m].c}">${syEm(m)}</span><b class="grow">${syName(m)}</b>${sw(!!syGet(s.id,m),'syTog',s.id+'|'+m)}</div>`).join('')}</div>`:''}</div>`}).join('')}</div>`}
+function syAsk(sid,mods){ui.syq={sid,mods};const s=ROOT.spaces[sid];sheet(`<h1>🔄 ${t('sy_q')}</h1><p style="margin:0">${esc(t('sy_qd',mods.map(syName).join(', '),sname(s)))}</p><button class="btn" data-a="syGo" data-v="all">${t('sy_yes')}</button><button class="btn ghost" data-a="syGo" data-v="new">${t('sy_new')}</button><button class="btn ghost" data-a="closeSheet">${t('cancel')}</button>`)}
+Object.assign(A,{
+ syOpen:d=>{ui.syOpen=Object.assign({},ui.syOpen||{},{[d.v]:!(ui.syOpen||{})[d.v]});refresh()},
+ syTog:d=>{const[sid,m]=d.v.split('|');if(syGet(sid,m)){sySet(sid,m,null);save();refresh();return}syAsk(sid,[m])},
+ syAll:d=>{const s=ROOT.spaces[d.v],ms=SYK.map(x=>x[0]).filter(m=>syAvail(s,m)&&(m!=='intim'||ME.adult)),off=ms.filter(m=>!syGet(d.v,m));if(!off.length){ms.forEach(m=>sySet(d.v,m,null));save();refresh();return}syAsk(d.v,off)},
+ syGo:d=>{const{sid,mods}=ui.syq,now=new Date().toISOString(),home=H(),s=ROOT.spaces[sid];
+   if(d.v==='new'){mods.forEach(m=>{const k=SYK.find(x=>x[0]===m)[1];[home[k]||[],s[k]||[]].forEach(arr=>arr.forEach(it=>{if(!it._id)it._id=uid()+uid();if(!it._c||it._c>=now)it._c='2000-01-01T00:00:00.000Z'}))})}
+   mods.forEach(m=>sySet(sid,m,{from:d.v==='new'?now:''}));closeSheet();save();sync();confetti();refresh()}
+});
+const _usS=R.us;R.us=()=>{const h=_usS(),c=syncCard();if(!c)return h;const i=h.indexOf('<div class="card st col"><div><h2>'+t('mods'));return i<0?h+c:h.slice(0,i)+c+h.slice(i)};
+/* carry over earlier intimacy-sharing choices */
+const _startS=startSession;startSession=async function(user){await _startS(user);if(!ME)return;const old=ME.ui.intimShare||{};let ch=false;Object.keys(old).forEach(sid=>{if(old[sid]&&ROOT.spaces[sid]&&!syGet(sid,'intim')){sySet(sid,'intim',{from:(ME.ui.intimFrom||{})[sid]?(ME.ui.intimFrom[sid]+'T00:00:00.000Z'):''});ch=true}});if(ch){ME.ui.intimShare={};save()}};
 
 /* ================= boot ================= */
 applyTheme();loading(true);
