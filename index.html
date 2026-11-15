@@ -443,6 +443,18 @@ button.av{font-size:22px}
 .pp{display:flex;align-items:center;gap:12px;padding:8px 10px;border-radius:16px}.pp.mine{background:var(--soft)}
 .ppav{position:relative;width:46px;height:36px;flex:none;font-size:22px}.ppav i{position:absolute;left:18px;top:6px;font-style:normal;font-size:22px;filter:drop-shadow(0 0 0 var(--surface))}
 .ppn{display:flex;flex-direction:column;align-items:flex-end;line-height:1}.ppn b{font-family:var(--display);font-size:20px}.ppn small{font-size:11px;color:var(--mut);font-weight:700}
+
+.wlist{display:flex;flex-direction:column;gap:12px}
+.wbox{border-radius:24px;box-shadow:inset 0 0 0 2px var(--line);padding:8px;background:color-mix(in srgb,var(--surface) 40%,transparent);transition:opacity .2s,transform .2s,box-shadow .2s}
+.wbox.off{opacity:.5}.wbox.dragging{transform:scale(1.02);box-shadow:inset 0 0 0 2px var(--pri),0 20px 40px rgba(0,0,0,.25);z-index:5;position:relative}
+.wbar{display:flex;align-items:center;gap:10px;padding:2px 6px 8px}.wbar b{flex:1;font-size:13px}
+.dh{cursor:grab;touch-action:none;user-select:none;font-size:20px;line-height:1;padding:6px 8px;border-radius:10px;background:var(--surface2);color:var(--mut)}.dh:active{cursor:grabbing}
+.wbody{pointer-events:none;max-height:220px;overflow:hidden;-webkit-mask-image:linear-gradient(#000 75%,transparent);mask-image:linear-gradient(#000 75%,transparent)}.wbody>*{margin:0!important}
+.hub .tile{position:relative}.tile.dragging{transform:scale(1.05) rotate(-1.5deg);box-shadow:0 20px 40px rgba(0,0,0,.25);z-index:5}
+.tedit{position:absolute;right:8px;top:8px;display:flex;gap:4px;align-items:center}.tedit .xb{background:var(--surface2)}
+.fold .fmini{font-size:20px;letter-spacing:2px;width:auto;height:44px;display:flex;align-items:center;padding:0 10px;border-radius:15px;background:var(--surface2);align-self:flex-start}
+.sfold summary{list-style:none;cursor:pointer}.sfold summary::-webkit-details-marker{display:none}.sfold summary i{margin-left:auto;font-style:normal;font-size:11px;color:var(--mut);background:var(--surface2);border-radius:99px;padding:1px 7px}
+.sfold>.sn{padding-left:26px}
 </style>
 </head>
 <body>
@@ -1087,11 +1099,11 @@ const ring=(p,inner)=>{const C=2*Math.PI*40;return `<div class="ring"><svg viewB
 
 R.home=()=>{const td=today(),solo=S.type==='solo',g=grp(),now=new Date(),hr=now.getHours(),hp=H().plans.filter(p=>p.d===td),pd=hp.filter(p=>p.done).length;let hero;
   const fl=[12,34,58,80].map((l,i)=>`<span class="fl" style="left:${l}%;animation-delay:${i*1.5}s">${(g==='couple'?['💗','✨','💕','🤍']:['✨','⭐','💫','✨'])[i]}</span>`).join('');
-  if(solo)hero=`<div class="hero st">${fl}<div class="row sp"><div><div class="lbl">${wdL(now)}</div><div class="big num" id="cnt" data-n="${now.getDate()}">${now.getDate()}</div><div style="font-weight:700;margin-top:6px">${monT(now)}</div></div>${ring(hp.length?pd/hp.length:0,`<b>${pd}/${hp.length}</b><span>${t('plans_short')}</span>`)}</div><button class="gopill" style="margin-top:14px" data-a="go" data-v="diary">✍️ ${t('write_page')}</button></div>`;
+  if(solo)hero=`<div class="hero st" data-w="hero">${fl}<div class="row sp"><div><div class="lbl">${wdL(now)}</div><div class="big num" id="cnt" data-n="${now.getDate()}">${now.getDate()}</div><div style="font-weight:700;margin-top:6px">${monT(now)}</div></div>${ring(hp.length?pd/hp.length:0,`<b>${pd}/${hp.length}</b><span>${t('plans_short')}</span>`)}</div><button class="gopill" style="margin-top:14px" data-a="go" data-v="diary">✍️ ${t('write_page')}</button></div>`;
   else if(S.since){const d=Math.max(0,diff(S.since,td)),nx=MILES.find(x=>x>d)||d+1000,pv=[...MILES].reverse().find(x=>x<=d)||0;let parts='';
     if(d>31){const[y,m,dd]=ymd(parse(S.since),now);parts=' · <span style="opacity:.85">'+[y?y+' '+pl(y,'year'):'',m?m+' '+t('mo'):'',dd+' '+pl(dd,'day')].filter(Boolean).join(' · ')+'</span>'}
-    hero=`<div class="hero st">${fl}<div class="row sp"><div><div class="lbl">${t('hero_'+S.type)}</div><div class="big num" id="cnt" data-n="${d}">${d}</div><div style="font-weight:700;margin-top:6px">${pl(d,'day')}${parts}</div></div>${ring((d-pv)/(nx-pv),`<span>🎯 ${nx}</span><b>${nx-d}</b><span>${pl(nx-d,'day')}</span>`)}</div></div>`}
-  else hero=`<button class="hero st press" data-a="go" data-v="us" style="text-align:left;width:100%"><div class="lbl">${t('type_'+S.type)}</div><div style="font-family:var(--display);font-weight:700;font-size:20px;margin:8px 0">${t('hero_cta')}</div><span class="gopill">${t('set_date')}</span></button>`;
+    hero=`<div class="hero st" data-w="hero">${fl}<div class="row sp"><div><div class="lbl">${t('hero_'+S.type)}</div><div class="big num" id="cnt" data-n="${d}">${d}</div><div style="font-weight:700;margin-top:6px">${pl(d,'day')}${parts}</div></div>${ring((d-pv)/(nx-pv),`<span>🎯 ${nx}</span><b>${nx-d}</b><span>${pl(nx-d,'day')}</span>`)}</div></div>`}
+  else hero=`<button class="hero st press" data-w="hero" data-a="go" data-v="us" style="text-align:left;width:100%"><div class="lbl">${t('type_'+S.type)}</div><div style="font-family:var(--display);font-weight:700;font-size:20px;margin:8px 0">${t('hero_cta')}</div><span class="gopill">${t('set_date')}</span></button>`;
   const pool=[];decksFor().forEach(k=>{if(DECKS[k].lvl<3)DECKS[k].q.forEach((q,i)=>pool.push([k,i]))});
   const doy=Math.floor((now-new Date(now.getFullYear(),0,0))/864e5),[qk,qi]=pool[(doy*7)%pool.length],my=moodOf(ME.id,td);
   const wk=Math.floor(Date.now()/6048e5),ch=CHAL[g][wk%CHAL[g].length][L],cd=S.chal.w===wk&&S.chal.done,tiles=[];
@@ -1101,17 +1113,17 @@ R.home=()=>{const td=today(),solo=S.type==='solo',g=grp(),now=new Date(),hr=now.
   const up=upcoming(3),ln=S.notes[S.notes.length-1],de=H().diary[td],cars=solo?S.cars.flatMap(c=>[[c,t('car_insp'),c.inspNext],[c,t('car_ins'),c.ins]]).filter(x=>x[2]&&diff(td,x[2])<=30):[];
   return `<div class="top st"><div class="grow"><div class="mut sm" style="font-weight:700">${t('g'+(hr<5?0:hr<12?1:hr<18?2:3))}, ${esc(ME.n)}</div><h1>${esc(sname(S))}</h1></div><button class="av press" data-a="go" data-v="us" aria-label="${t('tab_us')}">${ME.a}</button></div>
   ${hero}
-  ${!solo&&S.members.length<2?`<div class="card st col inv"><b>${t('inv_home')}</b><div class="row sp"><span class="codebig">${S.code}</span><button class="btn sm" data-a="invite">🔗 ${t('inv_btn')}</button></div></div>`:''}
-  ${solo&&modOn('plan')?`<div class="card st col"><div class="row sp"><h2>${t('plans_today')}</h2><button class="btn ghost sm" data-a="go" data-v="plan" data-dir="fwd">${t('plans_all')}</button></div><div>${hp.slice(0,5).map(p=>`<div class="it ${p.done?'done':''}"><button class="ck" data-a="plTog" data-v="${p.id}" aria-label="✓">✓</button>${p.tm?`<span class="tag num">${p.tm}</span>`:''}<span class="tx">${esc(p.t)}</span></div>`).join('')||`<p class="mut sm" style="margin:0">${t('plans_none')}</p>`}</div></div>`:''}
-  ${modOn('mood')?`<div class="card st col"><div class="row sp"><h2>${t('how_today',esc(ME.n))}</h2></div><div class="moods">${moodBtns(my)}</div>${solo?'':`<div class="row" style="flex-wrap:wrap;gap:6px">${M().filter(m=>m.id!==ME.id).map(m=>`<span class="tag">${m.a} ${esc(m.n)} ${moodOf(m.id,td)||'·'}</span>`).join('')}</div>`}</div>`:''}
-  ${solo?`<button class="card st press" style="text-align:left" data-a="go" data-v="diary"><div class="row sp"><h2>${t('diary_today')}</h2><span class="tag">📖 ${Object.keys(H().diary).length}</span></div><p style="margin:8px 0 0;${de&&de.t?"font-family:'Caveat',cursive;font-size:22px;line-height:1.2":''}" class="${de&&de.t?'':'mut sm'}">${de&&de.t?esc(de.t.slice(0,110))+(de.t.length>110?'…':''):t('diary_cta')}</p></button>`:''}
-  <button class="qd st press" style="${grad(qk)}" data-a="play" data-v="${qk}" data-i="${qi}"><div class="lbl">${t('qod')} · ${DECKS[qk].n[L]}</div><p>${esc(DECKS[qk].q[qi][L])}</p><span class="go">${t('discuss')}</span></button>
-  <div class="card st col"><div class="row sp"><h2>${t('chal')}</h2><span class="tag">🏆 ${S.chalN}</span></div><p style="margin:0;font-weight:600">${esc(ch)}</p>${cd?`<span class="pill" style="align-self:flex-start">✓ ${t('chal_done')}</span>`:`<button class="btn sm" style="align-self:flex-start" data-a="chalDone">${t('done_btn')}</button>`}</div>
-  ${cars.length?`<button class="card st col press" style="text-align:left" data-a="go" data-v="garage" data-dir="fwd"><h2>${t('car_soon')}</h2>${cars.map(x=>`<div class="row sp"><span>${x[0].em} <b>${esc(x[0].name)}</b> · ${x[1]}</span><span class="pill ${due(x[2]).c}">${rel(due(x[2]).n)}</span></div>`).join('')}</button>`:''}
-  ${tiles.length?`<div class="grid2 st">${tiles.map((x,i)=>`<button class="stat" ${tiles.length%2&&i===tiles.length-1?'style="grid-column:1/-1"':''} data-a="go" data-v="${x[0]}" data-dir="fwd"><div class="row sp"><span style="font-size:22px">${x[1]}</span><span class="mut sm">${x[2]}</span></div><div class="n num">${x[3]}</div><div class="mut sm">${x[4]}</div></button>`).join('')}</div>`:''}
-  <div class="card st"><div class="row sp" style="margin-bottom:4px"><h2>${t('upcoming')}</h2><button class="btn ghost sm" data-a="go" data-v="calendar">${t('tab_cal')}</button></div>
+  ${!solo&&S.members.length<2?`<div class="card st col inv" data-w="invite"><b>${t('inv_home')}</b><div class="row sp"><span class="codebig">${S.code}</span><button class="btn sm" data-a="invite">🔗 ${t('inv_btn')}</button></div></div>`:''}
+  ${solo&&modOn('plan')?`<div class="card st col" data-w="plans"><div class="row sp"><h2>${t('plans_today')}</h2><button class="btn ghost sm" data-a="go" data-v="plan" data-dir="fwd">${t('plans_all')}</button></div><div>${hp.slice(0,5).map(p=>`<div class="it ${p.done?'done':''}"><button class="ck" data-a="plTog" data-v="${p.id}" aria-label="✓">✓</button>${p.tm?`<span class="tag num">${p.tm}</span>`:''}<span class="tx">${esc(p.t)}</span></div>`).join('')||`<p class="mut sm" style="margin:0">${t('plans_none')}</p>`}</div></div>`:''}
+  ${modOn('mood')?`<div class="card st col" data-w="mood"><div class="row sp"><h2>${t('how_today',esc(ME.n))}</h2></div><div class="moods">${moodBtns(my)}</div>${solo?'':`<div class="row" style="flex-wrap:wrap;gap:6px">${M().filter(m=>m.id!==ME.id).map(m=>`<span class="tag">${m.a} ${esc(m.n)} ${moodOf(m.id,td)||'·'}</span>`).join('')}</div>`}</div>`:''}
+  ${solo?`<button class="card st press" data-w="diary" style="text-align:left" data-a="go" data-v="diary"><div class="row sp"><h2>${t('diary_today')}</h2><span class="tag">📖 ${Object.keys(H().diary).length}</span></div><p style="margin:8px 0 0;${de&&de.t?"font-family:'Caveat',cursive;font-size:22px;line-height:1.2":''}" class="${de&&de.t?'':'mut sm'}">${de&&de.t?esc(de.t.slice(0,110))+(de.t.length>110?'…':''):t('diary_cta')}</p></button>`:''}
+  <button class="qd st press" data-w="qod" style="${grad(qk)}" data-a="play" data-v="${qk}" data-i="${qi}"><div class="lbl">${t('qod')} · ${DECKS[qk].n[L]}</div><p>${esc(DECKS[qk].q[qi][L])}</p><span class="go">${t('discuss')}</span></button>
+  <div class="card st col" data-w="chal"><div class="row sp"><h2>${t('chal')}</h2><span class="tag">🏆 ${S.chalN}</span></div><p style="margin:0;font-weight:600">${esc(ch)}</p>${cd?`<span class="pill" style="align-self:flex-start">✓ ${t('chal_done')}</span>`:`<button class="btn sm" style="align-self:flex-start" data-a="chalDone">${t('done_btn')}</button>`}</div>
+  ${cars.length?`<button class="card st col press" data-w="cars" style="text-align:left" data-a="go" data-v="garage" data-dir="fwd"><h2>${t('car_soon')}</h2>${cars.map(x=>`<div class="row sp"><span>${x[0].em} <b>${esc(x[0].name)}</b> · ${x[1]}</span><span class="pill ${due(x[2]).c}">${rel(due(x[2]).n)}</span></div>`).join('')}</button>`:''}
+  ${tiles.length?`<div class="grid2 st" data-w="tiles">${tiles.map((x,i)=>`<button class="stat" ${tiles.length%2&&i===tiles.length-1?'style="grid-column:1/-1"':''} data-a="go" data-v="${x[0]}" data-dir="fwd"><div class="row sp"><span style="font-size:22px">${x[1]}</span><span class="mut sm">${x[2]}</span></div><div class="n num">${x[3]}</div><div class="mut sm">${x[4]}</div></button>`).join('')}</div>`:''}
+  <div class="card st" data-w="upcoming"><div class="row sp" style="margin-bottom:4px"><h2>${t('upcoming')}</h2><button class="btn ghost sm" data-a="go" data-v="calendar">${t('tab_cal')}</button></div>
     ${up.map(e=>`<div class="ev"><div class="e">${e.e||'📌'}</div><div class="grow"><b>${esc(e.t)}</b><div class="mut sm">${fmt(e.o)}</div></div><span class="pill">${rel(diff(td,e.o))}</span></div>`).join('')||`<p class="mut sm" style="margin:8px 0 0">${t('no_events')}</p>`}</div>
-  ${modOn('notes')?`<button class="card st press" style="text-align:left" data-a="go" data-v="notes" data-dir="fwd"><div class="row sp"><h2>${mt('notes')}</h2><span class="tag">💌 ${S.notes.length}</span></div><p style="margin:8px 0 0" class="${ln?'':'mut sm'}">${ln?'«'+esc(ln.t)+'» <span class="mut sm">· '+esc(wn(ln.who))+'</span>':mt('notes',1)}</p></button>`:''}`};
+  ${modOn('notes')?`<button class="card st press" data-w="notes" style="text-align:left" data-a="go" data-v="notes" data-dir="fwd"><div class="row sp"><h2>${mt('notes')}</h2><span class="tag">💌 ${S.notes.length}</span></div><p style="margin:8px 0 0" class="${ln?'':'mut sm'}">${ln?'«'+esc(ln.t)+'» <span class="mut sm">· '+esc(wn(ln.who))+'</span>':mt('notes',1)}</p></button>`:''}`};
 
 R.together=()=>{const cnt={plan:S.plans.filter(p=>p.d===today()&&!p.done).length,shop:S.shop.filter(i=>!i.done).length,chores:S.chores.filter(i=>!i.done).length,movies:S.movies.filter(m=>m.s===0).length,dates:S.dates.filter(i=>!i.done).length,wishes:S.wishes.filter(i=>!i.done).length,dreams:S.bucket.filter(i=>!i.done).length,coupons:S.coupons.filter(c=>!c.used).length,garage:S.cars.length};
   return `<div class="top st"><h1>${TYPES[S.type].em} ${esc(sname(S))}</h1><button class="ibtn" data-a="modSheet" aria-label="${t('mods')}">⚙️</button></div>
@@ -1452,7 +1464,7 @@ chrome=function(){_chrome2();if(!ME||!S)return;const st=myStatus(),pill=`<button
     if(sx.length)sc.insertAdjacentHTML('afterbegin',sx.map(([id,v])=>`<button class="livebar" data-a="go" data-v="live">${esc(t('lv_busy',wn(id)))} <b class="livet" data-s="${v.start}">${hms(Date.now()-new Date(v.start))}</b></button>`).join(''))}}};
 /* who is doing what, on the home screen */
 const _home=R.home;R.home=()=>{let h=_home();if(S.type==='solo'||!S.status)return h;const others=M().filter(m=>m.id!==ME.id&&S.status[m.id]&&S.status[m.id].k!=='free');
-  if(!others.length)return h;const card=`<div class="card st col"><h2>${t('st_now')}</h2>${others.map(m=>{const v=S.status[m.id];return `<div class="row"><span class="av" style="box-shadow:none;background:var(--surface2)">${m.a}</span><b class="grow">${esc(m.n)}</b><span class="pill">${stLbl(v.k)}${STS[v.k]&&STS[v.k].track?` · <span class="livet num" data-s="${v.start}">${hms(Date.now()-new Date(v.start))}</span>`:''}</span></div>`}).join('')}</div>`;
+  if(!others.length)return h;const card=`<div class="card st col" data-w="now"><h2>${t('st_now')}</h2>${others.map(m=>{const v=S.status[m.id];return `<div class="row"><span class="av" style="box-shadow:none;background:var(--surface2)">${m.a}</span><b class="grow">${esc(m.n)}</b><span class="pill">${stLbl(v.k)}${STS[v.k]&&STS[v.k].track?` · <span class="livet num" data-s="${v.start}">${hms(Date.now()-new Date(v.start))}</span>`:''}</span></div>`}).join('')}</div>`;
   const i=h.indexOf('<div class="card st col">');return i<0?h+card:h.slice(0,i)+card+h.slice(i)};
 
 /* tracker screen */
@@ -1512,7 +1524,7 @@ const metOf=(s,a,b)=>(s.met||{})[pairKey(a,b)]||'';
 function pairsCard(){if(!['friends','mates','family'].includes(S.type)||S.members.length<2)return'';const ms=M(),td=today(),rows=[];
   for(let i=0;i<ms.length;i++)for(let j=i+1;j<ms.length;j++){const a=ms[i],b=ms[j],d=metOf(S,a.id,b.id),mine=a.id===ME.id||b.id===ME.id;rows.push({a,b,d,mine,n:d?Math.max(0,diff(d,td)):-1})}
   rows.sort((x,y)=>(y.mine-x.mine)||(y.n-x.n));
-  return `<div class="card st col"><div class="row sp"><h2>🤝 ${t('pp_t')}</h2></div>${rows.map(r=>{const o=r.a.id===ME.id?r.b:r.a;return `<div class="pp ${r.mine?'mine':''}"><span class="ppav">${r.a.a}<i>${r.b.a}</i></span><div class="grow"><b>${r.mine?esc(t('pp_me',o.n)):esc(r.a.n)+' '+t('and')+' '+esc(r.b.n)}</b><div class="mut sm">${r.d?fmtY(r.d):t('pp_none')}</div></div>${r.d?`<span class="ppn"><b class="num">${num(r.n)}</b><small>${pl(r.n,'day')}</small></span>`:''}${r.mine?`<button class="xb" data-a="ppEdit" data-v="${o.id}" aria-label="${t('pp_set')}">✏️</button>`:''}</div>`}).join('')}<span class="mut sm">${t('pp_hint')}</span></div>`}
+  return `<div class="card st col" data-w="pairs"><div class="row sp"><h2>🤝 ${t('pp_t')}</h2></div>${rows.map(r=>{const o=r.a.id===ME.id?r.b:r.a;return `<div class="pp ${r.mine?'mine':''}"><span class="ppav">${r.a.a}<i>${r.b.a}</i></span><div class="grow"><b>${r.mine?esc(t('pp_me',o.n)):esc(r.a.n)+' '+t('and')+' '+esc(r.b.n)}</b><div class="mut sm">${r.d?fmtY(r.d):t('pp_none')}</div></div>${r.d?`<span class="ppn"><b class="num">${num(r.n)}</b><small>${pl(r.n,'day')}</small></span>`:''}${r.mine?`<button class="xb" data-a="ppEdit" data-v="${o.id}" aria-label="${t('pp_set')}">✏️</button>`:''}</div>`}).join('')}<span class="mut sm">${t('pp_hint')}</span></div>`}
 const _homeP=R.home;R.home=()=>{const h=_homeP(),c=pairsCard();if(!c)return h;const i=h.indexOf('<div class="hero');if(i<0)return h+c;const j=h.indexOf('</div></div>',h.indexOf('class="ring"',i));const k=j<0?-1:j+12;return k>0?h.slice(0,k)+c+h.slice(k):c+h};
 
 /* shared intimacy between partners */
@@ -1533,6 +1545,84 @@ Object.assign(A,{
  isTog:d=>{ME.ui.intimShare=Object.assign({},ME.ui.intimShare||{});ME.ui.intimShare[d.v]=!isOn(ROOT.spaces[d.v]);save();refresh()}
 });
 const _usR=R.us;R.us=()=>{const h=_usR(),c=intimShareCard();if(!c||!ME.adult)return h;const i=h.indexOf('<div class="card st col"><div class="f">'+t('lang'));return i<0?h+c:h.slice(0,i)+c+h.slice(i)};
+/* ================= v9: customizable home + modules with folders (shared per space) ================= */
+Object.assign(T,{
+lo_edit:['Налаштувати','Customize','Dostosuj'],lo_done:['Готово','Done','Gotowe'],lo_hint2:['Перетягуйте за ⠿, 📁 переносить у папку. Зміни бачать усі учасники простору.','Drag by ⠿, 📁 moves into a folder. Everyone in this space sees the changes.','Przeciągaj za ⠿, 📁 przenosi do folderu. Zmiany widzą wszyscy w tej przestrzeni.'],lo_hidden:['Приховані','Hidden','Ukryte'],lo_hint:['Перетягуйте за ⠿, ховайте 👁. Зміни бачать усі учасники простору.','Drag by ⠿, hide with 👁. Everyone in this space sees the changes.','Przeciągaj za ⠿, ukrywaj 👁. Zmiany widzą wszyscy w tej przestrzeni.'],
+w_hero:['Лічильник','Counter','Licznik'],w_invite:['Запрошення','Invite','Zaproszenie'],w_plans:['Плани','Plans','Plany'],w_mood:['Настрій','Mood','Nastrój'],w_diary:['Щоденник','Diary','Dziennik'],w_qod:['Питання дня','Question of the day','Pytanie dnia'],w_chal:['Виклик тижня','Weekly challenge','Wyzwanie tygodnia'],w_cars:['Авто','Car','Auto'],w_tiles:['Плитки','Tiles','Kafelki'],w_upcoming:['Події','Events','Wydarzenia'],w_notes:['Записки','Notes','Liściki'],w_pairs:['Хто з ким','Who and whom','Kto z kim'],w_now:['Хто що робить','Who is doing what','Kto co robi'],
+fo_new:['＋ Папка','＋ Folder','＋ Folder'],fo_name:['Назва папки','Folder name','Nazwa folderu'],fo_move:['Перемістити в папку','Move to folder','Przenieś do folderu'],fo_none:['Без папки','No folder','Bez folderu'],fo_del:['Видалити папку','Delete folder','Usuń folder'],fo_del_d:['Модулі з папки повернуться на головну сітку.','Modules from the folder go back to the main grid.','Moduły z folderu wrócą na główną siatkę.'],fo_rename:['Перейменувати','Rename','Zmień nazwę'],fo_empty:['Папка порожня','The folder is empty','Folder jest pusty'],
+is_hist_t:['Поділитися попередніми записами?','Share your earlier entries?','Udostępnić wcześniejsze wpisy?'],is_hist_d:['Партнер може бачити всю вашу історію близькості або лише записи, додані від сьогодні.','Your partner can see your whole intimacy history or only entries added from today.','Partner może widzieć całą twoją historię bliskości albo tylko wpisy dodane od dziś.'],is_all:['Уся історія','Whole history','Cała historia'],is_new:['Лише від сьогодні','Only from today','Tylko od dziś'],is_from_d:['ділитеся записами від {0}','sharing entries from {0}','udostępniasz wpisy od {0}']
+});
+const WIDS=['hero','now','invite','pairs','plans','mood','diary','qod','chal','cars','tiles','upcoming','notes'];
+const lay=()=>{S.layout=S.layout||{};return S.layout};
+
+/* ---- generic pointer drag-sort (works with touch and mouse, lists and grids) ---- */
+function sortable(box,onDone){if(!box)return;box.querySelectorAll('.dh').forEach(h=>h.addEventListener('pointerdown',e=>{const it=h.closest('[data-id]');if(!it)return;e.preventDefault();try{h.setPointerCapture(e.pointerId)}catch(_){}
+  it.classList.add('dragging');const mv=ev=>{const x=ev.clientX,y=ev.clientY;const sibs=[...box.children].filter(c=>c.dataset&&c.dataset.id&&c!==it);
+    for(const c of sibs){const r=c.getBoundingClientRect();if(x>=r.left&&x<=r.right&&y>=r.top&&y<=r.bottom){const before=(r.width>r.height*1.6)?y<r.top+r.height/2:(x<r.left+r.width/2||y<r.top+r.height*.3);box.insertBefore(it,before?c:c.nextSibling);break}}};
+  const up=()=>{h.removeEventListener('pointermove',mv);h.removeEventListener('pointerup',up);h.removeEventListener('pointercancel',up);it.classList.remove('dragging');onDone([...box.children].map(c=>c.dataset&&c.dataset.id).filter(Boolean))};
+  h.addEventListener('pointermove',mv);h.addEventListener('pointerup',up);h.addEventListener('pointercancel',up)}))}
+
+/* ---- home ---- */
+const _homeL=R.home;
+R.home=()=>{const raw=_homeL(),tpl=document.createElement('template');tpl.innerHTML=raw;const kids=[...tpl.content.children],head=[],blocks={},rest=[];
+  kids.forEach(k=>{const w=k.dataset&&k.dataset.w;if(w&&!blocks[w])blocks[w]=k;else if(!w&&k.classList.contains('top'))head.push(k);else rest.push(k)});
+  const L0=lay(),order=[...(L0.home||[]).filter(w=>WIDS.includes(w)),...WIDS.filter(w=>!(L0.home||[]).includes(w))],hid=new Set(L0.hidden||[]),ed=ui.homeEdit;
+  const top=head.map(h=>{h.querySelector('.grow')&&h.querySelector('.grow').insertAdjacentHTML('afterend',`<button class="btn ghost sm" data-a="homeEdit">${ed?'✓ '+t('lo_done'):'✏️ '+t('lo_edit')}</button>`);return h.outerHTML}).join('');
+  if(!ed)return top+order.filter(w=>blocks[w]&&!hid.has(w)).map(w=>blocks[w].outerHTML).join('')+rest.map(r=>r.outerHTML).join('');
+  const wrap=(w,on)=>`<div class="wbox ${on?'':'off'}" data-id="${w}"><div class="wbar"><span class="dh" aria-label="drag">⠿</span><b>${t('w_'+w)}</b><button class="xb" data-a="wTog" data-v="${w}" aria-label="👁">${on?'👁':'🙈'}</button></div><div class="wbody">${blocks[w].outerHTML}</div></div>`;
+  const vis=order.filter(w=>blocks[w]&&!hid.has(w)),hidden=order.filter(w=>blocks[w]&&hid.has(w));
+  return top+`<p class="mut sm st span" style="margin:0">${t('lo_hint')}</p><div class="wlist span" id="wlist">${vis.map(w=>wrap(w,true)).join('')}</div>${hidden.length?`<h3 class="mut span" style="margin:6px 0 0">${t('lo_hidden')}</h3><div class="wlist span">${hidden.map(w=>wrap(w,false)).join('')}</div>`:''}`};
+const _afterHome=AFTER.home;AFTER.home=a=>{if(_afterHome)_afterHome(a);if(ui.homeEdit){$('#screen').querySelectorAll('.wbody [data-a]').forEach(e=>e.removeAttribute('data-a'));sortable($('#wlist'),ids=>{const L0=lay(),hid=L0.hidden||[];L0.home=[...ids,...WIDS.filter(w=>!ids.includes(w))];save()})}};
+
+/* ---- modules order + folders ---- */
+const BASEMODS=()=>['cards',...SUB.filter(modOn)];
+function modTree(){const L0=lay();let tree=JSON.parse(JSON.stringify(L0.mods||[]));const av=BASEMODS(),used=new Set();
+  tree=tree.map(e=>{if(typeof e==='string')return av.includes(e)&&!used.has(e)?(used.add(e),e):null;e.items=(e.items||[]).filter(x=>av.includes(x)&&!used.has(x)&&used.add(x));return e}).filter(Boolean);
+  av.forEach(m=>{if(!used.has(m))tree.push(m)});return tree}
+const modName=m=>m==='cards'?t('tab_cards'):mt(m),modDesc=m=>m==='cards'?t('cards_d2'):mt(m,1),modEm=m=>m==='cards'?'🃏':MODS[m].em,modCol=m=>m==='cards'?'#7b4bd6':MODS[m].c;
+const modCnt=()=>({plan:S.plans.filter(p=>p.d===today()&&!p.done).length,shop:S.shop.filter(i=>!i.done).length,chores:S.chores.filter(i=>!i.done).length,movies:S.movies.filter(m=>m.s===0).length,dates:S.dates.filter(i=>!i.done).length,wishes:S.wishes.filter(i=>!i.done).length,dreams:S.bucket.filter(i=>!i.done).length,coupons:S.coupons.filter(c=>!c.used).length,garage:S.cars.length});
+function saveTree(tree){lay().mods=tree;save()}
+R.together=()=>{const tree=modTree(),cnt=modCnt(),ed=ui.hubEdit;
+  const tile=(m,inF)=>`<${ed?'div':'button'} class="tile st" style="--c:${modCol(m)}" data-id="${m}" ${ed?'':`data-a="go" data-v="${m}" data-dir="fwd"`}><span class="ic">${modEm(m)}</span>${cnt[m]&&!ed?`<span class="bd num">${cnt[m]}</span>`:''}<div><b>${modName(m)}</b><br><span>${modDesc(m)}</span></div>${ed?`<div class="tedit"><span class="dh">⠿</span><button class="xb" data-a="foMove" data-v="${m}" aria-label="${t('fo_move')}">📁</button></div>`:''}</${ed?'div':'button'}>`;
+  const folder=f=>`<${ed?'div':'button'} class="tile st fold" style="--c:#888" data-id="${f.f}" ${ed?'':`data-a="foOpen" data-v="${f.f}"`}><span class="fmini">${f.items.slice(0,4).map(modEm).join('')||'📁'}</span><div><b>📁 ${esc(f.n)}</b><br><span>${f.items.map(modName).slice(0,3).join(', ')||t('fo_empty')}</span></div>${ed?`<div class="tedit"><span class="dh">⠿</span><button class="xb" data-a="foEdit" data-v="${f.f}" aria-label="${t('fo_rename')}">✏️</button></div>`:''}</${ed?'div':'button'}>`;
+  return `<div class="top st"><h1>${TYPES[S.type].em} ${esc(sname(S))}</h1><button class="btn ghost sm" data-a="hubEdit">${ed?'✓ '+t('lo_done'):'✏️ '+t('lo_edit')}</button><button class="ibtn" data-a="modSheet" aria-label="${t('mods')}">⚙️</button></div>
+  ${ed?`<p class="mut sm st span" style="margin:0">${t('lo_hint2')}</p>`:''}
+  <div class="grid2 hub" id="hub">${tree.map(e=>typeof e==='string'?tile(e):folder(e)).join('')}
+  ${ed?`<button class="tile st" style="--c:#888;box-shadow:none;background:none;border:2px dashed var(--line)" data-a="foNew"><span class="ic">📁</span><div><b>${t('fo_new')}</b></div></button>`:`<button class="tile st" style="--c:#888;box-shadow:none;background:none;border:2px dashed var(--line)" data-a="modSheet"><span class="ic">＋</span><div><b>${t('mods')}</b><br><span>${t('mods_d')}</span></div></button>`}</div>`};
+AFTER.together=()=>{if(ui.hubEdit)sortable($('#hub'),ids=>{const tree=modTree(),by={};tree.forEach(e=>by[typeof e==='string'?e:e.f]=e);saveTree(ids.map(id=>by[id]).filter(Boolean));chrome()})};
+function folderSheet(fid){const f=modTree().find(e=>e.f===fid);if(!f)return closeSheet();const cnt=modCnt();
+  sheet(`<h1>📁 ${esc(f.n)}</h1><div class="grid2">${f.items.map(m=>`<button class="tile" style="--c:${modCol(m)}" data-a="foGo" data-v="${m}"><span class="ic">${modEm(m)}</span>${cnt[m]?`<span class="bd num">${cnt[m]}</span>`:''}<div><b>${modName(m)}</b><br><span>${modDesc(m)}</span></div></button>`).join('')||`<p class="mut">${t('fo_empty')}</p>`}</div>`)}
+
+/* sidebar follows the same order and folders */
+const _chromeL=chrome;
+chrome=function(){_chromeL();const sd=$('#side');if(!sd||!S||!ME)return;const items=[...sd.querySelectorAll('.sn')].filter(b=>SUB.includes(b.dataset.v)||b.dataset.v==='cards');if(!items.length)return;
+  const anchor=[...sd.querySelectorAll('.slbl')].pop();items.forEach(b=>b.remove());const svg=`<svg viewBox="0 0 24 24">${IC.cards}</svg>`;
+  const sn=m=>`<button class="sn ${cur===m?'on':''}" data-a="go" data-v="${m}">${m==='cards'?svg:`<span>${modEm(m)}</span>`}${modName(m)}</button>`;
+  const html=modTree().map(e=>typeof e==='string'?sn(e):`<details class="sfold" ${e.items.includes(cur)||(ui.openF||{})[e.f]?'open':''} data-f="${e.f}"><summary class="sn"><span>📁</span>${esc(e.n)}<i>${e.items.length}</i></summary>${e.items.map(sn).join('')}</details>`).join('');
+  anchor.insertAdjacentHTML('afterend',html);sd.querySelectorAll('.sfold').forEach(d=>d.addEventListener('toggle',()=>{ui.openF=Object.assign({},ui.openF||{},{[d.dataset.f]:d.open})}))};
+
+Object.assign(A,{
+ homeEdit:()=>{ui.homeEdit=!ui.homeEdit;show('home')},
+ wTog:d=>{const L0=lay(),h=new Set(L0.hidden||[]);h.has(d.v)?h.delete(d.v):h.add(d.v);L0.hidden=[...h];save();refresh()},
+ hubEdit:()=>{ui.hubEdit=!ui.hubEdit;show('together')},
+ foOpen:d=>folderSheet(d.v),foGo:d=>{closeSheet();show(d.v,'fwd')},
+ foNew:()=>sheet(`<h1>${t('fo_new').replace('＋ ','')}</h1><form class="col" data-f="foNew"><input class="inp" id="fo-n" data-focus maxlength="20" placeholder="${t('fo_name')}" autocomplete="off"><button class="btn">${t('save')}</button></form>`),
+ foEdit:d=>{const f=modTree().find(e=>e.f===d.v);ui.fo=d.v;sheet(`<h1>📁 ${esc(f.n)}</h1><form class="col" data-f="foRen"><input class="inp" id="fo-n" maxlength="20" value="${esc(f.n)}" autocomplete="off"><button class="btn">${t('fo_rename')}</button></form><p class="mut sm" style="margin:0">${t('fo_del_d')}</p><button class="btn danger" data-a="foDel">${t('fo_del')}</button>`)},
+ foDel:()=>{const tree=modTree(),i=tree.findIndex(e=>e.f===ui.fo);if(i<0)return;const f=tree[i];tree.splice(i,1,...f.items);saveTree(tree);closeSheet();refresh()},
+ foMove:d=>{ui.fm=d.v;const fs=modTree().filter(e=>typeof e!=='string');sheet(`<h1>${modEm(d.v)} ${t('fo_move')}</h1><div class="col" style="gap:8px"><button class="btn ghost" data-a="foTo" data-v="">${t('fo_none')}</button>${fs.map(f=>`<button class="btn ghost" data-a="foTo" data-v="${f.f}">📁 ${esc(f.n)}</button>`).join('')}<button class="btn" data-a="foNew">${t('fo_new')}</button></div>`)},
+ foTo:d=>{const m=ui.fm;let tree=modTree().map(e=>typeof e==='string'?e:Object.assign(e,{items:e.items.filter(x=>x!==m)})).filter(e=>e!==m);
+   if(d.v){const f=tree.find(e=>e.f===d.v);if(f)f.items.push(m)}else tree.push(m);saveTree(tree);closeSheet();refresh()},
+ isTog:d=>{const s=ROOT.spaces[d.v];if(isOn(s)){ME.ui.intimShare=Object.assign({},ME.ui.intimShare||{},{[d.v]:false});save();refresh();return}
+   ui.isp=d.v;sheet(`<h1>💞 ${t('is_hist_t')}</h1><p style="margin:0">${t('is_hist_d')}</p><button class="btn" data-a="isGo" data-v="all">${t('is_all')}</button><button class="btn ghost" data-a="isGo" data-v="new">${t('is_new')}</button><button class="btn ghost" data-a="closeSheet">${t('cancel')}</button>`)},
+ isGo:d=>{const id=ui.isp;ME.ui.intimShare=Object.assign({},ME.ui.intimShare||{},{[id]:true});ME.ui.intimFrom=Object.assign({},ME.ui.intimFrom||{},{[id]:d.v==='new'?today():''});save();closeSheet();refresh()}
+});
+Object.assign(F,{
+ foNew:()=>{const n=$('#fo-n').value.trim();if(!n)return;const tree=modTree(),f={f:'f'+uid(),n,items:[]};if(ui.fm){tree.forEach(e=>{if(typeof e!=='string')e.items=e.items.filter(x=>x!==ui.fm)});const i=tree.indexOf(ui.fm);if(i>=0)tree.splice(i,1);f.items.push(ui.fm);ui.fm=null}tree.push(f);saveTree(tree);closeSheet();refresh()},
+ foRen:()=>{const n=$('#fo-n').value.trim();if(!n)return;const tree=modTree(),f=tree.find(e=>e.f===ui.fo);if(f)f.n=n;saveTree(tree);closeSheet();refresh()}
+});
+/* share only entries from the chosen date */
+mirrorIntim=function(){coupleSp().forEach(s=>{s.intimS=s.intimS||{};if(isOn(s)){const from=(ME.ui.intimFrom||{})[s.id]||'',arr=(H().intim||[]).filter(e=>!from||e.d>=from),cp=JSON.stringify(arr);if(JSON.stringify(s.intimS[ME.id]||[])!==cp)s.intimS[ME.id]=JSON.parse(cp)}else if(s.intimS[ME.id])delete s.intimS[ME.id]})};
+const _isCard=intimShareCard;intimShareCard=function(){let h=_isCard();coupleSp().forEach(s=>{const f=(ME.ui.intimFrom||{})[s.id];if(isOn(s)&&f)h=h.replace(`data-a="isTog" data-v="${s.id}"`,`data-a="isTog" data-v="${s.id}" title="${esc(t('is_from_d',fmtY(f)))}"`)});return h};
 
 /* ================= boot ================= */
 applyTheme();loading(true);
