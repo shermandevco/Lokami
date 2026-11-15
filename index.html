@@ -424,6 +424,21 @@ button.av{font-size:22px}
 .stb{display:flex;flex-direction:column;align-items:flex-start;gap:2px;padding:14px;border-radius:20px;background:var(--surface2);text-align:left;transition:all .2s}
 .stb span{font-size:28px}.stb b{font-size:15px}.stb small{color:var(--mut);font-size:11px;font-weight:700}.stb i{font-style:normal;font-family:var(--display);font-weight:800}
 .stb.on{background:linear-gradient(135deg,var(--pri),var(--pri2));color:#fff;transform:scale(1.03)}.stb.on small{color:rgba(255,255,255,.8)}.stb:active{transform:scale(.95)}
+
+.trk{display:flex;flex-direction:column;gap:18px;padding:20px;background:linear-gradient(160deg,color-mix(in srgb,var(--sc) 16%,var(--surface)),var(--surface) 60%);transition:background .5s}
+.trkmain{display:flex;align-items:center;gap:18px}
+.trkring{width:84px;height:84px;flex:none;border-radius:50%;display:grid;place-items:center;font-size:38px;background:color-mix(in srgb,var(--sc) 14%,var(--surface));box-shadow:inset 0 0 0 3px var(--sc);transition:all .4s}
+.trkring.run{animation:ringp 1.8s ease-in-out infinite}
+@keyframes ringp{0%,100%{box-shadow:inset 0 0 0 3px var(--sc),0 0 0 0 color-mix(in srgb,var(--sc) 45%,transparent)}50%{box-shadow:inset 0 0 0 3px var(--sc),0 0 0 12px transparent}}
+.trkname{font-family:var(--display);font-weight:700;font-size:22px;margin:2px 0}
+.trktime{font-family:var(--display);font-weight:800;font-size:34px;color:var(--sc);line-height:1.1}
+.trkgrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(96px,1fr));gap:8px}
+.trkb{position:relative;display:flex;flex-direction:column;align-items:center;gap:4px;padding:12px 6px;border-radius:16px;background:var(--surface2);font-size:13px;transition:transform .15s,background .25s,box-shadow .25s}
+.trkb span{font-size:22px}.trkb b{font-weight:700}.trkb i{position:absolute;top:6px;right:8px;font-style:normal;font-size:10px;opacity:.55}
+.trkb:hover{background:color-mix(in srgb,var(--sc) 12%,var(--surface2))}.trkb:active{transform:scale(.94)}
+.trkb.on{background:color-mix(in srgb,var(--sc) 18%,var(--surface));box-shadow:inset 0 0 0 2px var(--sc)}
+@media (min-width:960px){.trkgrid{grid-template-columns:repeat(7,1fr)}}
+@media (max-width:959px){.trkgrid{grid-template-columns:repeat(4,1fr);gap:6px}.trkb{padding:10px 2px;font-size:11.5px}.trkb span{font-size:20px}.trkring{width:72px;height:72px;font-size:32px}}
 </style>
 </head>
 <body>
@@ -1302,7 +1317,7 @@ MODS.live={em:'🔞',c:'#f2462e',ty:['couple','friends','mates'],adult:true};MOD
 SUB.splice(SUB.indexOf('wheel'),0,'live','poo');
 const POO=['😌','😐','😣','🔥','💀'];
 const hms=ms=>{const s=Math.max(0,Math.floor(ms/1000)),h=Math.floor(s/3600),m=Math.floor(s%3600/60),x=s%60;return(h?h+':'+pad(m):m)+':'+pad(x)};
-const dur=ms=>{if(ms<60000)return Math.max(1,Math.round(ms/1000))+' s';const m=Math.round(ms/60000);return m<60?m+' min':Math.floor(m/60)+' h '+pad(m%60)+' min'};
+const dur=ms=>{if(!ms)return '—';if(ms<60000)return Math.max(1,Math.round(ms/1000))+' s';const m=Math.round(ms/60000);return m<60?m+' min':Math.floor(m/60)+' h '+pad(m%60)+' min'};
 
 /* ---- feed ---- */
 function feed(k,...a){if(!S||S.type==='solo'||!ME)return;S.feed=S.feed||[];S.feed.push({id:uid(),k,a:a.map(x=>String(x).slice(0,60)),who:ME.id,at:new Date().toISOString()});if(S.feed.length>150)S.feed.splice(0,S.feed.length-150);markSeen(S)}
@@ -1397,6 +1412,7 @@ st_now:['Зараз','Right now','Teraz'],st_since:['від {0}','since {0}','od
 fe_st:['змінив(ла) статус: {0}','changed status: {0}','zmienił(a) status: {0}'],fe_ste:['закінчив(ла) {0} · {1}','finished {0} · {1}','skończył(a) {0} · {1}'],lv_busy2:['{0}: {1}','{0}: {1}','{0}: {1}']
 });
 const STS={free:{em:'🟢'},busy:{em:'🔴'},sex:{em:'🔞',track:1,adult:1},gaming:{em:'🎮',track:1},study:{em:'📚',track:1},work:{em:'💼',track:1},sleep:{em:'😴'}};
+const STC={free:'#22c55e',busy:'#ef4444',sex:'#ec4899',gaming:'#8b5cf6',study:'#3b82f6',work:'#f59e0b',sleep:'#6366f1'};
 const TRK=Object.keys(STS).filter(k=>STS[k].track);
 MODS.live.ty=['couple','friends','mates','solo'];MODS.live.adult=false;
 T.m_live=[ 'Трекер 🔞🎮📚','Tracker 🔞🎮📚','Tracker 🔞🎮📚'];T.m_live_d=['Статуси, таймер, статистика','Statuses, timer, stats','Statusy, stoper, statystyki'];
@@ -1439,8 +1455,13 @@ const _home=R.home;R.home=()=>{let h=_home();if(S.type==='solo'||!S.status)retur
 R.live=()=>{const k=ui.trk||'sex',src=S.type==='solo'?(H().sessions||[]):(S.sessions||[]),ses=src.filter(x=>(x.k||'sex')===k).sort((a,b)=>a.end<b.end?1:-1),ym=today().slice(0,7);
   const people=S.type==='solo'?[ME]:M();const st=people.map(m=>{const a=ses.filter(x=>x.who===m.id),d=a.map(x=>new Date(x.end)-new Date(x.start));return{m,c:a.length,mc:a.filter(x=>x.end.startsWith(ym)).length,tot:d.reduce((p,x)=>p+x,0),avg:d.length?d.reduce((p,x)=>p+x,0)/d.length:0,mx:Math.max(0,...d)}}).sort((a,b)=>b.c-a.c);
   const my=myStatus(),run=STS[my.k].track;
-  return subTop(t('tr_t'))+`<div class="hero st livehero ${run?'on':''}"><div class="lbl">${t('st_t')}${S.type!=='solo'?' · '+(shareOn(S)?'👁 '+esc(sname(S)):'🔒'):''}</div><div class="big num ${run?'livet':''}" ${run?`data-s="${my.start}"`:''}>${run?hms(Date.now()-new Date(my.start)):STS[my.k].em}</div>
-    <div style="font-weight:800;font-size:18px">${stLbl(my.k)}</div><div class="row" style="justify-content:center;flex-wrap:wrap;margin-top:12px">${Object.keys(STS).filter(x=>x!==my.k).map(x=>`<button class="gopill" data-a="setSt" data-v="${x}">${stLbl(x)}</button>`).join('')}</div></div>
+  const since=new Date(my.start),stc=k0=>STC[k0]||'#888';
+  return subTop(t('tr_t'))+`<div class="card st span trk" style="--sc:${stc(my.k)}">
+    <div class="trkmain"><div class="trkring ${run?'run':''}"><span>${STS[my.k].em}</span></div>
+      <div class="grow"><div class="mut sm" style="font-weight:800;letter-spacing:.06em;text-transform:uppercase">${t('st_t')}${S.type!=='solo'?' · '+(shareOn(S)?'👁 '+esc(sname(S)):'🔒'):''}</div>
+        <div class="trkname">${stName(my.k)}</div>
+        ${run?`<div class="trktime num livet" data-s="${my.start}">${hms(Date.now()-since)}</div>`:`<div class="mut sm">${t('st_since',since.toTimeString().slice(0,5))}</div>`}</div></div>
+    <div class="trkgrid">${Object.keys(STS).map(x=>`<button class="trkb ${x===my.k?'on':''}" style="--sc:${stc(x)}" data-a="setSt" data-v="${x}"><span>${STS[x].em}</span><b>${stName(x)}</b>${STS[x].track?'<i>⏱</i>':''}</button>`).join('')}</div></div>
   <div class="chips st">${TRK.map(x=>`<button class="chip ${k===x?'on':''}" data-a="trk" data-v="${x}">${stLbl(x)}</button>`).join('')}</div>
   <div class="card st col"><h2>${t('lv_stats')} · ${stLbl(k)}</h2>${st.map((x,i)=>`<div class="lvst"><span class="rank">${people.length>1?['🥇','🥈','🥉'][i]||'·':'📊'}</span><span class="av" style="box-shadow:none;background:var(--surface2)">${x.m.a}</span><div class="grow"><b>${esc(x.m.n)}</b><div class="mut sm">${x.c} ${t('lv_cnt')} · ${x.mc} ${t('lv_month')} · ${t('lv_tot')} ${dur(x.tot||0)}</div></div><div class="sm" style="text-align:right">${x.c?`<div>${t('lv_avg')} <b>${dur(x.avg)}</b></div><div class="mut">${t('lv_max')} ${dur(x.mx)}</div>`:'—'}</div></div>`).join('')}</div>
   <div class="card st"><div class="row sp" style="margin-bottom:4px"><h2>${t('lv_hist')}</h2><button class="btn ghost sm" data-a="lvMan">${t('lv_manual')}</button></div>${ses.slice(0,40).map(x=>{const s0=new Date(x.start),e0=new Date(x.end);return `<div class="it"><span class="av" style="box-shadow:none;background:var(--surface2)">${(mem(x.who)||{a:'·'}).a}</span><div class="grow"><b>${esc(wn(x.who))}</b> · ${dur(e0-s0)} ${x.r?`<span style="color:var(--pri)">${'♥'.repeat(x.r)}</span>`:''}<div class="mut sm">${fmt(dstr(s0))} · ${s0.toTimeString().slice(0,5)}–${e0.toTimeString().slice(0,5)}${x.n?' · '+esc(x.n):''}</div></div>${x.who===ME.id?`<button class="xb" data-a="lvDel" data-v="${x.id}" aria-label="${t('del')}">×</button>`:''}</div>`}).join('')||`<p class="mut sm" style="margin:8px 0 0">${t('lv_e')}</p>`}</div>`};
