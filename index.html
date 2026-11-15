@@ -11,6 +11,7 @@
 <link rel="manifest" href="manifest.webmanifest">
 <link rel="icon" href="icon-192.png">
 <link rel="apple-touch-icon" href="apple-touch-icon.png">
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.js"></script>
 <link href="https://fonts.googleapis.com/css2?family=Caveat:wght@500;700&family=Manrope:wght@400;500;600;700;800&family=Unbounded:wght@500;700;800&display=swap" rel="stylesheet">
 <style>
 /* Layout idea: phone-width column, floating tab bar, gradient hero + tinted tiles, full-screen swipe deck */
@@ -399,6 +400,7 @@ button.av{font-size:22px}
 
 .top .seg button{white-space:nowrap;padding:0 10px}
 .amean{display:flex;gap:12px;align-items:flex-start;margin-top:18px;padding:14px 16px;border-radius:18px;background:rgba(255,255,255,.14);-webkit-backdrop-filter:blur(8px);backdrop-filter:blur(8px);max-width:52ch;animation:rise .6s .2s both}.amean p{margin:0!important;font-size:15px!important;opacity:.95!important}.amean .lo{font-size:26px;animation:bob 3s ease-in-out infinite alternate}
+.aload{min-height:100%;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:14px;font-family:var(--display);font-size:22px}.aload .lg{width:64px;height:64px;border-radius:22px;background:rgba(255,255,255,.25);animation:beat 1.4s infinite}.aload .lg::before,.aload .lg::after{top:21px;width:22px;height:22px;border-width:4px}.aload .lg::before{left:10px}.aload .lg::after{right:10px}
 </style>
 </head>
 <body>
@@ -559,6 +561,13 @@ const MODS={shop:{em:'🛒',c:'#19a57a'},chores:{em:'🧹',c:'#3f7ae0'},budget:{
 
 /* ================= v4: accounts, spaces, state ================= */
 Object.assign(T,{
+net_err:['Немає зв’язку з сервером. Зміни збережуться, щойно з’явиться інтернет.','No connection to the server. Changes will save once you are back online.','Brak połączenia z serwerem. Zmiany zapiszą się po powrocie internetu.'],
+err_login:['Неправильний email або пароль','Wrong email or password','Błędny e-mail lub hasło'],err_confirm:['Спершу підтвердьте email: перевірте пошту.','Confirm your email first: check your inbox.','Najpierw potwierdź e-mail: sprawdź skrzynkę.'],
+au_check:['Майже готово! Ми надіслали лист на {0}. Відкрийте посилання з листа, а потім увійдіть.','Almost done! We sent an email to {0}. Open the link in it, then sign in.','Prawie gotowe! Wysłaliśmy wiadomość na {0}. Otwórz link z wiadomości, a potem się zaloguj.'],
+au_priv:['Ваші особисті записи бачите лише ви. Спільне бачать тільки учасники простору.','Only you see your personal entries. Shared things are visible only to members of the space.','Tylko ty widzisz swoje osobiste wpisy. Wspólne rzeczy widzą tylko osoby z przestrzeni.'],
+err_weak:['Цей пароль заслабкий. Спробуйте довший.','This password is too weak. Try a longer one.','To hasło jest za słabe. Spróbuj dłuższego.'],err_rate:['Забагато спроб. Зачекайте хвилину.','Too many attempts. Wait a minute.','Za dużo prób. Poczekaj minutę.'],
+imp_t:['Перенести дані з демо?','Bring over your demo data?','Przenieść dane z wersji demo?'],imp_d:['На цьому пристрої є записи з демо-версії: щоденник, плани, авто, простори. Можемо перенести їх у ваш акаунт. Учасників спільних просторів доведеться запросити знову за новим кодом.','This device has entries from the demo: diary, plans, car, spaces. We can move them into your account. Members of shared spaces will need to be invited again with a new code.','Na tym urządzeniu są wpisy z wersji demo: dziennik, plany, auto, przestrzenie. Możemy przenieść je na twoje konto. Osoby ze wspólnych przestrzeni trzeba będzie zaprosić ponownie nowym kodem.'],imp_yes:['Перенести','Bring them over','Przenieś'],imp_no:['Ні, почати з нуля','No, start fresh','Nie, zacznij od zera'],imp_done:['Дані перенесено','Data moved','Dane przeniesione'],
+
 mine:['Моє','Personal','Moje'],modes:['Режими','Modes','Tryby'],menu:['Меню','Menu','Menu'],tab_diary:['Щоденник','Diary','Dziennik'],local_acc:['Локальний акаунт','Local account','Konto lokalne'],
 m_plan:['Планер','Planner','Planer'],m_plan_d:['Плани на кожен день','Plans for every day','Plany na każdy dzień'],m_garage:['Гараж','Garage','Garaż'],m_garage_d:['Авто, техстан, витрати','Car, service, costs','Auto, serwis, koszty'],cards_d2:['Питання для розмов','Questions to talk about','Pytania do rozmów'],
 au_mean:['Назва натхненна гавайськими словами <b>loko</b> — «всередині, серце» і <b>lōkahi</b> — «єдність, гармонія». Lokami — це твій внутрішній світ і твої люди разом, в одному місці.','The name is inspired by the Hawaiian words <b>loko</b>, “inside, heart”, and <b>lōkahi</b>, “unity, harmony”. Lokami is your inner world and your people, together in one place.','Nazwa jest inspirowana hawajskimi słowami <b>loko</b> („wnętrze, serce”) i <b>lōkahi</b> („jedność, harmonia”). Lokami to twój wewnętrzny świat i twoi bliscy razem, w jednym miejscu.'],au_h:['Усе твоє життя і твої люди — в одному місці','Your whole life and your people in one place','Całe twoje życie i twoi ludzie w jednym miejscu'],au_p:['Щоденник, плани, бюджет, авто і спільні простори для пари, родини та друзів.','Diary, plans, budget, car, plus shared spaces for your couple, family and friends.','Dziennik, plany, budżet, auto oraz wspólne przestrzenie dla pary, rodziny i przyjaciół.'],
@@ -569,7 +578,7 @@ au_g_t:['Вхід через Google (демо)','Google sign-in (demo)','Logowan
 err_name:["Введіть ім'я",'Enter your name','Wpisz imię'],err_email:['Перевірте email','Check the email address','Sprawdź adres e-mail'],err_pw:['Пароль має бути від 6 символів','Password must be at least 6 characters','Hasło musi mieć co najmniej 6 znaków'],err_exists:['Такий email уже зареєстровано. Увійдіть.','This email is already registered. Sign in instead.','Ten e-mail jest już zarejestrowany. Zaloguj się.'],err_nouser:['Акаунт не знайдено. Створіть новий.','Account not found. Create one.','Nie znaleziono konta. Załóż nowe.'],err_badpw:['Неправильний пароль','Wrong password','Błędne hasło'],
 prof_t:['Ваш профіль','Your profile','Twój profil'],prof_edit:['Редагувати профіль','Edit profile','Edytuj profil'],appearance:['Вигляд','Appearance','Wygląd'],ap_mode:['Тема','Theme','Motyw'],ap_auto:['Авто','Auto','Auto'],ap_light:['Світла','Light','Jasny'],ap_dark:['Темна','Dark','Ciemny'],ap_style:['Стиль','Style','Styl'],ap_glass:['Скло','Glass','Szkło'],ap_vivid:['Яскравий','Vivid','Wyrazisty'],ap_color:['Колір','Colour','Kolor'],ap_custom:['Свій колір','Custom colour','Własny kolor'],signout:['Вийти','Sign out','Wyloguj'],
 sp_new:['Новий простір','New space','Nowa przestrzeń'],sp_create:['Створити','Create','Utwórz'],sp_join:['Приєднатися','Join','Dołącz'],sp_join_d:['Введіть код запрошення, який вам надіслали.','Enter the invite code you were sent.','Wpisz kod zaproszenia, który masz.'],sp_create_b:['Створити простір','Create space','Utwórz przestrzeń'],later_btn:['Пізніше','Later','Później'],
-sp_nf:['Простір із таким кодом не знайдено. У демо працюють лише простори, створені на цьому пристрої.','No space with this code. In the demo only spaces created on this device work.','Nie znaleziono przestrzeni o tym kodzie. W demo działają tylko przestrzenie utworzone na tym urządzeniu.'],sp_in:['Ви вже в цьому просторі','You are already in this space','Już jesteś w tej przestrzeni'],sp_full:['У цьому просторі вже немає місць','This space is already full','Ta przestrzeń jest już pełna'],sp_joined:['Ви приєдналися: {0}','You joined: {0}','Dołączono: {0}'],
+sp_nf:['Простір із таким кодом не знайдено. Перевірте код.','No space with this code. Check the code.','Nie znaleziono przestrzeni o tym kodzie. Sprawdź kod.'],sp_in:['Ви вже в цьому просторі','You are already in this space','Już jesteś w tej przestrzeni'],sp_full:['У цьому просторі вже немає місць','This space is already full','Ta przestrzeń jest już pełna'],sp_joined:['Ви приєдналися: {0}','You joined: {0}','Dołączono: {0}'],
 inv_t:['Запросіть своїх','Invite your people','Zaproś bliskich'],inv_d:['Поділіться кодом. Людина створює свій акаунт і вводить код у «Приєднатися».','Share the code. The person creates their own account and enters it under “Join”.','Udostępnij kod. Osoba zakłada swoje konto i wpisuje go w „Dołącz”.'],inv_copy:['Скопіювати код','Copy code','Skopiuj kod'],inv_btn:['Запросити','Invite','Zaproś'],inv_home:['Тут поки тільки ви. Запросіть інших за кодом.','It is just you here for now. Invite others with the code.','Na razie jesteś tu tylko ty. Zaproś innych kodem.'],
 you:['ви','you','ty'],owner:['власник','owner','właściciel'],leave:['Вийти з простору','Leave space','Opuść przestrzeń'],leave_q:['Вийти з простору «{0}»?','Leave the space “{0}”?','Opuścić przestrzeń „{0}”?'],leave_d:['Ви втратите доступ до спільних списків і календаря. Якщо ви останній учасник, простір буде видалено.','You will lose access to the shared lists and calendar. If you are the last member, the space is deleted.','Stracisz dostęp do wspólnych list i kalendarza. Jeśli jesteś ostatnią osobą, przestrzeń zostanie usunięta.'],leave_yes:['Так, вийти','Yes, leave','Tak, opuść'],
 write_page:['Написати сторінку дня','Write today’s page','Napisz stronę dnia'],plans_short:['планів','plans','planów'],plans_today:['Плани на сьогодні','Plans for today','Plany na dziś'],plans_all:['Усі плани','All plans','Wszystkie plany'],plans_none:['Планів на сьогодні немає. Додайте перший у планері.','No plans for today. Add the first one in the planner.','Brak planów na dziś. Dodaj pierwszy w planerze.'],diary_today:['Сторінка дня','Today’s page','Strona dnia'],diary_cta:['Сьогоднішня сторінка ще порожня. Запишіть кілька думок.','Today’s page is still empty. Write down a few thoughts.','Dzisiejsza strona jest jeszcze pusta. Zapisz kilka myśli.'],car_soon:['Авто: скоро термін','Car: due soon','Auto: zbliża się termin'],moods_grp:['Настрій сьогодні','Mood today','Nastrój dziś'],
@@ -580,30 +589,88 @@ car_e:['Додайте авто, щоб стежити за техоглядом
 MODS.plan={em:'🗓️',c:'#3f7ae0',ty:['solo']};MODS.garage={em:'🚗',c:'#f0652f',ty:['solo']};MODS.chores.ty=MULTI;MODS.notes.ty=MULTI;
 const SUB=['plan','garage','shop','chores','budget','movies','dates','wishes','dreams','notes','coupons','wheel','mood','intim','dlog'];
 const CURS=['₴','€','zł'],KEY='ohani_v3';
-let ROOT=null;try{ROOT=JSON.parse(localStorage.getItem(KEY))}catch(e){}
 const code=()=>Math.random().toString(36).slice(2,8).toUpperCase().padEnd(6,'X');
-const hash=s=>{let h=5381;for(let i=0;i<s.length;i++)h=(h*33^s.charCodeAt(i))>>>0;return h.toString(36)};
 function blank(type){return{id:uid(),type:type||'solo',name:'',members:[],owner:'',code:code(),since:'',created:today(),mods:{},shop:[],chores:[],events:[],movies:[],wishes:[],bucket:[],notes:[],favQ:[],dates:[],coupons:[],wheel:[],seen:{},exp:[],bud:0,cur:CURS[L],intim:[],dlog:[],sti:'',chal:{},chalN:0,diary:{},plans:[],cars:[]}}
 function norm(s){if(!TYPES[s.type])s.type='solo';const b=blank(s.type);for(const k in b)if(s[k]==null)s[k]=b[k]}
-function newUser(n,email,pw){const u={id:uid(),email:(email||'').trim().toLowerCase(),ph:pw?hash(pw):'',n:n||'',a:'🦊',th:'berry',custom:'',ui:{mode:'auto',style:'glass'},adult:false,created:today()};
-  const h=blank('solo');h.owner=u.id;h.members=[u.id];u.home=h.id;u.cur=h.id;ROOT.spaces[h.id]=h;ROOT.users[u.id]=u;ROOT.moods[u.id]={};return u}
-function migrate(){let o=null;try{o=JSON.parse(localStorage.getItem('midvoe_v2'))}catch(e){}if(!o||!o.spaces)return;const sp=Object.values(o.spaces).filter(s=>s&&s.m&&s.m.length);if(!sp.length)return;
-  if(o.lang!=null){L=o.lang;ROOT.lang=o.lang}
-  const cur=o.spaces[o.cur]&&o.spaces[o.cur].m?o.spaces[o.cur]:sp[0],m0=cur.m[cur.me]||cur.m[0];
-  const u=newUser(m0.n,'','');u.a=m0.a;u.th=THEMES[m0.th]?m0.th:'berry';u.adult=sp.some(s=>s.adult);const home=ROOT.spaces[u.home];let homed=false;
-  sp.forEach(s0=>{const meId=(s0.m[s0.me]||s0.m[0]).id,s=JSON.parse(JSON.stringify(s0).split(meId).join(u.id));
-    s.m.forEach(m=>{if(m.id!==u.id){ROOT.users[m.id]={id:m.id,email:'',ph:'',n:m.n,a:m.a,th:THEMES[m.th]?m.th:'berry',custom:'',ui:{mode:'auto',style:'glass'},ghost:true,created:today()};ROOT.moods[m.id]={}}});
-    (s.moods||[]).forEach(x=>{(ROOT.moods[x.n]=ROOT.moods[x.n]||{})[x.d]=x.m});
-    s.members=s.m.map(m=>m.id);s.owner=u.id;delete s.m;delete s.me;delete s.moods;delete s.adult;
-    if(s.type==='solo'&&!homed){homed=true;Object.assign(home,s,{id:home.id,code:home.code});norm(home);
-      (home.notes||[]).forEach(n=>{const e=home.diary[n.d]=home.diary[n.d]||{t:'',st:[]};e.t+=(e.t?'\n':'')+n.t});home.notes=[];
-      (home.chores||[]).forEach(c=>{if(!c.done)home.plans.push({id:uid(),d:today(),t:c.t,done:false,tm:''})});home.chores=[]}
-    else{norm(s);s.code=code();ROOT.spaces[s.id]=s}});
-  u.cur=cur.type==='solo'?u.home:cur.id;if(!ROOT.spaces[u.cur])u.cur=u.home;ROOT.session=u.id}
-if(!ROOT||ROOT.v!==3||!ROOT.users){ROOT={v:3,lang:null,session:null,users:{},spaces:{},moods:{}};migrate()}
+/* ================= v5: cloud (Supabase) ================= */
+const SB_URL='https://yrunbzkqevpnazylkjzb.supabase.co',SB_KEY='sb_publishable_nQ7XJehbkGFwLYZso7d3rA_2ajV2SlM';
+const sb=window.supabase.createClient(SB_URL,SB_KEY,{auth:{persistSession:true,autoRefreshToken:true}});
+let ROOT={v:5,lang:null,users:{},spaces:{},moods:{}};
+try{const l=localStorage.getItem('lokami_lang');if(l!=null&&l!=='')ROOT.lang=+l}catch(e){}
 if(ROOT.lang==null){const n=(navigator.language||'en').toLowerCase();L=n.startsWith('uk')||n.startsWith('ru')?0:n.startsWith('pl')?2:1}else L=ROOT.lang;
-let ME=ROOT.users[ROOT.session]||null,S=null;
-function save(){try{localStorage.setItem(KEY,JSON.stringify(ROOT))}catch(e){}}
+let ME=null,S=null;
+const COLS=['id','type','name','code','owner','members'];
+const toRow=s=>{const d={};for(const k in s)if(!COLS.includes(k))d[k]=s[k];return{type:s.type,name:s.name||'',data:d}};
+const fromRow=(r,members)=>{const s=Object.assign({},r.data||{},{id:r.id,type:r.type,name:r.name||'',code:r.code,owner:r.owner,members:members||[]});norm(s);return s};
+const userFrom=(p,email)=>({id:p.id,email:email||'',n:p.n||'',a:p.a||'🦊',th:p.th||'berry',custom:p.custom||'',ui:Object.assign({mode:'auto',style:'glass'},p.ui||{}),adult:!!p.adult,home:p.home,cur:p.cur||p.home});
+const BASE={};let PBASE='',syncT=null,syncing=false,again=false,netWarned=false,pendingRefresh=false,chan=null,pollT=null;
+const profRow=()=>({n:ME.n,a:ME.a,th:ME.th,custom:ME.custom||'',ui:ME.ui,adult:!!ME.adult,home:ME.home,cur:ME.cur,lang:L,moods:ROOT.moods[ME.id]||{}});
+function netErr(e){console.warn('Lokami sync',e);if(!netWarned){netWarned=true;toast(t('net_err'));setTimeout(()=>netWarned=false,20000)}}
+function save(){try{localStorage.setItem('lokami_lang',String(L))}catch(e){}if(!ME)return;clearTimeout(syncT);syncT=setTimeout(sync,600)}
+const dirty=()=>!!ME&&(JSON.stringify(profRow())!==PBASE||mySpaces().some(s=>!BASE[s.id]||BASE[s.id].js!==JSON.stringify(toRow(s))));
+window.addEventListener('beforeunload',e=>{if(dirty()){sync();e.preventDefault();e.returnValue=''}});
+document.addEventListener('visibilitychange',()=>{if(!ME)return;if(document.visibilityState==='hidden')sync();else pull()});
+function busy(){const a=document.activeElement;return $('#sheet').classList.contains('on')||!!P||(a&&/^(INPUT|TEXTAREA|SELECT)$/.test(a.tagName))}
+function softRefresh(){if(!ME||!S)return;if(busy()){pendingRefresh=true;return}pendingRefresh=false;refresh(true)}
+document.addEventListener('focusout',()=>setTimeout(()=>{if(pendingRefresh&&!busy())softRefresh()},300));
+function applyRow(sid,row){const s=ROOT.spaces[sid];if(!s)return;const keep={id:s.id,code:s.code,owner:row.owner||s.owner,members:s.members};for(const k in s)delete s[k];Object.assign(s,row.data||{},keep,{type:row.type,name:row.name||''});norm(s)}
+async function sync(){if(!ME)return;if(syncing){again=true;return}syncing=true;clearTimeout(syncT);let changed=false;
+  try{const pr=profRow(),pj=JSON.stringify(pr);if(pj!==PBASE){const{error}=await sb.from('profiles').update(pr).eq('id',ME.id);if(error)netErr(error);else PBASE=pj}
+    for(const s of mySpaces()){const row=toRow(s),js=JSON.stringify(row),b=BASE[s.id];if(b&&b.js===js)continue;let out=row;
+      if(b){const{data:cur,error:e1}=await sb.from('spaces').select('name,type,data,updated_at').eq('id',s.id).maybeSingle();if(e1){netErr(e1);continue}if(!cur)continue;
+        if(cur.updated_at!==b.ts){const bo=JSON.parse(b.js),md=Object.assign({},cur.data||{});for(const k in row.data)if(JSON.stringify(row.data[k])!==JSON.stringify(bo.data[k]))md[k]=row.data[k];
+          out={type:row.type!==bo.type?row.type:cur.type,name:row.name!==bo.name?row.name:cur.name,data:md}}}
+      const{data:up,error}=await sb.from('spaces').update(out).eq('id',s.id).select('updated_at').maybeSingle();if(error||!up){if(error)netErr(error);continue}
+      const oj=JSON.stringify(out);BASE[s.id]={js:oj,ts:up.updated_at};if(oj!==js&&JSON.stringify(toRow(s))===js){applyRow(s.id,out);changed=true}}}
+  catch(e){netErr(e)}finally{syncing=false;if(changed)softRefresh();if(again){again=false;sync()}}}
+async function loadAll(){const{data:mem,error}=await sb.from('space_members').select('space_id,user_id');if(error)throw error;
+  const bySp={};mem.forEach(m=>(bySp[m.space_id]=bySp[m.space_id]||[]).push(m.user_id));const sids=Object.keys(bySp).filter(id=>bySp[id].includes(ME.id));
+  const uids=[...new Set([ME.id,...sids.flatMap(id=>bySp[id])])];
+  const[{data:sp,error:e2},{data:pf,error:e3}]=await Promise.all([sids.length?sb.from('spaces').select('*').in('id',sids):Promise.resolve({data:[]}),sb.from('profiles').select('*').in('id',uids)]);if(e2)throw e2;if(e3)throw e3;
+  let changed=false;pf.forEach(p=>{if(p.id===ME.id){ROOT.users[ME.id]=ME;return}const u=userFrom(p),o=ROOT.users[p.id];if(!o||JSON.stringify(o)!==JSON.stringify(u)||JSON.stringify(ROOT.moods[p.id])!==JSON.stringify(p.moods)){ROOT.users[p.id]=u;ROOT.moods[p.id]=p.moods||{};changed=true}});
+  const live=new Set(sp.map(r=>r.id));Object.keys(ROOT.spaces).forEach(id=>{if(!live.has(id)){delete ROOT.spaces[id];delete BASE[id];changed=true}});
+  sp.forEach(r=>{const members=bySp[r.id].slice(),s=ROOT.spaces[r.id],row={type:r.type,name:r.name,data:r.data,owner:r.owner};
+    if(!s){ROOT.spaces[r.id]=fromRow(r,members);BASE[r.id]={js:JSON.stringify(toRow(ROOT.spaces[r.id])),ts:r.updated_at};changed=true;return}
+    if(JSON.stringify(s.members)!==JSON.stringify(members)){s.members=members;changed=true}if(s.owner!==r.owner){s.owner=r.owner;changed=true}
+    const b=BASE[r.id];if(b&&b.ts===r.updated_at)return;if(b&&b.js!==JSON.stringify(toRow(s))){save();return}
+    applyRow(r.id,row);BASE[r.id]={js:JSON.stringify(toRow(s)),ts:r.updated_at};changed=true});
+  return changed}
+async function pull(){if(!ME)return;try{if(await loadAll()){if(S&&!ROOT.spaces[S.id])S=ROOT.spaces[ME.home];softRefresh()}}catch(e){netErr(e)}}
+function subscribe(){if(chan)sb.removeChannel(chan);chan=sb.channel('lokami-'+ME.id)
+  .on('postgres_changes',{event:'UPDATE',schema:'public',table:'spaces'},p=>{if(!ME)return;const r=p.new,s=ROOT.spaces[r.id],b=BASE[r.id];if(!s||(b&&b.ts===r.updated_at))return;
+     if(b&&b.js!==JSON.stringify(toRow(s))){save();return}applyRow(r.id,{type:r.type,name:r.name,data:r.data,owner:r.owner});BASE[r.id]={js:JSON.stringify(toRow(s)),ts:r.updated_at};softRefresh()})
+  .on('postgres_changes',{event:'*',schema:'public',table:'space_members'},()=>{if(ME)pull()})
+  .on('postgres_changes',{event:'UPDATE',schema:'public',table:'profiles'},p=>{if(!ME)return;const r=p.new;if(r.id===ME.id||!ROOT.users[r.id])return;ROOT.users[r.id]=userFrom(r);ROOT.moods[r.id]=r.moods||{};softRefresh()})
+  .subscribe();clearInterval(pollT);pollT=setInterval(pull,30000)}
+const newCode=()=>Math.random().toString(36).slice(2,8).toUpperCase().padEnd(6,'X');
+async function insertSpace(s){for(let i=0;i<4;i++){const row=toRow(s);const{data,error}=await sb.from('spaces').insert({type:row.type,name:row.name,code:newCode(),owner:ME?ME.id:s.owner,data:row.data}).select().single();
+  if(!error){const{error:e2}=await sb.from('space_members').insert({space_id:data.id,user_id:data.owner});if(e2)throw e2;return data}if(error.code!=='23505')throw error}throw new Error('code')}
+function loading(on){const a=$('#auth');if(on){a.classList.add('on');a.innerHTML='<div class="aload"><i class="lg"></i><b>Lokami</b><span></span></div>'}}
+async function startSession(user){loading(true);
+  try{let{data:p,error}=await sb.from('profiles').select('*').eq('id',user.id).maybeSingle();if(error)throw error;let isNew=false;
+    if(!p){const n=((user.user_metadata&&user.user_metadata.n)||user.email.split('@')[0]).slice(0,20),h=blank('solo');h.owner=user.id;
+      const hs=await insertSpace(h);const r=await sb.from('profiles').insert({id:user.id,n,home:hs.id,cur:hs.id,lang:L}).select().single();if(r.error)throw r.error;p=r.data;isNew=true}
+    if(p.lang!=null)L=p.lang;ME=userFrom(p,user.email);ROOT.users={[ME.id]:ME};ROOT.moods={[ME.id]:p.moods||{}};ROOT.spaces={};for(const k in BASE)delete BASE[k];
+    await loadAll();if(!ROOT.spaces[ME.home]){const h=blank('solo');h.owner=ME.id;const hs=await insertSpace(h);ME.home=hs.id;ME.cur=hs.id;await loadAll()}
+    PBASE=JSON.stringify(profRow());enter();if(ME.cur!==p.cur)save();applyTheme();$('#auth').classList.remove('on');$('#auth').innerHTML='';closeSheet();show('home');subscribe();
+    if(isNew){confetti();ui.first=true;sheet(profForm())}else offerImport()}
+  catch(e){console.error(e);toast(t('net_err'));ME=null;renderAuth()}}
+async function signOut(){await sync();try{await sb.auth.signOut()}catch(e){}if(chan)sb.removeChannel(chan);chan=null;clearInterval(pollT);ME=null;S=null;ROOT.users={};ROOT.spaces={};ROOT.moods={};for(const k in BASE)delete BASE[k];PBASE='';applyTheme();ui.au=0;renderAuth();window.scrollTo(0,0)}
+
+/* ---- import of the old on-device demo data ---- */
+function demoData(){try{if(localStorage.getItem('lokami_imported'))return null;const o=JSON.parse(localStorage.getItem('ohani_v3'));if(!o||!o.users||!o.spaces)return null;const u=o.users[o.session]||Object.values(o.users).find(x=>!x.ghost);if(!u)return null;
+  const h=o.spaces[u.home];const has=h&&['diary','plans','cars','shop','exp','movies','events','intim','dlog','bucket','wishes','dates'].some(k=>h[k]&&(Array.isArray(h[k])?h[k].length:Object.keys(h[k]).length));const others=Object.values(o.spaces).filter(s=>s.id!==u.home&&s.members&&s.members.includes(u.id));
+  return has||others.length?{o,u,h,others}:null}catch(e){return null}}
+function offerImport(){if(!demoData())return;setTimeout(()=>{if($('#sheet').classList.contains('on'))return;sheet(`<h1>${t('imp_t')}</h1><p style="margin:0">${t('imp_d')}</p><button class="btn" data-a="impDo">${t('imp_yes')}</button><button class="btn ghost" data-a="impNo">${t('imp_no')}</button>`)},900)}
+const remap=(x,from,to)=>JSON.parse(JSON.stringify(x).split(from).join(to));
+async function importDemo(){const D=demoData();if(!D)return;const{o,u,h,others}=D,H0=H();closeSheet();
+  try{if(h){const hd=remap(h,u.id,ME.id);['diary'].forEach(k=>H0[k]=Object.assign({},hd[k]||{},H0[k]||{}));
+      ['plans','cars','shop','exp','movies','events','intim','dlog','bucket','wishes','dates','wheel','favQ'].forEach(k=>{if(Array.isArray(hd[k])&&hd[k].length)H0[k]=[...(H0[k]||[]),...hd[k]]});
+      ['bud','cur','sti'].forEach(k=>{if(hd[k]&&!H0[k])H0[k]=hd[k]});Object.assign(H0.mods,hd.mods||{})}
+    ROOT.moods[ME.id]=Object.assign({},(o.moods||{})[u.id]||{},ROOT.moods[ME.id]||{});if(u.adult)ME.adult=true;
+    for(const s0 of others){const s=remap(s0,u.id,ME.id);delete s.id;s.members=[ME.id];s.owner=ME.id;norm(s);const r=await insertSpace(s);ROOT.spaces[r.id]=fromRow(r,[ME.id]);BASE[r.id]={js:JSON.stringify(toRow(ROOT.spaces[r.id])),ts:r.updated_at}}
+    try{localStorage.setItem('lokami_imported','1')}catch(e){}await sync();refresh(true);confetti();toast(t('imp_done'))}catch(e){netErr(e)}}
+
 function enter(){Object.values(ROOT.spaces).forEach(norm);S=ROOT.spaces[ME.cur]&&ROOT.spaces[ME.cur].members.includes(ME.id)?ROOT.spaces[ME.cur]:ROOT.spaces[ME.home];ME.cur=S.id}
 const ui={opt:{},lvl:0,mvTab:0,mvK:0,evE:'💕',idea:null,rot:0,wp:0,flash:null,newItem:null,calDir:'',bc:0,bw:null,cpnTo:null,dd:today(),dv:0,dm:false,dflip:'',pd:today(),car:null,cl:0,sp:{tab:0,type:'couple'},au:1};
 const M=()=>S.members.map(id=>ROOT.users[id]).filter(Boolean),me=()=>ME,H=()=>ROOT.spaces[ME.home],grp=()=>S.type==='couple'?'couple':S.type==='solo'?'solo':'group';
@@ -1103,17 +1170,15 @@ R.us=()=>{const solo=S.type==='solo',T0=TYPES[S.type];
     <label class="f" for="since">${t('since_lbl')}<input class="inp" type="date" id="since" data-c="since" value="${S.since}" max="${today()}"></label><button class="btn danger" data-a="leaveAsk">${t('leave')}</button></div>`}
   <div class="card st col"><div><h2>${t('mods')} · ${esc(sname(S))}</h2><p class="mut sm" style="margin:4px 0 0">${t('mods_d')}</p></div>${modRows(S)}</div>
   <div class="card st col"><div class="f">${t('lang')}<div class="seg">${LANGS.map((n,i)=>`<button class="${L===i?'on':''}" data-a="lang" data-v="${i}">${n}</button>`).join('')}</div></div></div>
-  <div class="card st col"><h2>${t('transfer')}</h2><p class="mut sm" style="margin:0">${t('transfer_d')}</p><button class="btn ghost" data-a="copyBk">${t('copy_code')}</button><textarea class="inp" id="bk" rows="2" placeholder="${t('paste_ph')}" aria-label="${t('paste_ph')}"></textarea><button class="btn ghost" data-a="loadBk">${t('load_code')}</button></div>`};
+  ${demoData()?`<div class="card st col"><h2>${t('imp_t')}</h2><p class="mut sm" style="margin:0">${t('imp_d')}</p><button class="btn ghost" data-a="impDo">${t('imp_yes')}</button></div>`:''}`};
 
 /* ================= v4: auth ================= */
-function renderAuth(){const a=$('#auth'),loc=Object.values(ROOT.users).filter(u=>!u.ghost&&!u.ph);a.classList.add('on');$('#screen').innerHTML='';
+function renderAuth(){const a=$('#auth');a.classList.add('on');$('#screen').innerHTML='';$('#side').innerHTML='';$('#tabbar').innerHTML='';$('#modebar').innerHTML='';
   a.innerHTML=`<div class="aw"><div class="apitch"><div class="brand big"><i class="lg"></i>Lokami</div><h1>${t('au_h')}</h1><p>${t('au_p')}</p><div class="amean"><span class="lo">🌺</span><p>${t('au_mean')}</p></div><div class="afeat">${[1,2,3,4].map(i=>`<div class="af" style="--i:${i}">${t('au_f'+i)}</div>`).join('')}</div></div>
   <div class="acard"><div class="seg">${LANGS.map((n,i)=>`<button class="${L===i?'on':''}" data-a="auLang" data-v="${i}">${n}</button>`).join('')}</div>
     <div class="seg"><button class="${ui.au?'':'on'}" data-a="auTab" data-v="0">${t('au_in')}</button><button class="${ui.au?'on':''}" data-a="auTab" data-v="1">${t('au_up')}</button></div>
-    <form class="col" data-f="auth">${ui.au?`<input class="inp" id="au-n" placeholder="${t('name')}" maxlength="20" autocomplete="name" aria-label="${t('name')}">`:''}<input class="inp" id="au-e" type="email" placeholder="${t('au_email')}" autocomplete="username" aria-label="${t('au_email')}"><input class="inp" id="au-p" type="password" placeholder="${t('au_pw')}" autocomplete="${ui.au?'new-password':'current-password'}" aria-label="${t('au_pw')}"><button class="btn">${t(ui.au?'au_up':'au_in')}</button></form>
-    
-    ${loc.length?`<div class="f">${t('au_here')}<div class="chips wrap">${loc.map(u=>`<button class="chip" data-a="auQuick" data-v="${u.id}">${u.a} ${esc(u.n)}</button>`).join('')}</div></div>`:''}<p class="demo">${t('au_demo')}</p></div></div>`}
-function login(u,isNew){ME=u;ROOT.session=u.id;enter();save();applyTheme();$('#auth').classList.remove('on');$('#auth').innerHTML='';closeSheet();show('home');if(isNew){confetti();ui.first=true;sheet(profForm())}}
+    <form class="col" data-f="auth">${ui.au?`<input class="inp" id="au-n" placeholder="${t('name')}" maxlength="20" autocomplete="name" aria-label="${t('name')}">`:''}<input class="inp" id="au-e" type="email" placeholder="${t('au_email')}" autocomplete="username" aria-label="${t('au_email')}"><input class="inp" id="au-p" type="password" placeholder="${t('au_pw')}" autocomplete="${ui.au?'new-password':'current-password'}" aria-label="${t('au_pw')}"><button class="btn" id="au-b">${t(ui.au?'au_up':'au_in')}</button></form>
+    <p class="demo">🔒 ${t('au_priv')}</p></div></div>`}
 function goSpace(id,el){if(!ROOT.spaces[id])return;S=ROOT.spaces[id];ME.cur=id;save();ui.idea=null;ui.wp=0;ui.rot=0;const r=$('#rip');if(el&&el.getBoundingClientRect){const b=el.getBoundingClientRect();r.style.setProperty('--x',b.left+b.width/2+'px');r.style.setProperty('--y',b.top+b.height/2+'px')}r.classList.remove('go');void r.offsetWidth;r.classList.add('go');
   show(['diary','calendar','together','us','cards'].includes(cur)?cur:'home','mode')}
 const plan=id=>H().plans.find(p=>p.id===id),car=()=>H().cars.find(c=>c.id===ui.car);
@@ -1122,9 +1187,8 @@ const dE=()=>H().diary[ui.dd]=H().diary[ui.dd]||{t:'',st:[]};
 Object.assign(A,{
  mood:(d,el)=>{(ROOT.moods[ME.id]=ROOT.moods[ME.id]||{})[d.d||today()]=d.v;ui.dm=false;save();burst(el,[d.v,'✨']);refresh()},
  auTab:d=>{ui.au=+d.v;renderAuth()},auLang:d=>{L=+d.v;ROOT.lang=L;save();applyTheme();renderAuth()},
- auG:()=>sheet(`<h1>${t('au_g_t')}</h1><p class="mut" style="margin:-8px 0 0">${t('au_g_d')}</p><form class="col" data-f="gauth"><input class="inp" id="g-e" type="email" data-focus placeholder="name@gmail.com" autocomplete="off" aria-label="${t('au_email')}"><button class="btn">${t('next')}</button></form>`),
- auQuick:d=>{const u=ROOT.users[d.v];if(u&&!u.ph)login(u)},
- logout:()=>{ROOT.session=null;ME=null;S=null;save();applyTheme();ui.au=0;renderAuth();window.scrollTo(0,0)},
+/*auG*/ _auG:()=>sheet(`<h1>${t('au_g_t')}</h1><p class="mut" style="margin:-8px 0 0">${t('au_g_d')}</p><form class="col" data-f="gauth"><input class="inp" id="g-e" type="email" data-focus placeholder="name@gmail.com" autocomplete="off" aria-label="${t('au_email')}"><button class="btn">${t('next')}</button></form>`),
+ logout:()=>signOut(),
  profEdit:()=>{ui.first=false;sheet(profForm())},profNext:()=>{ui.first=false;ui.sp={tab:0,type:'couple'};sheet(spForm())},
  pAv:d=>{ME.a=d.v;save();sheet(profForm());refresh()},
  pG:d=>{ME.custom='';ME.th=d.v==='he'?'steel':d.v==='she'?'berry':'lavender';save();applyTheme();sheet(profForm());refresh()},
@@ -1133,13 +1197,12 @@ Object.assign(A,{
  lang:d=>{L=+d.v;ROOT.lang=L;save();applyTheme();ui.idea=null;show('us')},
  spGo:(d,el)=>{closeSheet();if(d.v!==S.id)goSpace(d.v,el)},
  spAdd:()=>{ui.sp={tab:0,type:'couple'};sheet(spForm())},spTab:d=>{ui.sp.tab=+d.v;sheet(spForm())},spType:d=>{ui.sp.type=d.v;sheet(spForm())},
- invite:()=>sheet(`<h1>${t('inv_t')}</h1><p style="margin:0">${t('inv_d')}</p><div class="codebox">${S.code.split('').map(c=>`<b>${c}</b>`).join('')}</div><button class="btn" data-a="invCopy">${t('inv_copy')}</button><p class="demo">${t('sp_nf').split('. ').slice(1).join('. ')}</p><button class="btn ghost" data-a="closeSheet">${t('done')}</button>`),
+ invite:()=>sheet(`<h1>${t('inv_t')}</h1><p style="margin:0">${t('inv_d')}</p><div class="codebox">${S.code.split('').map(c=>`<b>${c}</b>`).join('')}</div><button class="btn" data-a="invCopy">${t('inv_copy')}</button><button class="btn ghost" data-a="closeSheet">${t('done')}</button>`),
  invCopy:()=>{try{navigator.clipboard.writeText(S.code).then(()=>toast(t('copied')),()=>toast(S.code))}catch(e){toast(S.code)}},
  setType:d=>{const v=d.v;if(v===S.type||!MULTI.includes(v))return;if(v==='couple'&&S.members.length>2){toast(t('type_need2'));return}S.type=v;save();ui.idea=null;ui.wp=0;show('us')},
  leaveAsk:()=>sheet(`<h1>${t('leave_q',esc(sname(S)))}</h1><p style="margin:0">${t('leave_d')}</p><button class="btn" data-a="leave">${t('leave_yes')}</button><button class="btn ghost" data-a="closeSheet">${t('cancel')}</button>`),
- leave:()=>{S.members=S.members.filter(x=>x!==ME.id);if(!S.members.some(id=>ROOT.users[id]&&!ROOT.users[id].ghost))delete ROOT.spaces[S.id];else if(S.owner===ME.id)S.owner=S.members[0];closeSheet();goSpace(ME.home)},
- copyBk:()=>{const s=JSON.stringify(ROOT);const fb=()=>{$('#bk').value=s;$('#bk').select();toast(t('copy_manual'))};try{navigator.clipboard.writeText(s).then(()=>toast(t('copied')),fb)}catch(e){fb()}},
- loadBk:()=>{try{const o=JSON.parse($('#bk').value);if(!o||o.v!==3||!o.users||!o.spaces)throw 0;ROOT=o;ROOT.moods=ROOT.moods||{};if(ROOT.lang!=null)L=ROOT.lang;ME=ROOT.users[ROOT.session]||null;save();if(ME){enter();applyTheme();show('home');toast(t('loaded'))}else{applyTheme();renderAuth()}}catch(e){toast(t('bad_code'))}},
+ leave:async()=>{const id=S.id;closeSheet();const{error}=await sb.rpc('leave_space',{p_space:id});if(error)return netErr(error);delete ROOT.spaces[id];delete BASE[id];goSpace(ME.home)},
+ impDo:()=>importDemo(),impNo:()=>{try{localStorage.setItem('lokami_imported','1')}catch(e){}closeSheet()},
  /* diary */
  dView:d=>{ui.dv=+d.v;show('diary')},dToday:()=>{ui.dd=today();ui.dflip='fn';ui.dm=false;refresh(true)},
  dOpen:d=>{ui.dd=d.v;ui.dv=0;ui.dflip='fn';ui.dm=false;show('diary')},
@@ -1161,12 +1224,19 @@ Object.assign(A,{
  clDel:d=>{const c=car();c.log=c.log.filter(e=>e.id!==d.v);H().exp=H().exp.filter(e=>e.ref!==d.v);save();refresh();toast(t('deleted'))}
 });
 Object.assign(F,{
- auth:()=>{const e=$('#au-e').value.trim().toLowerCase(),p=$('#au-p').value,ex=Object.values(ROOT.users).find(u=>u.email&&u.email===e);
-   if(ui.au){const n=$('#au-n').value.trim();if(!n)return toast(t('err_name'));if(!/^\S+@\S+\.\S+$/.test(e))return toast(t('err_email'));if(p.length<6)return toast(t('err_pw'));if(ex)return toast(t('err_exists'));login(newUser(n,e,p),true)}
-   else{if(!ex)return toast(t('err_nouser'));if(ex.ph&&ex.ph!==hash(p))return toast(t('err_badpw'));login(ex)}},
- gauth:()=>{const e=$('#g-e').value.trim().toLowerCase();if(!/^\S+@\S+\.\S+$/.test(e))return toast(t('err_email'));const ex=Object.values(ROOT.users).find(u=>u.email===e);if(ex)return login(ex);login(newUser(cap(e.split('@')[0].replace(/[._\d]+/g,' ').trim().split(' ')[0]||'User').slice(0,20),e,''),true)},
- spCreate:()=>{const s=blank(ui.sp.type);s.owner=ME.id;s.members=[ME.id];s.name=$('#sp-name').value.trim();s.since=$('#sp-since').value||'';ROOT.spaces[s.id]=s;closeSheet();goSpace(s.id);confetti();A.invite()},
- spJoin:()=>{const c=$('#sp-code').value.trim().toUpperCase(),s=Object.values(ROOT.spaces).find(x=>x.type!=='solo'&&x.code===c);if(!s)return toast(t('sp_nf'));if(s.members.includes(ME.id))return toast(t('sp_in'));if(s.members.length>=TYPES[s.type].max)return toast(t('sp_full'));s.members.push(ME.id);closeSheet();goSpace(s.id);confetti();toast(t('sp_joined',sname(s)))},
+ auth:async()=>{const e=$('#au-e').value.trim().toLowerCase(),p=$('#au-p').value,b=$('#au-b');if(!/^\S+@\S+\.\S+$/.test(e))return toast(t('err_email'));if(p.length<6)return toast(t('err_pw'));
+   const err=x=>{const m=(x&&x.message||'').toLowerCase();toast(/confirm/.test(m)?t('err_confirm'):/invalid login/.test(m)?t('err_login'):/already/.test(m)?t('err_exists'):/weak|short/.test(m)?t('err_weak'):/rate|seconds/.test(m)?t('err_rate'):t('net_err'));if(b)b.disabled=false};
+   if(b)b.disabled=true;
+   if(ui.au){const n=$('#au-n').value.trim();if(!n){if(b)b.disabled=false;return toast(t('err_name'))}
+     const{data,error}=await sb.auth.signUp({email:e,password:p,options:{data:{n},emailRedirectTo:location.origin+location.pathname}});if(error)return err(error);
+     if(data.user&&Array.isArray(data.user.identities)&&!data.user.identities.length)return err({message:'already'});
+     if(data.session)return startSession(data.user);if(b)b.disabled=false;ui.au=0;renderAuth();$('#au-e').value=e;sheet(`<h1>📬</h1><p style="margin:0">${t('au_check',esc(e))}</p><button class="btn" data-a="closeSheet">${t('done')}</button>`)}
+   else{const{data,error}=await sb.auth.signInWithPassword({email:e,password:p});if(error)return err(error);startSession(data.user)}},
+ spCreate:async()=>{const s=blank(ui.sp.type);s.owner=ME.id;s.name=$('#sp-name').value.trim();s.since=$('#sp-since').value||'';closeSheet();
+   try{const r=await insertSpace(s);ROOT.spaces[r.id]=fromRow(r,[ME.id]);BASE[r.id]={js:JSON.stringify(toRow(ROOT.spaces[r.id])),ts:r.updated_at};goSpace(r.id);confetti();A.invite()}catch(e){netErr(e)}},
+ spJoin:async()=>{const c=$('#sp-code').value.trim().toUpperCase();if(c.length<4)return toast(t('sp_nf'));const{data,error}=await sb.rpc('join_space',{p_code:c});
+   if(error){const m=error.message||'';return toast(/not_found/.test(m)?t('sp_nf'):/already/.test(m)?t('sp_in'):/full/.test(m)?t('sp_full'):t('net_err'))}
+   closeSheet();await pull();if(ROOT.spaces[data]){goSpace(data);confetti();toast(t('sp_joined',sname(ROOT.spaces[data])))}},
  dPlan:()=>{const i=$('#d-plan'),v=i.value.trim();if(!v)return;i.value='';H().plans.push({id:uid(),d:ui.dd,t:v,done:false,tm:''});save();refresh();const n=$('#d-plan');if(n)n.focus()},
  plan:()=>{const i=$('#in-plan'),v=i.value.trim();if(!v)return;const id=uid();H().plans.push({id,d:ui.pd,t:v,done:false,tm:$('#in-ptm').value||''});i.value='';$('#in-ptm').value='';save();ui.newItem='pl'+id;refresh();const n=$('#in-plan');if(n)n.focus()},
  car:()=>{const n=$('#ce-name').value.trim();if(!n)return toast(t('err_name'));const g=id=>$('#'+id).value.trim(),c=ui.ce;Object.assign(c,{name:n,plate:g('ce-plate').toUpperCase(),year:g('ce-year'),odo:nf(g('ce-odo')),bud:nf(g('ce-bud')),bought:g('ce-bought'),price:nf(g('ce-price')),insp:g('ce-insp'),inspNext:g('ce-inspn'),ins:g('ce-ins'),notes:g('ce-notes')});
@@ -1190,8 +1260,9 @@ document.addEventListener('input',e=>{const k=e.target.dataset&&e.target.dataset
 if(window.matchMedia)matchMedia('(prefers-color-scheme:dark)').addEventListener('change',applyTheme);
 
 /* ================= boot ================= */
-applyTheme();
-if(ME){enter();save();const h=(location.hash||'').slice(1);show(R[h]?h:'home')}else renderAuth();
+applyTheme();loading(true);
+sb.auth.getSession().then(({data})=>{if(data&&data.session)startSession(data.session.user);else renderAuth()}).catch(()=>renderAuth());
+sb.auth.onAuthStateChange((ev,ses)=>{if(ev==='SIGNED_OUT'&&ME){ME=null;S=null;renderAuth()}});
 if('serviceWorker' in navigator&&location.protocol==='https:'&&!/claude/.test(location.hostname))navigator.serviceWorker.register('sw.js').catch(()=>{});
 
 </script>
