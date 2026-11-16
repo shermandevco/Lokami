@@ -590,6 +590,56 @@ h1{font-size:24px;font-weight:800}h2{font-size:16px;font-weight:800}h3{font-size
   .wstage{margin:18px 0 0}.wmean{margin:16px 0 0;text-align:left}
 }
 @media (hover:hover){.card:has(> .row > .btn):hover{border-color:color-mix(in srgb,var(--pri) 30%,var(--line))}.sn:hover{transform:none}}
+
+/* ===== v14: minimal ===== */
+:root,:root[data-style="glass"],:root[data-style="vivid"]{--bg:#f5f5f6;--surface:#fff;--surface2:#f0f0f2;--line:#e9e9ec;--ink:#17171a;--mut:#85858d;--soft:color-mix(in srgb,var(--p0) 10%,#fff);--shadow:none;--glassline:transparent;--paper:#fff;--pri2:var(--p0)}
+:root[data-m="dark"],:root[data-style="glass"][data-m="dark"],:root[data-style="vivid"][data-m="dark"]{--bg:#0e0e10;--surface:#18181b;--surface2:#222226;--line:#27272c;--ink:#f3f3f4;--mut:#8b8b93;--soft:color-mix(in srgb,var(--p0) 20%,#18181b);--paper:#1c1c20}
+*{-webkit-backdrop-filter:none!important;backdrop-filter:none!important}
+#bg,#rip,.hero .fl{display:none!important}
+body{transition:none}
+/* motion: one short, quiet transition per screen */
+#screen.anim .st{animation:none}
+@keyframes scr{from{opacity:0;transform:translateY(6px)}}
+#screen:is(.tab,.fwd,.back,.mode){animation:scr .2s ease-out}
+/* surfaces */
+.card,.tile,.stat,.ibtn,.mp,.bell,.stpill{border:0!important;box-shadow:none!important}
+.card{border-radius:18px}.tile,.stat{border-radius:18px}
+.tile .ic,.mic{background:var(--surface2)}
+.btn{background:var(--pri);box-shadow:none}.btn.ghost{background:var(--surface2)}
+.chip.on,.seg button.on{box-shadow:none}
+.hero,.livehero,.poohero{background:var(--surface);color:var(--ink);box-shadow:none;border-radius:18px}
+.hero .lbl{color:var(--mut);opacity:1}.hero h2,.hero .ibtn.flat{color:var(--ink)}.hero .ibtn.flat{background:var(--surface2)}
+.hero .ring .bgc{stroke:var(--surface2)}.hero .ring .fg{stroke:var(--pri)}
+.hero .bar{background:var(--surface2)!important}.hero .bar i{background:var(--pri)!important}
+.gopill{background:var(--surface2);color:var(--ink)}
+.poobtn{background:var(--surface2)}
+.bar i{background:var(--pri)}
+.dragging{box-shadow:0 18px 40px rgba(0,0,0,.18)!important}
+/* top bar */
+#modebar{background:var(--bg);padding:10px 16px;margin:-18px -16px 6px;justify-content:space-between}
+.spsw{display:flex;align-items:center;gap:8px;min-width:0;font-size:17px;font-weight:800;letter-spacing:-.02em;padding:4px 0}
+.spsw b{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}.spsw span{font-size:18px}.spsw i{font-style:normal;color:var(--mut);font-size:14px;transition:transform .2s}.spsw:active i{transform:translateY(2px)}
+.bell,.stpill{background:var(--surface)}
+.top .mut.sm{font-weight:600}
+#screen[data-s="home"] .top h1{font-size:26px}
+/* bottom bar: part of the page, slides away while scrolling down */
+#tabbar{background:var(--bg);border-top:1px solid var(--line);transition:transform .28s cubic-bezier(.2,.8,.2,1)}
+#tabbar .ind{display:none}
+#tabbar button{color:var(--mut)}#tabbar button.on{color:var(--ink)}#tabbar button.on svg{transform:none;stroke-width:2.4;color:var(--pri)}
+.navhide #tabbar{transform:translateY(105%)}
+#fab{width:50px;height:50px;border-radius:50%;background:var(--ink);box-shadow:0 6px 18px rgba(0,0,0,.18);transition:transform .28s cubic-bezier(.2,.8,.2,1)}
+#fab i::before,#fab i::after{background:var(--bg)}
+.navhide #fab{transform:translateY(64px)}
+.hidrow{justify-content:flex-start;padding:2px 0}
+/* sidebar */
+#side{background:var(--bg);border-right:1px solid var(--line)}
+.smodes .mp{background:none}.smodes .mp.on{background:var(--surface);color:var(--ink)}.sn.on{background:var(--surface);color:var(--ink)}
+.suser{background:none}
+/* welcome */
+#auth{background:var(--bg)}
+#auth .acard,.wc{box-shadow:none;border:0;background:var(--surface)}
+.sprow{background:var(--surface)}.sprow.on{box-shadow:inset 0 0 0 1.5px var(--ink);background:var(--surface)}
+#sheet .panel{background:var(--bg)}
 </style>
 </head>
 <body>
@@ -1991,6 +2041,21 @@ renderAuth=function(){const a=$('#auth');a.classList.add('on');['#screen','#side
        <div class="wc wc4">${['😍','😊','😌','🔥'].map((m,i)=>`<span style="--i:${i}">${m}</span>`).join('')}</div>
      </div>
      <p class="wmean">🌺 ${t('au_mean')}</p></div></div>`};
+/* ================= v14: minimal shell ================= */
+Object.assign(T,{sp_pick:['Ваші простори','Your spaces','Twoje przestrzenie']});
+const DEFH=()=>S.type==='solo'?['hero','qod','chal','tiles']:['qod','chal','tiles'];
+const hidSet=()=>new Set(lay().hidden||DEFH());
+R.home=()=>{const raw=_homeL(),tpl=document.createElement('template');tpl.innerHTML=raw;const kids=[...tpl.content.children],head=[],blocks={},rest=[];
+  kids.forEach(k=>{const w=k.dataset&&k.dataset.w;if(w&&!blocks[w])blocks[w]=k;else if(!w&&k.classList.contains('top'))head.push(k);else rest.push(k)});
+  const L0=lay(),order=[...(L0.home||[]).filter(w=>WIDS.includes(w)),...WIDS.filter(w=>!(L0.home||[]).includes(w))],hid=hidSet(),hidden=order.filter(w=>blocks[w]&&hid.has(w)),now=new Date();
+  head.forEach(h=>{const b=h.querySelector('button.av');if(b)b.remove();const h1=h.querySelector('h1');if(h1)h1.textContent=wdL(now)+', '+fmt(today())});
+  return head.map(h=>h.outerHTML).join('')+order.filter(w=>blocks[w]&&!hid.has(w)).map(w=>{blocks[w].dataset.id=w;return blocks[w].outerHTML}).join('')+rest.map(r=>r.outerHTML).join('')+
+    (hidden.length?`<div class="hidrow st span">${hidden.map(w=>`<button class="chip add" data-a="wTog" data-v="${w}">＋ ${t('w_'+w)}</button>`).join('')}</div>`:'')};
+A.wTog=d=>{const h=hidSet();h.has(d.v)?h.delete(d.v):h.add(d.v);lay().hidden=[...h];save();sync();refresh()};
+const _chrome4=chrome;
+chrome=function(){_chrome4();document.body.classList.remove('navhide');if(!ME||!S)return;const sc=$('#modebar .mps');if(sc)sc.outerHTML=`<button class="spsw" data-a="spSheet"><span>${TYPES[S.type].em}</span><b>${esc(sname(S))}</b><i>⌄</i></button>`};
+A.spSheet=()=>sheet(`<h1>${t('sp_pick')}</h1><div class="col" style="gap:8px">${mySpaces().map(s=>`<button class="sprow ${s.id===S.id?'on':''}" data-a="spGo" data-v="${s.id}"><span style="font-size:24px">${TYPES[s.type].em}</span><div class="grow"><b>${esc(sname(s))}</b><div class="mut sm">${t('type_'+s.type)}${s.type!=='solo'?' · '+s.members.length+' '+pl(s.members.length,'mem'):''}</div></div>${s.id===S.id?'<span>✓</span>':''}${unread(s)?`<span class="pill">${unread(s)}</span>`:''}</button>`).join('')}</div><button class="btn ghost" data-a="spAdd">${t('new_space')}</button>`);
+let lastY=0;addEventListener('scroll',()=>{const y=scrollY,d=y-lastY;if(Math.abs(d)<8)return;document.body.classList.toggle('navhide',d>0&&y>100&&!document.body.classList.contains('nosel'));lastY=y},{passive:true});
 
 /* ================= boot ================= */
 applyTheme();loading(true);
