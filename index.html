@@ -2156,7 +2156,7 @@ function modInfo(m){const td=today(),c=modCnt();switch(m){
 const treeDone=ids=>{const tree=modTree(),by={};tree.forEach(e=>by[typeof e==='string'?e:e.f]=e);const nt=ids.map(id=>by[id]).filter(Boolean);tree.forEach(e=>{if(!ids.includes(typeof e==='string'?e:e.f))nt.push(e)});saveTree(nt);sync();chrome()};
 const treeBar=id=>modTree().some(e=>e.f===id)?[{em:'✏️',label:t('lo_ren'),fn:x=>A.foEdit({v:x})}]:[{em:'📁',label:t('lo_folder'),fn:x=>A.foMove({v:x})},...(id==='cards'||PSEUDO[id]?[]:[{em:'🚫',label:t('lo_off'),fn:x=>{S.mods[x]=false;save();sync();refresh();toast(t('lo_off')+': '+clean(modName(x)),t('undo'),()=>{S.mods[x]=true;save();refresh()})}}])];
 
-R.home=()=>{const tpl=document.createElement('template');tpl.innerHTML=_homeL();const bl={};[...tpl.content.children].forEach(k=>{const w=k.dataset&&k.dataset.w;if(w&&!bl[w])bl[w]=k});
+R.home=()=>{const tpl=document.createElement('template');tpl.innerHTML=_homeL();const bl={};['invite','now','pairs'].forEach(w=>{const e=tpl.content.querySelector('[data-w="'+w+'"]');if(e)bl[w]=e});
   const td=today(),now=new Date(),g=grp(),st=myStatus(),n=unreadAll(),c=modCnt();
   const items=[...S.plans.filter(p=>p.d===td&&!p.done).map(p=>({t:p.t,s:p.tm||''})),...eventsOn(td).map(e=>({t:e.t,s:e.e||''}))];
   const my=moodOf(ME.id,td),wk=Math.floor(Date.now()/6048e5),ch=CHAL[g][wk%CHAL[g].length][L],cd=S.chal.w===wk&&S.chal.done;
