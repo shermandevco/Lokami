@@ -1,0 +1,74 @@
+import { useRef, useState, useEffect } from 'react'
+import { useStore, curSpace, spaceTasks, setLayout, go, switchSpace, createSpace, joinSpace, toast, type SpaceType } from '../store'
+import { t, tn } from '../lib/i18n'
+import { today, diffDays, weekday, fmtFull, num } from '../lib/dates'
+import { spaceName, spaceIcon } from '../lib/space'
+import { Sheet } from '../ui/Sheet'
+import { useSortable } from '../ui/useSortable'
+import { sortTasks, dueLabel } from './Tasks'
+
+const TILES = ['tasks', 'people', 'classic'] as const
+const CARDS = ['today', 'together', 'invite'] as const
+const order = <T extends string>(saved: string[] | undefined, all: readonly T[]) => [...(saved || []).filter((x): x is T => (all as readonly string[]).includes(x)), ...all.filter(x => !(saved || []).includes(x))]
+
+export function Hub() {
+  const s = useStore(), sp = curSpace(s), lay = s.layouts[s.cur] || {}, tasks = spaceTasks(s)
+  const open = tasks.filter(x => !x.done).sort(sortTasks), now = today(), todayTasks = open.filter(x => x.due && x.due <= now)
+  const [pick, setPick] = useState(false), [dot, setDot] = useState(0)
+  const car = useRef<HTMLDivElement>(null), grid = useRef<HTMLDivElement>(null)
+  const shown = order(lay.cards, CARDS).filter(c => c === 'today' || (sp && sp.type !== 'solo'))
+  const tiles = order(lay.tiles, TILES), sizes = lay.sizes || {}
+  useSortable(car, ids => setLayout({ cards: ids }), { axis: 'x' }, s.cur)
+  const sz = (v: 's' | 'w' | 'l', icon: string) => ({ icon, label: t('size') + ' ' + v.toUpperCase(), fn: (id: string) => setLayout({ sizes: { ...sizes, [id]: v } }) })
+  useSortable(grid, ids => setLayout({ tiles: ids }), { targets: () => [sz('s', '▫️'), sz('w', '▭'), sz('l', '⬜')] }, s.cur)
+  useEffect(() => { const el = car.current; if (!el) return; const f = () => setDot(Math.round(el.scrollLeft / Math.max(1, el.clientWidth))); el.addEventListener('scroll', f, { passive: true }); return () => el.removeEventListener('scroll', f) }, [])
+  if (!sp) return null
+  const days = sp.since ? diffDays(sp.since, now) + 1 : 0
+
+  const card = (c: typeof CARDS[number], i: number) => {
+    const cls = 'cc c' + (i % 4)
+    if (c === 'today') return <div key={c} data-id={c} className={cls}><span className="up">{weekday(new Date())}</span><h3>{todayTasks.length ? tn('tasks_info_left', todayTasks.length) : t('nothing_today')}</h3>{todayTasks.slice(0, 2).map(x => <div key={x.id} className="line ell">{x.title}</div>)}<span className="deco">☀️</span></div>
+    if (c === 'together') return <div key={c} data-id={c} className={cls}><span className="up">{t('together_for')}</span>{days > 0 ? <><div className="big num">{num(days)}</div><div style={{ fontWeight: 700 }}>{tn('day', days)} · {fmtFull(sp.since)}</div></> : <h3>{t('set_date')}</h3>}<span className="deco">{spaceIcon(sp)}</span></div>
+    return <div key={c} data-id={c} className={cls}><span className="up">{t('invite_title')}</span><div className="code">{sp.code}</div><button className="btn sm ghost" style={{ marginTop: 'auto' }} onClick={() => { navigator.clipboard?.writeText(sp.code).then(() => toast(t('copied'))).catch(() => {}) }}>{t('copy')}</button><span className="deco">💌</span></div>
+  }
+  const tile = (id: typeof TILES[number]) => {
+    const size = sizes[id] || (id === 'classic' ? 'w' : 's'), big = size !== 's'
+    if (id === 'tasks') return <button key={id} data-id={id} className={'tile ' + size} onClick={() => go('tasks')}><b>{t('tasks')}</b><small>{open.length ? tn('tasks_info_left', open.length) : t('tasks_all_done')}</small>{big && <ul>{open.slice(0, size === 'l' ? 8 : 2).map(x => <li key={x.id}>{x.title}{x.due ? ' · ' + dueLabel(x.due) : ''}</li>)}</ul>}<span className="em">✅{todayTasks.length > 0 && <i />}</span></button>
+    if (id === 'people') return <button key={id} data-id={id} className={'tile ' + size} onClick={() => go('people')}><b>{t('people')}</b><small>{tn('people_info', sp.members.length)}</small>{big && <ul>{sp.members.slice(0, 8).map(m => <li key={m.id}>{m.a} {m.n}</li>)}</ul>}<span className="em">{spaceIcon(sp)}</span></button>
+    return <a key={id} data-id={id} className={'tile ' + size} href="../" style={{ textDecoration: 'none', color: 'inherit' }}><b>{t('open_classic')}</b><small>{t('classic')}</small><span className="em">🗂️</span></a>
+  }
+  return <div className="page">
+    <div className="head">
+      <button className="switch" onClick={() => setPick(true)}><span className="ell">{spaceName(sp)}</span><i>▾</i></button>
+      <button className="icon" aria-label={t('profile')} onClick={() => go('profile')}>{s.profile?.a}</button>
+    </div>
+    <div className="car" ref={car}>{shown.map(card)}</div>
+    {shown.length > 1 && <div className="dots">{shown.map((c, i) => <i key={c} className={i === dot ? 'on' : ''} />)}</div>}
+    <div className="grid" ref={grid}>{tiles.map(tile)}</div>
+    <p className="sm mut" style={{ textAlign: 'center' }}>{t('hold_tip')}</p>
+    {pick && <Spaces onClose={() => setPick(false)} />}
+  </div>
+}
+
+function Spaces({ onClose }: { onClose: () => void }) {
+  const s = useStore(), [mode, setMode] = useState<'' | 'new' | 'join'>('')
+  const [type, setType] = useState<SpaceType>('couple'), [name, setName] = useState(''), [since, setSince] = useState(''), [code, setCode] = useState(''), [err, setErr] = useState(''), [busy, setBusy] = useState(false)
+  async function create() { setBusy(true); const ok = await createSpace(type, name.trim(), since); setBusy(false); if (ok) onClose(); else setErr(t('err_net')) }
+  async function join() { setBusy(true); const r = await joinSpace(code.trim().toUpperCase()); setBusy(false); if (!r) onClose(); else setErr(t(r === 'not_found' ? 'code_bad' : r === 'already' ? 'code_in' : r === 'full' ? 'code_full' : 'err_net')) }
+  return <Sheet onClose={onClose}>
+    {!mode && <><h2>{t('spaces')}</h2>
+      <div className="card" style={{ padding: '4px 16px' }}>{s.spaces.map(x => <button key={x.id} className="item" style={{ width: '100%', textAlign: 'left' }} onClick={() => { switchSpace(x.id); onClose() }}>
+        <span className="av">{spaceIcon(x)}</span><span className="grow"><b className="ell" style={{ display: 'block' }}>{spaceName(x)}</b><span className="sm mut">{tn('people_info', x.members.length)}</span></span>{x.id === s.cur && <span className="pill">✓</span>}</button>)}</div>
+      <div className="row"><button className="btn" onClick={() => setMode('new')}>{t('new_space')}</button><button className="btn ghost" onClick={() => setMode('join')}>{t('join')}</button></div></>}
+    {mode === 'new' && <><h2>{t('new_space')}</h2>
+      <div className="chips">{(['couple', 'family', 'friends', 'mates'] as const).map(x => <button key={x} className={'chip' + (type === x ? ' on' : '')} onClick={() => setType(x)}>{t(('type_' + x) as 'type_couple')}</button>)}</div>
+      <input className="inp" placeholder={t('space_name')} value={name} onChange={e => setName(e.target.value)} maxLength={40} />
+      <label className="label">{t('since')}<input className="inp" type="date" value={since} max={today()} onChange={e => setSince(e.target.value)} /></label>
+      {err && <p className="sm" style={{ color: 'var(--bad)' }}>{err}</p>}
+      <div className="row"><button className="btn" disabled={busy} onClick={create}>{t('create')}</button><button className="btn ghost" onClick={() => setMode('')}>{t('cancel')}</button></div></>}
+    {mode === 'join' && <><h2>{t('join')}</h2><p className="sm mut">{t('join_hint')}</p>
+      <input className="inp" style={{ textTransform: 'uppercase', letterSpacing: '.2em', fontWeight: 800 }} value={code} onChange={e => setCode(e.target.value)} maxLength={8} autoFocus />
+      {err && <p className="sm" style={{ color: 'var(--bad)' }}>{err}</p>}
+      <div className="row"><button className="btn" disabled={busy || code.trim().length < 4} onClick={join}>{t('join')}</button><button className="btn ghost" onClick={() => setMode('')}>{t('cancel')}</button></div></>}
+  </Sheet>
+}
