@@ -16,15 +16,21 @@ export interface Mood extends Base { day: string; score: number; tags: string[];
 export interface DiaryPage extends Base { day: string; body: string }
 export interface Shop extends Base { title: string; qty: string | null; done: boolean }
 export interface Answer extends Base { day: string; q: number; body: string }
-export interface Tables { tasks: Task; events: Event; habits: Habit; habit_logs: HabitLog; moods: Mood; diary_pages: DiaryPage; shopping_items: Shop; answers: Answer }
+export interface Expense extends Base { title: string; amount: number; currency: string; category: string; day: string; paid_by: string | null; split_ids: string[]; settle: boolean }
+export interface Health extends Base { day: string; weight: number | null; sleep: number | null; water: number | null; steps: number | null }
+export interface Car extends Base { name: string; plate: string | null; year: number | null; icon: string; service_every: number | null; insurance_until: string | null; inspection_until: string | null }
+export interface CarLog extends Base { car_id: string; day: string; kind: 'fuel' | 'service' | 'repair' | 'other'; title: string | null; cost: number | null; mileage: number | null }
+export interface Goal extends Base { title: string; icon: string; target: number | null; unit: string | null; due: string | null; done: boolean }
+export interface GoalLog extends Base { goal_id: string; day: string; amount: number; note: string | null }
+export interface Tables { tasks: Task; events: Event; habits: Habit; habit_logs: HabitLog; moods: Mood; diary_pages: DiaryPage; shopping_items: Shop; answers: Answer; expenses: Expense; health_logs: Health; cars: Car; car_logs: CarLog; goals: Goal; goal_logs: GoalLog }
 export type Table = keyof Tables
-export const TABLES: Table[] = ['tasks', 'events', 'habits', 'habit_logs', 'moods', 'diary_pages', 'shopping_items', 'answers']
+export const TABLES: Table[] = ['tasks', 'events', 'habits', 'habit_logs', 'moods', 'diary_pages', 'shopping_items', 'answers', 'expenses', 'health_logs', 'cars', 'car_logs', 'goals', 'goal_logs']
 type Db = { [K in Table]: Record<string, Tables[K]> }
-const emptyDb = (): Db => ({ tasks: {}, events: {}, habits: {}, habit_logs: {}, moods: {}, diary_pages: {}, shopping_items: {}, answers: {} })
-export interface Layout { tiles?: string[]; sizes?: Record<string, 's' | 'w' | 'l'>; cards?: string[] }
+const emptyDb = (): Db => ({ tasks: {}, events: {}, habits: {}, habit_logs: {}, moods: {}, diary_pages: {}, shopping_items: {}, answers: {}, expenses: {}, health_logs: {}, cars: {}, car_logs: {}, goals: {}, goal_logs: {} })
+export interface Layout { hidden?: string[]; tiles?: string[]; sizes?: Record<string, 's' | 'w' | 'l'>; cards?: string[] }
 export interface Look { mode: 'auto' | 'light' | 'dark'; accent: string; bg: string }
 export interface Profile { id: string; email: string; n: string; a: string; home: string; cur: string }
-export type Route = 'hub' | 'feed' | 'shopping' | 'question' | 'today' | 'tasks' | 'planner' | 'habits' | 'mood' | 'diary' | 'people' | 'profile'
+export type Route = 'budget' | 'health' | 'garage' | 'goals' | 'hub' | 'feed' | 'shopping' | 'question' | 'today' | 'tasks' | 'planner' | 'habits' | 'mood' | 'diary' | 'people' | 'profile'
 
 export interface State {
   ready: boolean; profile: Profile | null; spaces: Space[]; cur: string

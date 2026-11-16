@@ -13,6 +13,10 @@ import { Planner } from './screens/Planner'
 import { Habits } from './screens/Habits'
 import { Mood } from './screens/Mood'
 import { Diary } from './screens/Diary'
+import { Budget } from './screens/Budget'
+import { Health } from './screens/Health'
+import { Garage } from './screens/Garage'
+import { Goals } from './screens/Goals'
 import { Feed } from './screens/Feed'
 import { Shopping } from './screens/Shopping'
 import { Question } from './screens/Question'
@@ -28,7 +32,7 @@ export function App() {
   }, [top?.at])  // eslint-disable-line react-hooks/exhaustive-deps
   if (!s.ready) return null
   if (!s.profile) return <Auth />
-  const Screen = { hub: Hub, feed: Feed, shopping: Shopping, question: Question, today: Today, tasks: Tasks, planner: Planner, habits: Habits, mood: Mood, diary: Diary, people: People, profile: Profile }[s.route]
+  const Screen = { budget: Budget, health: Health, garage: Garage, goals: Goals, hub: Hub, feed: Feed, shopping: Shopping, question: Question, today: Today, tasks: Tasks, planner: Planner, habits: Habits, mood: Mood, diary: Diary, people: People, profile: Profile }[s.route]
   return <>
     {!s.online && <div className="status">{t('offline')}</div>}
     <Screen key={s.route + s.cur} />

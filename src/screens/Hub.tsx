@@ -6,13 +6,16 @@ import { spaceName, spaceIcon } from '../lib/space'
 import { Sheet } from '../ui/Sheet'
 import { useSortable } from '../ui/useSortable'
 import { MOOD_FACE } from '../lib/me'
+import { money, byCategory } from '../lib/money'
+import { pickCur } from './Budget'
+import { carStatus } from './Garage'
 import { milestones, daysUntil } from '../lib/milestones'
 import { questionFor, questionText } from '../lib/questions'
 import { unread } from './Feed'
 import { sortTasks, dueLabel } from './Tasks'
 
-const TILES = ['question', 'tasks', 'shopping', 'planner', 'habits', 'mood', 'diary', 'people', 'classic'] as const
-const PERSONAL = ['habits', 'mood', 'diary']
+const TILES = ['question', 'tasks', 'shopping', 'planner', 'habits', 'mood', 'diary', 'budget', 'health', 'garage', 'goals', 'people', 'classic'] as const
+const PERSONAL = ['habits', 'mood', 'diary', 'health']
 const SHARED = ['question', 'shopping']
 const CARDS = ['today', 'together', 'invite'] as const
 const order = <T extends string>(saved: string[] | undefined, all: readonly T[]) => [...(saved || []).filter((x): x is T => (all as readonly string[]).includes(x)), ...all.filter(x => !(saved || []).includes(x))]
@@ -23,10 +26,11 @@ export function Hub() {
   const [pick, setPick] = useState(false), [dot, setDot] = useState(0)
   const car = useRef<HTMLDivElement>(null), grid = useRef<HTMLDivElement>(null)
   const shown = order(lay.cards, CARDS).filter(c => c === 'today' || (sp && sp.type !== 'solo'))
-  const tiles = order(lay.tiles, TILES).filter(x => sp?.type === 'solo' ? x !== 'people' && !SHARED.includes(x) : !PERSONAL.includes(x)), sizes = lay.sizes || {}
+  const avail = order(lay.tiles, TILES).filter(x => sp?.type === 'solo' ? x !== 'people' && !SHARED.includes(x) : !PERSONAL.includes(x)), hidden = lay.hidden || [], tiles = avail.filter(x => !hidden.includes(x)), sizes = lay.sizes || {}
+  const [mods, setMods] = useState(false)
   useSortable(car, ids => setLayout({ cards: ids }), { axis: 'x' }, s.cur)
   const sz = (v: 's' | 'w' | 'l', icon: string) => ({ icon, label: t('size') + ' ' + v.toUpperCase(), fn: (id: string) => setLayout({ sizes: { ...sizes, [id]: v } }) })
-  useSortable(grid, ids => setLayout({ tiles: ids }), { targets: () => [sz('s', '▫️'), sz('w', '▭'), sz('l', '⬜')] }, s.cur)
+  useSortable(grid, ids => setLayout({ tiles: ids }), { targets: () => [sz('s', '▫️'), sz('w', '▭'), sz('l', '⬜'), { icon: '🙈', label: t('hide'), fn: (id: string) => setLayout({ hidden: [...hidden, id] }) }] }, s.cur)
   useEffect(() => { const el = car.current; if (!el) return; const f = () => setDot(Math.round(el.scrollLeft / Math.max(1, el.clientWidth))); el.addEventListener('scroll', f, { passive: true }); return () => el.removeEventListener('scroll', f) }, [])
   if (!sp) return null
   const days = sp.since ? diffDays(sp.since, now) + 1 : 0
@@ -47,12 +51,16 @@ export function Hub() {
     if (id === 'shopping') { const left = rows('shopping_items', s.cur, s).filter(x => !x.done)
       return <button key={id} data-id={id} className={'tile ' + size} onClick={() => go('shopping')}><b>{t('shopping')}</b><small>{left.length ? tn('shop_left', left.length) : t('shop_empty')}</small>{big && <ul>{left.slice(0, size === 'l' ? 8 : 2).map(x => <li key={x.id}>{x.title}</li>)}</ul>}<span className="em">🛒</span></button> }
     if (id === 'people') return <button key={id} data-id={id} className={'tile ' + size} onClick={() => go('people')}><b>{t('people')}</b><small>{tn('people_info', sp.members.length)}</small>{big && <ul>{sp.members.slice(0, 8).map(m => <li key={m.id}>{m.a} {m.n}</li>)}</ul>}<span className="em">{spaceIcon(sp)}</span></button>
-    const simple: Record<string, [string, string, string]> = { planner: ['planner', '🗓️', ''], habits: ['habits', '🌱', ''], mood: ['mood', '🙂', ''], diary: ['diary', '📓', ''] }
+    const simple: Record<string, [string, string, string]> = { budget: ['budget', '💸', ''], health: ['health', '❤️', ''], garage: ['garage', '🚗', ''], goals: ['goals', '🎯', ''], planner: ['planner', '🗓️', ''], habits: ['habits', '🌱', ''], mood: ['mood', '🙂', ''], diary: ['diary', '📓', ''] }
     if (simple[id]) { const [r, em] = simple[id]; const hs = rows('habits', s.cur, s).filter(x => !x.archived), lg = rows('habit_logs', s.cur, s), md = s.db.moods[s.profile!.id + ':' + now], pg = s.db.diary_pages[s.profile!.id + ':' + now]
       const up = Object.values(s.db.events).filter(e => e.space_id === s.cur && !e.deleted_at && e.day === now)
       const sub = id === 'planner' ? (up.length ? up.map(e => (e.time ? e.time + ' ' : '') + e.title).join(' · ') : t('day_empty'))
         : id === 'habits' ? (hs.length ? t('habits_today', hs.filter(x => lg.some(l => l.habit_id === x.id && l.day === now && l.done)).length, hs.length) : t('habit_new'))
         : id === 'mood' ? (md && !md.deleted_at ? MOOD_FACE[md.score] + ' ' + t(('mood_' + md.score) as 'mood_1') : t('mood_q'))
+        : id === 'budget' ? (() => { const cur = pickCur(s.lang), m = byCategory(rows('expenses', s.cur, s), now.slice(0, 7), cur).reduce((a, [, v]) => a + v, 0); return t('this_month') + ': ' + money(m, cur) })()
+        : id === 'health' ? (() => { const x = s.db.health_logs[s.profile!.id + ':' + now]; return x ? [x.sleep != null && '😴 ' + x.sleep, x.water != null && '💧 ' + x.water, x.steps != null && '👟 ' + num(x.steps)].filter(Boolean).join('  ') || '—' : t('health_hint').split('.')[0] })()
+        : id === 'garage' ? (() => { const cs = rows('cars', s.cur, s); if (!cs.length) return t('car_new'); const st = carStatus(cs[0], rows('car_logs', s.cur, s)); return cs[0].name + (st.serviceLeft != null ? ' · ' + (st.serviceLeft <= 0 ? '⚠️ ' + t('service_due') : t('next_service', num(st.serviceLeft))) : '') })()
+        : id === 'goals' ? (() => { const gs = rows('goals', s.cur, s); return gs.length ? gs.slice(0, 2).map(g => g.icon + ' ' + g.title).join(' · ') : t('goal_new') })()
         : (pg?.body.trim() ? pg.body.trim().slice(0, 60) : t('diary_write'))
       return <button key={id} data-id={id} className={'tile ' + size} onClick={() => go(r as 'planner')}><b>{t(r as 'planner')}</b><small>{sub}</small><span className="em">{em}</span></button> }
     return <a key={id} data-id={id} className={'tile ' + size} href="../" style={{ textDecoration: 'none', color: 'inherit' }}><b>{t('open_classic')}</b><small>{t('classic')}</small><span className="em">🗂️</span></a>
@@ -65,7 +73,11 @@ export function Hub() {
     <div className="car" ref={car}>{shown.map(card)}</div>
     {shown.length > 1 && <div className="dots">{shown.map((c, i) => <i key={c} className={i === dot ? 'on' : ''} />)}</div>}
     <div className="grid" ref={grid}>{tiles.map(tile)}</div>
+    <div className="row" style={{ justifyContent: 'center' }}><button className="chip" onClick={() => setMods(true)}>⚙️ {t('modules')}{hidden.length ? ' · +' + hidden.length : ''}</button></div>
     <p className="sm mut" style={{ textAlign: 'center' }}>{t('hold_tip')}</p>
+    {mods && <Sheet onClose={() => setMods(false)}><h2>{t('modules')}</h2><p className="sm mut">{t('modules_hint')}</p>
+      <div className="chips">{avail.map(x => { const on = !hidden.includes(x); return <button key={x} aria-pressed={on} className={'chip' + (on ? ' on' : '')} onClick={() => setLayout({ hidden: on ? [...hidden, x] : hidden.filter(y => y !== x) })}>{on ? '✓ ' : ''}{x === 'classic' ? t('open_classic') : t(x as 'tasks')}</button> })}</div>
+      <button className="btn" onClick={() => setMods(false)}>{t('done')}</button></Sheet>}
     {pick && <Spaces onClose={() => setPick(false)} />}
   </div>
 }

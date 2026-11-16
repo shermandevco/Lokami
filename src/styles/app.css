@@ -164,3 +164,10 @@ body.nosel{user-select:none;-webkit-user-select:none}
 .confetti i{position:absolute;top:-10px;width:7px;height:12px;border-radius:2px;background:#fff;opacity:.9;animation:fall 2.4s var(--ease) infinite}
 .confetti i:nth-child(3n){background:#ffd166}.confetti i:nth-child(3n+1){background:#ff8fab}
 @keyframes fall{to{transform:translateY(230px) rotate(320deg);opacity:0}}
+
+/* life */
+.bars{display:flex;align-items:flex-end;gap:3px;height:56px}.bars i{flex:1;border-radius:3px;transition:height var(--mid) var(--ease)}
+.stack{display:flex;height:12px;border-radius:6px;overflow:hidden;gap:2px}.stack i{display:block}
+.hgrid{display:grid;grid-template-columns:1fr 1fr;gap:var(--s3)}
+.meter{height:10px;border-radius:5px;background:var(--surface2);overflow:hidden}.meter i{display:block;height:100%;background:var(--accent);transform-origin:left;transition:transform var(--slow) var(--ease)}
+select.inp{appearance:none;padding-right:10px}
