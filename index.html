@@ -477,6 +477,119 @@ body.nosel{user-select:none;-webkit-user-select:none}
 .wed{margin-top:10px}
 
 @keyframes flash2{0%,100%{box-shadow:var(--shadow)}30%{box-shadow:0 0 0 4px var(--pri),var(--shadow)}}.flash2{animation:flash2 1.2s ease}
+
+/* ===== v13 skin: calmer, flatter, native-feeling ===== */
+:root{--ease:cubic-bezier(.2,.8,.2,1);--shadow:0 1px 2px rgba(30,20,50,.05),0 10px 28px rgba(30,20,50,.07)}
+h1,h2,h3{font-family:var(--body);letter-spacing:-.02em}
+h1{font-size:24px;font-weight:800}h2{font-size:16px;font-weight:800}h3{font-size:13px;font-weight:800}
+#bg i{opacity:.1}:root[data-style="glass"] #bg i{opacity:.2}:root[data-m="dark"] #bg i{opacity:.18}
+.card,.tile,.stat{border-radius:20px;border:1px solid var(--line);transition:transform .2s var(--ease),box-shadow .2s,border-color .2s}
+:root[data-style="vivid"] :is(.card,.tile,.stat){box-shadow:none}
+.hero{border-radius:24px;box-shadow:0 10px 28px color-mix(in srgb,var(--pri) 22%,transparent)}
+.hero .big{font-size:50px}
+.btn{border-radius:14px;min-height:44px}.btn.sm{border-radius:11px}
+.inp{border-radius:13px;min-height:44px}
+.ibtn{border-radius:13px;box-shadow:none;border:1px solid var(--line)}
+.tile{min-height:104px;box-shadow:none}.tile .ic{width:40px;height:40px;border-radius:13px;font-size:20px}
+.stat{box-shadow:none}.stat .n{font-family:var(--body);font-weight:800;letter-spacing:-.03em}
+.top{min-height:44px}.top h1{overflow:hidden;text-overflow:ellipsis}
+.it{transition:opacity .2s,transform .2s,max-height .25s,padding .25s,background .2s}
+.seg{border-radius:13px}.seg button{border-radius:10px}
+:is(.btn,.chip,.ibtn,.sn,.mp,.tile,.stat,.deck,.qa){-webkit-tap-highlight-color:transparent}
+
+/* top bar (phone) */
+#modebar{display:flex;align-items:center;gap:10px;overflow:visible;padding:8px 16px;margin:-18px -16px 12px;border-bottom:1px solid transparent}
+.mps{display:flex;gap:6px;overflow-x:auto;scrollbar-width:none;flex:1;min-width:0;padding:3px;margin:-3px;-webkit-mask-image:linear-gradient(90deg,#000 calc(100% - 18px),transparent);mask-image:linear-gradient(90deg,#000 calc(100% - 18px),transparent)}
+.mps::-webkit-scrollbar{display:none}.mact{display:flex;gap:6px;flex:none}
+.mp{min-height:36px;padding:0 13px 0 9px;font-size:13px;box-shadow:none;border:1px solid var(--line);max-width:170px;gap:6px}.mp span{font-size:16px}
+.mp.on{transform:none;box-shadow:0 6px 16px color-mix(in srgb,var(--pri) 28%,transparent)}
+.mp.add{width:36px;box-shadow:none;border:1.5px dashed var(--line)!important}
+.bell,.stpill{height:36px;box-shadow:none;border:1px solid var(--line);font-size:16px}.bell{width:36px}.stpill{padding:0 10px}.stpill.run{border-color:transparent}
+.smodes .mp{border-radius:13px;min-height:40px}
+
+/* tab bar (phone): attached, like a native app */
+#tabbar{left:0;right:0;bottom:0;transform:none;width:auto;border-radius:0;padding:6px 10px calc(6px + env(safe-area-inset-bottom,0px));box-shadow:none;border-top:1px solid var(--line);background:color-mix(in srgb,var(--bg) 84%,transparent)}
+#tabbar .ind{top:6px;left:10px;width:calc((100% - 20px)/5);height:30px;background:none;border-radius:0;transition:transform .4s cubic-bezier(.3,1.25,.5,1)}
+#tabbar .ind::after{content:"";position:absolute;left:50%;top:0;width:56px;height:30px;margin-left:-28px;border-radius:99px;background:var(--soft)}
+#tabbar button{padding:4px 0 2px;gap:5px;font-size:10px;font-weight:700}#tabbar button svg{width:22px;height:22px}
+#tabbar button.on svg{transform:scale(1.08)}
+#app{padding-bottom:108px}
+#toast{bottom:calc(84px + env(safe-area-inset-bottom,0px))}
+
+/* quick add */
+#fab{position:fixed;right:16px;bottom:calc(76px + env(safe-area-inset-bottom,0px));width:54px;height:54px;border-radius:18px;background:linear-gradient(135deg,var(--pri),var(--pri2));box-shadow:0 10px 24px color-mix(in srgb,var(--pri) 42%,transparent);z-index:29;display:none;place-items:center;transition:transform .25s var(--ease),border-radius .25s}
+#fab.on{display:grid;animation:pop .35s}
+#fab i{width:20px;height:20px;position:relative;transition:transform .3s var(--ease)}#fab i::before,#fab i::after{content:"";position:absolute;background:#fff;border-radius:2px}
+#fab i::before{left:8.75px;top:0;width:2.5px;height:20px}#fab i::after{top:8.75px;left:0;height:2.5px;width:20px}
+#fab:hover i{transform:rotate(90deg)}#fab:active{transform:scale(.9);border-radius:50%}
+.qagrid{display:grid;grid-template-columns:repeat(3,1fr);gap:10px}
+.qa{display:flex;flex-direction:column;align-items:center;gap:6px;padding:16px 6px;border-radius:18px;background:var(--surface2);font-size:13px;animation:rise .35s var(--ease) both;animation-delay:calc(var(--i)*28ms);transition:transform .15s,background .2s}
+.qa span{font-size:28px;line-height:1}.qa:active{transform:scale(.93)}.qa:hover{background:var(--soft)}
+
+/* long-press drag */
+#screen[data-s="home"]>[data-id],#hub>[data-id],#sidemods [data-id]{-webkit-touch-callout:none;-webkit-user-select:none;user-select:none}
+.dragging{transition:box-shadow .2s}
+#dropbar{position:fixed;left:50%;bottom:calc(88px + env(safe-area-inset-bottom,0px));transform:translate(-50%,40px);opacity:0;z-index:60;display:flex;gap:10px;pointer-events:none;transition:transform .25s var(--ease),opacity .2s}
+#dropbar.on{transform:translate(-50%,0);opacity:1}
+.dt{display:flex;align-items:center;gap:8px;padding:12px 18px;border-radius:99px;background:var(--ink);color:var(--bg);font-weight:800;font-size:14px;white-space:nowrap;box-shadow:0 10px 30px rgba(0,0,0,.25);transition:transform .15s,background .15s}
+.dt.hot{background:var(--pri);color:#fff;transform:scale(1.12)}
+.hidrow{display:flex;flex-wrap:wrap;gap:8px;align-items:center;justify-content:center;padding:6px 0}
+
+/* admin */
+.agrid{display:grid;grid-template-columns:repeat(2,1fr);gap:10px}
+.abar{display:flex;flex-direction:column;gap:4px}
+.spark{display:grid;grid-template-columns:repeat(14,1fr);gap:4px;height:110px}
+.spark div{display:flex;flex-direction:column;align-items:center;justify-content:flex-end;gap:4px;min-width:0}
+.spark i{width:100%;border-radius:6px 6px 2px 2px;background:linear-gradient(var(--pri2),var(--pri));animation:grow .6s var(--ease) both;transform-origin:bottom}
+.spark i.z{background:var(--surface2)}.spark small{font-size:9px;color:var(--mut)}
+@keyframes grow{from{transform:scaleY(0)}}
+.bar i{animation:barin .7s var(--ease)}@keyframes barin{from{width:0}}
+.arow{display:flex;align-items:center;gap:12px;padding:10px 0;border-bottom:1px solid var(--line);flex-wrap:wrap}.arow:last-child{border:0}
+.ameta{display:flex;gap:4px;flex-wrap:wrap;align-items:center}.adate{text-align:right;margin-left:auto}
+
+/* welcome */
+#auth{color:var(--ink);background:radial-gradient(60% 50% at 0% 0%,color-mix(in srgb,var(--pri) 20%,transparent),transparent 70%),radial-gradient(55% 50% at 100% 100%,color-mix(in srgb,var(--pri2) 22%,transparent),transparent 70%),var(--bg)}
+#auth .lg,.aload .lg{background:linear-gradient(135deg,var(--pri),var(--pri2))}
+.wl{min-height:100%;max-width:1080px;margin:0 auto;padding:18px 20px 36px;display:grid;gap:20px;align-content:start;position:relative}
+.wlang{display:flex;gap:2px;justify-self:end;background:var(--surface2);padding:3px;border-radius:12px}
+.wlang button{padding:6px 10px;border-radius:9px;font-size:12px;font-weight:800;color:var(--mut);transition:all .2s}.wlang button.on{background:var(--surface);color:var(--ink);box-shadow:0 1px 4px rgba(0,0,0,.12)}
+.wleft{animation:rise .5s var(--ease) both}
+.wkick{font-size:12px;font-weight:800;letter-spacing:.12em;text-transform:uppercase;color:var(--pri);margin-top:20px}
+.wleft h1{font-size:clamp(28px,5vw,50px);line-height:1.08;font-weight:800;letter-spacing:-.03em;margin:8px 0 10px}
+.wsub{font-size:16px;color:var(--mut);margin:0;max-width:44ch}
+#auth .acard{border:1px solid var(--line);box-shadow:var(--shadow);background:var(--surface);border-radius:24px;animation:rise .5s .08s var(--ease) both}
+.wextra{animation:rise .5s .16s var(--ease) both}
+.wstage{position:relative;height:200px;max-width:430px;margin:4px auto 0}
+.wc{position:absolute;background:var(--surface);border:1px solid var(--line);border-radius:18px;box-shadow:var(--shadow);padding:12px 14px;animation:wfloat 5s ease-in-out infinite alternate}
+@keyframes wfloat{from{transform:rotate(var(--rot,0deg))}to{transform:translateY(-10px) rotate(var(--rot,0deg))}}
+.wc1{left:0;top:8px;display:flex;gap:12px;align-items:center;--rot:-2deg}
+.wc1 b{font-family:var(--display);font-size:26px;display:block;line-height:1}.wc1 small{color:var(--mut);font-size:12px;font-weight:700}
+.wring{position:relative;width:52px;height:52px}.wring svg{transform:rotate(-90deg);width:52px;height:52px}.wring circle{fill:none;stroke:var(--surface2);stroke-width:6}
+.wring .p{stroke:var(--pri);stroke-linecap:round;stroke-dasharray:157;stroke-dashoffset:157;animation:wr 3.5s var(--ease) infinite alternate}@keyframes wr{to{stroke-dashoffset:38}}
+.wring span{position:absolute;inset:0;display:grid;place-items:center;font-size:20px}
+.wc2{right:0;top:0;width:186px;animation-delay:-2s;--rot:2deg;display:flex;flex-direction:column;gap:7px}
+.wc2 small{font-size:11px;font-weight:800;color:var(--mut);text-transform:uppercase;letter-spacing:.06em}
+.wtk{display:flex;align-items:center;gap:8px;font-size:13px;font-weight:600;white-space:nowrap;overflow:hidden}
+.wtk i{width:16px;height:16px;border-radius:6px;border:2px solid var(--line);flex:none;animation:wtk 7s infinite;animation-delay:calc(var(--i)*1s + .8s)}
+@keyframes wtk{0%,8%{background:transparent;border-color:var(--line)}14%,82%{background:var(--ok);border-color:var(--ok)}90%,100%{background:transparent;border-color:var(--line)}}
+.wc3{left:22px;bottom:4px;display:flex;align-items:center;gap:8px;border-radius:99px;animation-delay:-1s;font-size:14px;--rot:1deg}.wc3 em{font-style:normal;color:var(--pri);font-weight:800}
+.wc4{right:16px;bottom:18px;display:flex;gap:6px;animation-delay:-3s;--rot:-1.5deg}.wc4 span{font-size:22px;animation:bob 1.6s ease-in-out infinite alternate;animation-delay:calc(var(--i)*-.4s)}
+.wmean{font-size:13px;color:var(--mut);max-width:52ch;margin:14px auto 0;text-align:center}
+.aload{color:var(--ink)}
+
+@media (min-width:960px){
+  #modebar{display:none}
+  #side{padding:20px 12px 14px;gap:1px}
+  .sn{min-height:36px;border-radius:10px;font-weight:600}.sn.on{font-weight:800}
+  #fab{right:32px;bottom:32px}#dropbar{bottom:36px;left:calc(50% + 136px)}
+  .agrid{grid-template-columns:repeat(4,1fr)}
+  #screen:is([data-s="admin"]){max-width:1080px}
+  .top h1{font-size:28px}
+  .wl{grid-template-columns:1.15fr .85fr;grid-template-rows:auto auto;align-content:center;column-gap:56px;row-gap:8px;padding:40px}
+  .wlang{position:absolute;top:28px;right:40px}.wleft{grid-column:1;align-self:end}.wextra{grid-column:1;align-self:start}.acard{grid-column:2;grid-row:1/3;align-self:center}
+  .wstage{margin:18px 0 0}.wmean{margin:16px 0 0;text-align:left}
+}
+@media (hover:hover){.card:has(> .row > .btn):hover{border-color:color-mix(in srgb,var(--pri) 30%,var(--line))}.sn:hover{transform:none}}
 </style>
 </head>
 <body>
@@ -1763,6 +1876,121 @@ const _syGo=A.syGo;A.syGo=d=>{const{sid,mods}=ui.syq;const live=mods.includes('l
 /* sync card moves to the top of the profile, with a quick button in the header */
 const _usS3=R.us;R.us=()=>{let h=_usS3();h=h.replace(`<button class="btn ghost sm" data-a="logout">`,`<button class="btn sm" data-a="syJump">${t('sy_btn')}</button><button class="btn ghost sm" data-a="logout">`);return h};
 A.syJump=()=>{const c=$('#sycard');if(c){c.scrollIntoView({behavior:'smooth',block:'start'});c.classList.remove('flash2');void c.offsetWidth;c.classList.add('flash2')}};
+/* ================= v13: new shell — long-press drag, quick add, admin, welcome ================= */
+Object.assign(T,{
+lo_hide:['Сховати','Hide','Ukryj'],lo_folder:['У папку','To folder','Do folderu'],lo_off:['Вимкнути','Turn off','Wyłącz'],lo_ren:['Змінити','Edit','Edytuj'],lo_tip:['Притримайте й перетягніть, щоб змінити порядок','Press and hold, then drag to reorder','Przytrzymaj i przeciągnij, aby zmienić kolejność'],lo_show:['Приховані блоки','Hidden blocks','Ukryte bloki'],
+qa_t:['Швидко додати','Quick add','Szybkie dodawanie'],qa_plan:['План','Plan','Plan'],qa_shop:['Покупка','Shopping item','Zakup'],qa_exp:['Витрата','Expense','Wydatek'],qa_ev:['Подія','Event','Wydarzenie'],qa_diary:['Сторінка дня','Diary page','Strona dnia'],qa_note:['Записка','Note','Liścik'],qa_task:['Справа','Task','Zadanie'],qa_movie:['Фільм','Film','Film'],qa_status:['Статус','Status','Status'],
+ad_t:['Адмін-панель','Admin panel','Panel admina'],ad_users:['користувачів','users','użytkowników'],ad_new7:['нових за 7 днів','new in 7 days','nowych w 7 dni'],ad_a1:['активних за добу','active in 24 h','aktywnych w 24 h'],ad_a7:['активних за тиждень','active in 7 days','aktywnych w 7 dni'],ad_groups:['груп','groups','grup'],ad_avg:['людей у групі в середньому','people per group on average','osób w grupie średnio'],
+ad_signups:['Реєстрації за 14 днів','Sign-ups, last 14 days','Rejestracje z 14 dni'],ad_types:['Типи груп','Group types','Typy grup'],ad_themes:['Кольори','Colour themes','Motywy kolorów'],ad_langs:['Мови','Languages','Języki'],ad_modes:['Тема і стиль','Theme and style','Motyw i styl'],ad_usage:['Чим користуються (просторів із записами)','What people use (spaces with entries)','Z czego korzystają (przestrzenie z wpisami)'],ad_mods:['Модулі: увімкнули / вимкнули вручну','Modules: turned on / off by hand','Moduły: włączone / wyłączone ręcznie'],ad_status:['Статуси зараз','Statuses right now','Statusy teraz'],ad_list:['Користувачі','Users','Użytkownicy'],ad_seen:['був(ла)','seen','widziano'],ad_priv:['Тут лише підсумки та список акаунтів. Особисті записи (щоденник, близькість, нотатки) в адмінці не показуються.','Only totals and the account list are shown. Personal entries (diary, intimacy, notes) never appear here.','Widać tu tylko podsumowania i listę kont. Osobiste wpisy (dziennik, bliskość, notatki) nigdy się tu nie pojawiają.'],ad_sync:['користуються синхронізацією','use sync','korzysta z synchronizacji'],ad_18:['підтвердили 18+','confirmed 18+','potwierdziło 18+'],ad_reload:['Оновити','Refresh','Odśwież'],ad_err:['Не вдалося завантажити статистику','Could not load the stats','Nie udało się wczytać statystyk'],
+w_k:['Твій простір. Твої люди.','Your space. Your people.','Twoja przestrzeń. Twoi ludzie.'],w_c1:['днів разом','days together','dni razem'],w_c2a:['Купити квіти','Buy flowers','Kupić kwiaty'],w_c2b:['Тренування','Workout','Trening'],w_c2c:['Вечеря о 19:00','Dinner at 7 pm','Kolacja o 19:00'],w_c3:['Сьогодні','Today','Dziś']
+});
+ui.homeEdit=false;ui.hubEdit=false;ui.sideEdit=false;
+
+/* ---------- long-press drag & drop (touch: hold 350 ms; mouse: just drag) ---------- */
+function dropBar(items){let b=$('#dropbar');if(!b){b=document.createElement('div');b.id='dropbar';document.body.appendChild(b)}b._items=items||[];b.innerHTML=b._items.map((x,i)=>`<div class="dt" data-i="${i}"><span>${x.em}</span>${x.label}</div>`).join('');b.classList.toggle('on',!!b._items.length)}
+function dropHit(x,y,mark){const b=$('#dropbar');if(!b||!b.classList.contains('on'))return null;let hit=null;[...b.children].forEach(c=>{const r=c.getBoundingClientRect(),h=x>=r.left-10&&x<=r.right+10&&y>=r.top-14&&y<=r.bottom+30;if(mark)c.classList.toggle('hot',h);if(h)hit=b._items[+c.dataset.i]});return hit}
+function lpSort(box,onDone,opts){if(!box||box._lp)return;box._lp=true;opts=opts||{};
+  box.addEventListener('contextmenu',e=>{if(e.target.closest('[data-id]')&&(!opts.guard||opts.guard()))e.preventDefault()});
+  box.addEventListener('pointerdown',e=>{if(e.button||(opts.guard&&!opts.guard()))return;if(e.target.closest('input,textarea,select,[contenteditable],.nodrag'))return;
+    let it=e.target.closest('[data-id]');while(it&&it.parentElement!==box)it=it.parentElement?it.parentElement.closest('[data-id]'):null;if(!it)return;
+    const mouse=e.pointerType==='mouse',sx=e.clientX,sy=e.clientY;let px=sx,py=sy,active=false,timer=null,raf=0,scT=0,gx=0,gy=0,done=false;
+    const kids=()=>[...box.children].filter(c=>c.dataset&&c.dataset.id);
+    const place=()=>{it.style.transform='none';const r=it.getBoundingClientRect();it.style.transform=`translate(${px-gx-r.left}px,${py-gy-r.top}px) scale(1.03)`};
+    const flip=fn=>{const sib=kids().filter(c=>c!==it),bf=new Map(sib.map(c=>[c,c.getBoundingClientRect()]));fn();sib.forEach(c=>{const a=bf.get(c),b=c.getBoundingClientRect(),dx=a.left-b.left,dy=a.top-b.top;if(!dx&&!dy)return;c.style.transition='none';c.style.transform=`translate(${dx}px,${dy}px)`;requestAnimationFrame(()=>{c.style.transition='transform .3s cubic-bezier(.2,.8,.2,1)';c.style.transform=''})})};
+    const hit=()=>{for(const c of kids()){if(c===it)continue;const r=c.getBoundingClientRect();if(px>=r.left&&px<=r.right&&py>=r.top&&py<=r.bottom){const wide=r.width>r.height*1.6,after=wide?py>r.top+r.height/2:(px>r.left+r.width/2);const ref=after?c.nextSibling:c;if(ref!==it&&it.nextSibling!==ref)flip(()=>box.insertBefore(it,ref));return}}};
+    const start=()=>{if(done)return;active=true;const r=it.getBoundingClientRect();gx=px-r.left;gy=py-r.top;kids().forEach(c=>c.style.animation='none');it.classList.add('dragging');box.classList.add('sorting');document.body.classList.add('nosel');try{if(navigator.vibrate)navigator.vibrate(12)}catch(_){}
+      if(opts.bar)dropBar(opts.bar(it.dataset.id));place()};
+    const tick=()=>{raf=0;if(!active)return;place();dropHit(px,py,true)||hit();place()};
+    const mv=ev=>{px=ev.clientX;py=ev.clientY;if(!active){if(Math.hypot(px-sx,py-sy)>(mouse?6:9)){if(mouse)start();else fin(false)}return}
+      if(!raf)raf=requestAnimationFrame(tick);clearInterval(scT);const edge=64;if(py<edge||py>innerHeight-edge){const dir=py<edge?-1:1;scT=setInterval(()=>{window.scrollBy(0,dir*12);place()},16)}};
+    const tm=ev=>{if(active&&ev.cancelable)ev.preventDefault()};
+    const fin=ok=>{if(done)return;done=true;clearTimeout(timer);clearInterval(scT);if(raf)cancelAnimationFrame(raf);removeEventListener('pointermove',mv);removeEventListener('pointerup',up);removeEventListener('pointercancel',cancel);document.removeEventListener('touchmove',tm);
+      if(!active)return;const tgt=ok?dropHit(px,py):null;dropBar(null);const stop=ev=>{ev.stopPropagation();ev.preventDefault()};addEventListener('click',stop,true);setTimeout(()=>removeEventListener('click',stop,true),80);
+      it.style.transition='transform .25s cubic-bezier(.2,.8,.2,1)';it.style.transform='';setTimeout(()=>{it.style.transition='';it.classList.remove('dragging')},260);box.classList.remove('sorting');document.body.classList.remove('nosel');
+      if(tgt)tgt.fn(it.dataset.id);else onDone(kids().map(c=>c.dataset.id))};
+    const up=()=>fin(true),cancel=()=>fin(false);
+    if(!mouse)timer=setTimeout(start,350);
+    addEventListener('pointermove',mv,{passive:true});addEventListener('pointerup',up);addEventListener('pointercancel',cancel);document.addEventListener('touchmove',tm,{passive:false})})}
+
+/* ---------- home: no edit mode, long-press to move, drop to hide ---------- */
+R.home=()=>{const raw=_homeL(),tpl=document.createElement('template');tpl.innerHTML=raw;const kids=[...tpl.content.children],head=[],blocks={},rest=[];
+  kids.forEach(k=>{const w=k.dataset&&k.dataset.w;if(w&&!blocks[w])blocks[w]=k;else if(!w&&k.classList.contains('top'))head.push(k);else rest.push(k)});
+  const L0=lay(),order=[...(L0.home||[]).filter(w=>WIDS.includes(w)),...WIDS.filter(w=>!(L0.home||[]).includes(w))],hid=new Set(L0.hidden||[]);
+  const hidden=order.filter(w=>blocks[w]&&hid.has(w));
+  return head.map(h=>h.outerHTML).join('')+order.filter(w=>blocks[w]&&!hid.has(w)).map(w=>{blocks[w].dataset.id=w;return blocks[w].outerHTML}).join('')+rest.map(r=>r.outerHTML).join('')+
+    (hidden.length?`<div class="hidrow st span"><span class="mut sm">${t('lo_show')}:</span>${hidden.map(w=>`<button class="chip add" data-a="wTog" data-v="${w}">＋ ${t('w_'+w)}</button>`).join('')}</div>`:'')};
+AFTER.home=a=>{if(_afterHome)_afterHome(a)};
+A.wTog=d=>{const L0=lay(),h=new Set(L0.hidden||[]);h.has(d.v)?h.delete(d.v):h.add(d.v);L0.hidden=[...h];save();sync();refresh()};
+function tip(){try{if(localStorage.getItem('lokami_tip'))return;localStorage.setItem('lokami_tip','1')}catch(e){return}setTimeout(()=>{if(ME&&!$('#sheet').classList.contains('on'))toast('✋ '+t('lo_tip'))},2500)}
+
+/* ---------- hub: long-press to move; drop on bar → folder / turn off ---------- */
+const _togetherL=R.together;
+R.together=()=>{ui.hubEdit=false;return _togetherL().replace(/<button class="btn ghost sm" data-a="hubEdit">[^<]*<\/button>/,'')};
+AFTER.together=()=>{lpSort($('#hub'),ids=>{const tree=modTree(),by={};tree.forEach(e=>by[typeof e==='string'?e:e.f]=e);const nt=ids.map(id=>by[id]).filter(Boolean);tree.forEach(e=>{if(!ids.includes(typeof e==='string'?e:e.f))nt.push(e)});saveTree(nt);sync();chrome()},
+  {bar:id=>/^f/.test(id)&&modTree().some(e=>e.f===id)?[{em:'✏️',label:t('lo_ren'),fn:x=>A.foEdit({v:x})}]:[{em:'📁',label:t('lo_folder'),fn:x=>A.foMove({v:x})},...(id==='cards'?[]:[{em:'🚫',label:t('lo_off'),fn:x=>{S.mods[x]=false;save();sync();refresh();toast(t('lo_off')+': '+modName(x),t('undo'),()=>{S.mods[x]=true;save();refresh()})}}])]})};
+
+/* ---------- shell ---------- */
+const _chrome3=chrome;
+chrome=function(){ui.sideEdit=false;_chrome3();if(!ME||!S)return;
+  const mb=$('#modebar');if(mb&&!mb.querySelector('.mps')){const acts=[...mb.querySelectorAll('.stpill,.bell')],sc=document.createElement('div'),ac=document.createElement('div');sc.className='mps';ac.className='mact';[...mb.children].forEach(c=>(acts.includes(c)?null:sc.appendChild(c)));
+    const st=mb.querySelector('.stpill'),bl=mb.querySelector('.bell');if(st)ac.appendChild(st);if(bl)ac.appendChild(bl);mb.append(sc,ac);const on=sc.querySelector('.mp.on');if(on)sc.scrollLeft=Math.max(0,on.offsetLeft-24)}
+  const se=$('#side .sedit');if(se)se.remove();
+  const sm=$('#sidemods');if(sm){lpSort(sm,ids=>{const tree=modTree(),by={};tree.forEach(e=>by[typeof e==='string'?e:e.f]=e);saveTree(ids.map(id=>by[id]).filter(Boolean));sync();if(cur==='together')refresh()});
+    sm.querySelectorAll('details').forEach(d=>{d.querySelectorAll(':scope > .sn').forEach(b=>b.dataset.id=b.dataset.v);lpSort(d,ids=>{const tree=modTree(),f=tree.find(e=>e.f===d.dataset.f);if(f)f.items=ids.filter(x=>f.items.includes(x));saveTree(tree);sync()})})}
+  if(ME.admin){const u=$('#side .suser');if(u&&!$('#side .snadm'))u.insertAdjacentHTML('beforebegin',`<button class="sn snadm ${cur==='admin'?'on':''}" data-a="go" data-v="admin"><span>🛠</span>${t('ad_t')}</button>`)}
+  let f=$('#fab');if(!f){f=document.createElement('button');f.id='fab';f.dataset.a='quick';f.setAttribute('aria-label',t('qa_t'));f.innerHTML='<i></i>';document.body.appendChild(f)}f.classList.toggle('on',!['admin','us'].includes(cur))};
+lpSort($('#screen'),ids=>{const L0=lay();L0.home=[...ids,...WIDS.filter(w=>!ids.includes(w))];save();sync()},{guard:()=>cur==='home',bar:()=>[{em:'🙈',label:t('lo_hide'),fn:id=>A.wTog({v:id})}]});
+const _renderAuth3=renderAuth;
+
+/* ---------- quick add ---------- */
+function quickItems(){const go=(scr,sel)=>()=>{closeSheet();show(scr,'fwd');setTimeout(()=>{const e=$(sel);if(e)e.focus()},350)},a=[];
+  if(modOn('plan'))a.push(['🗓️',t('qa_plan'),go('plan','#in-plan')]);if(modOn('shop'))a.push(['🛒',t('qa_shop'),go('shop','#in-shop')]);if(modOn('budget'))a.push(['💰',t('qa_exp'),go('budget','#in-amt')]);
+  a.push(['📅',t('qa_ev'),()=>{closeSheet();show('calendar');setTimeout(()=>A.evSheet(),300)}]);a.push(['📖',t('qa_diary'),()=>{closeSheet();ui.dd=today();ui.dv=0;show('diary');setTimeout(()=>{const e=$('#dt');if(e)e.focus()},350)}]);
+  if(modOn('chores'))a.push(['🧹',t('qa_task'),go('chores','#in-chores')]);if(modOn('notes'))a.push(['💌',t('qa_note'),go('notes','#in-note')]);if(modOn('movies'))a.push(['🎬',t('qa_movie'),go('movies','#in-mv')]);
+  if(modOn('poo'))a.push(['💩',mt('poo').replace(' 💩',''),()=>{closeSheet();show('poo');setTimeout(()=>{const b=$('.poobtn');if(b)b.click()},350)}]);a.push([STS[myStatus().k].em,t('qa_status'),()=>statusSheet()]);return a}
+A.quick=()=>{ui.qa=quickItems();sheet(`<h1>${t('qa_t')}</h1><div class="qagrid">${ui.qa.map((x,i)=>`<button class="qa" style="--i:${i}" data-a="qaGo" data-i="${i}"><span>${x[0]}</span><b>${esc(x[1])}</b></button>`).join('')}</div>`)};
+A.qaGo=d=>{const x=ui.qa&&ui.qa[+d.i];if(x)x[2]()};
+
+/* ---------- admin ---------- */
+const bars=(obj,name,em)=>{const e=Object.entries(obj||{}).sort((a,b)=>b[1]-a[1]),mx=Math.max(1,...e.map(x=>x[1])),tot=e.reduce((s,x)=>s+x[1],0)||1;return e.map(([k,v])=>`<div class="abar"><div class="row sp sm"><b>${em?em(k)+' ':''}${esc(name?name(k):k)}</b><span class="num mut">${v} · ${Math.round(v/tot*100)}%</span></div><div class="bar"><i style="width:${v/mx*100}%"></i></div></div>`).join('')||'<p class="mut sm" style="margin:0">—</p>'};
+const UK={plans:'plan',diary:null,shop:'shop',chores:'chores',exp:'budget',events:null,cars:'garage',movies:'movies',wishes:'wishes',bucket:'dreams',dates:'dates',notes:'notes',coupons:'coupons',sessions:'live',poo:'poo',intim:'intim',dlog:'dlog'};
+const ukName=k=>k==='diary'?t('tab_diary'):k==='events'?t('tab_cal'):T['m_'+UK[k]]?T['m_'+UK[k]][L]:k,ukEm=k=>k==='diary'?'📖':k==='events'?'📅':(MODS[UK[k]]||{em:'·'}).em;
+const mName=k=>T['m_'+k]?T['m_'+k][L]:k,mEm=k=>(MODS[k]||{em:'·'}).em;
+async function admLoad(){ui.admErr=false;try{const{data,error}=await sb.rpc('admin_stats');if(error)throw error;ui.adm=data}catch(e){ui.admErr=true}if(cur==='admin')refresh()}
+R.admin=()=>{if(!ME.admin)return R.home();const d=ui.adm;const top=`<div class="top st"><button class="ibtn" data-a="go" data-v="us" data-dir="back" aria-label="${t('back')}">←</button><h1>${t('ad_t')}</h1><button class="btn ghost sm" data-a="admReload">↻ ${t('ad_reload')}</button></div>`;
+  if(!d)return top+`<div class="card st span"><div class="empty"><b>${ui.admErr?'⚠️':'⏳'}</b>${ui.admErr?t('ad_err'):'…'}</div></div>`;
+  const big=(n,l)=>`<div class="stat"><div class="n num">${n}</div><div class="mut sm">${l}</div></div>`,mx=Math.max(1,...d.signups.map(x=>x.c));
+  const mods=[...new Set([...Object.keys(d.modsOn||{}),...Object.keys(d.modsOff||{})])].sort((a,b)=>((d.modsOn[b]||0)+(d.modsOff[b]||0))-((d.modsOn[a]||0)+(d.modsOff[a]||0)));
+  return top+`<div class="agrid st span">${big(d.users,t('ad_users'))}${big(d.new7,t('ad_new7'))}${big(d.active1,t('ad_a1'))}${big(d.active7,t('ad_a7'))}${big(d.groups,t('ad_groups'))}${big(d.avgMembers,t('ad_avg'))}${big(d.syncUsers,t('ad_sync'))}${big(d.adult,t('ad_18'))}</div>
+  <div class="card st col"><h2>${t('ad_signups')}</h2><div class="spark">${d.signups.map(x=>`<div title="${x.d}: ${x.c}"><i style="height:${Math.max(4,x.c/mx*100)}%" class="${x.c?'':'z'}"></i><small>${+x.d.slice(8)}</small></div>`).join('')}</div></div>
+  <div class="card st col"><h2>${t('ad_types')}</h2>${bars(d.spaces,k=>t('type_'+k),k=>(TYPES[k]||{em:''}).em)}</div>
+  <div class="card st col"><h2>${t('ad_usage')}</h2>${bars(Object.fromEntries(Object.entries(d.usage||{}).filter(x=>x[1]>0)),ukName,ukEm)}</div>
+  <div class="card st col"><h2>${t('ad_themes')}</h2>${bars(d.themes,k=>k==='custom'?t('ap_custom'):T['th_'+k]?t('th_'+k):k)}</div>
+  <div class="card st col"><h2>${t('ad_langs')}</h2>${bars(d.langs,k=>LANGS[+k]||'—')}</div>
+  <div class="card st col"><h2>${t('ad_modes')}</h2>${bars(d.modes,k=>T['ap_'+k]?t('ap_'+k):k)}<div style="height:6px"></div>${bars(d.styles,k=>T['ap_'+k]?t('ap_'+k):k)}</div>
+  <div class="card st col"><h2>${t('ad_status')}</h2>${bars(d.statuses,k=>T['st_'+k]?t('st_'+k):k,k=>(STS[k]||{em:''}).em)}</div>
+  <div class="card st col"><h2>${t('ad_mods')}</h2>${mods.map(k=>`<div class="row sp sm"><b>${mEm(k)} ${esc(mName(k))}</b><span class="num"><span style="color:var(--ok)">＋${d.modsOn[k]||0}</span> · <span class="mut">−${d.modsOff[k]||0}</span></span></div>`).join('')||'<p class="mut sm" style="margin:0">—</p>'}</div>
+  <div class="card st span"><h2 style="margin-bottom:8px">${t('ad_list')} · ${d.list.length}</h2><div class="atable">${d.list.map(u=>`<div class="arow"><span class="av" style="box-shadow:none;background:var(--surface2)">${u.a||'👤'}</span><div class="grow"><b>${esc(u.n||'—')}</b><div class="mut sm" style="overflow-wrap:anywhere">${esc(u.email||'')}</div></div><div class="sm ameta"><span class="tag">${(LANGS[u.lang]||'—').slice(0,2).toUpperCase()}</span><span class="tag">${u.th==='custom'?'🎨':'<i class="tsw mini" style="--a:'+(THEMES[u.th]||THEMES.berry)[0]+';--b:'+(THEMES[u.th]||THEMES.berry)[1]+'"></i>'} ${esc(T['ap_'+u.mode]?t('ap_'+u.mode):'')}</span><span class="tag">👥 ${u.groups}</span></div><div class="sm mut adate"><div>＋ ${u.created?fmtY(u.created.slice(0,10)):''}</div><div>${t('ad_seen')} ${u.seen?ago(u.seen):'—'}</div></div></div>`).join('')}</div></div>
+  <p class="mut sm st span" style="margin:0;text-align:center">🔒 ${t('ad_priv')}</p>`};
+AFTER.admin=()=>{if(!ui.adm&&!ui.admErr)admLoad()};
+A.admReload=()=>{ui.adm=null;refresh();admLoad()};
+const _start3=startSession;startSession=async function(user){await _start3(user);if(!ME)return;ui.adm=null;try{const r=await sb.rpc('is_admin');ME.admin=!!(r&&r.data)}catch(e){ME.admin=false}if(ME.admin){chrome();if(cur==='us')refresh()}tip()};
+const _us3=R.us;R.us=()=>{let h=_us3();if(ME.admin)h=h.replace(`<button class="btn sm" data-a="syJump">`,`<button class="btn ghost sm" data-a="go" data-v="admin">🛠 ${t('ad_t')}</button><button class="btn sm" data-a="syJump">`);return h};
+
+/* ---------- welcome ---------- */
+renderAuth=function(){const a=$('#auth');a.classList.add('on');['#screen','#side','#tabbar','#modebar'].forEach(s=>{const e=$(s);if(e)e.innerHTML=''});const f=$('#fab');if(f)f.classList.remove('on');
+  a.innerHTML=`<div class="wl"><div class="wlang">${LANGS.map((n,i)=>`<button class="${L===i?'on':''}" data-a="auLang" data-v="${i}">${['UK','EN','PL'][i]}</button>`).join('')}</div>
+   <div class="wleft"><div class="brand big"><i class="lg"></i>Lokami</div><div class="wkick">${t('w_k')}</div><h1>${t('au_h')}</h1><p class="wsub">${t('au_p')}</p></div>
+   <div class="acard"><div class="seg"><button class="${ui.au?'':'on'}" data-a="auTab" data-v="0">${t('au_in')}</button><button class="${ui.au?'on':''}" data-a="auTab" data-v="1">${t('au_up')}</button></div>
+     <form class="col" data-f="auth">${ui.au?`<input class="inp" id="au-n" placeholder="${t('name')}" maxlength="20" autocomplete="name" aria-label="${t('name')}">`:''}<input class="inp" id="au-e" type="email" placeholder="${t('au_email')}" autocomplete="username" aria-label="${t('au_email')}"><input class="inp" id="au-p" type="password" placeholder="${t('au_pw')}" autocomplete="${ui.au?'new-password':'current-password'}" aria-label="${t('au_pw')}"><button class="btn" id="au-b">${t(ui.au?'au_up':'au_in')}</button></form>
+     <p class="demo">🔒 ${t('au_priv')}</p></div>
+   <div class="wextra"><div class="wstage" aria-hidden="true">
+       <div class="wc wc1"><div class="wring"><svg viewBox="0 0 60 60"><circle cx="30" cy="30" r="25"/><circle class="p" cx="30" cy="30" r="25"/></svg><span>💞</span></div><div><b class="num">400</b><small>${t('w_c1')}</small></div></div>
+       <div class="wc wc2"><small>${t('w_c3')}</small>${['a','b','c'].map((k,i)=>`<div class="wtk" style="--i:${i}"><i></i>${t('w_c2'+k)}</div>`).join('')}</div>
+       <div class="wc wc3"><span>🎮</span><b>${t('st_gaming')}</b><em class="num">12:41</em></div>
+       <div class="wc wc4">${['😍','😊','😌','🔥'].map((m,i)=>`<span style="--i:${i}">${m}</span>`).join('')}</div>
+     </div>
+     <p class="wmean">🌺 ${t('au_mean')}</p></div></div>`};
 
 /* ================= boot ================= */
 applyTheme();loading(true);
