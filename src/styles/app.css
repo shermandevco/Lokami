@@ -171,3 +171,4 @@ body.nosel{user-select:none;-webkit-user-select:none}
 .hgrid{display:grid;grid-template-columns:1fr 1fr;gap:var(--s3)}
 .meter{height:10px;border-radius:5px;background:var(--surface2);overflow:hidden}.meter i{display:block;height:100%;background:var(--accent);transform-origin:left;transition:transform var(--slow) var(--ease)}
 select.inp{appearance:none;padding-right:10px}
+.stat{display:flex;flex-direction:column;gap:2px;animation:page var(--slow) var(--ease) both}.stat b{font-size:24px;font-weight:800;letter-spacing:-.02em;overflow-wrap:anywhere}

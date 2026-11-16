@@ -22,15 +22,16 @@ export interface Car extends Base { name: string; plate: string | null; year: nu
 export interface CarLog extends Base { car_id: string; day: string; kind: 'fuel' | 'service' | 'repair' | 'other'; title: string | null; cost: number | null; mileage: number | null }
 export interface Goal extends Base { title: string; icon: string; target: number | null; unit: string | null; due: string | null; done: boolean }
 export interface GoalLog extends Base { goal_id: string; day: string; amount: number; note: string | null }
-export interface Tables { tasks: Task; events: Event; habits: Habit; habit_logs: HabitLog; moods: Mood; diary_pages: DiaryPage; shopping_items: Shop; answers: Answer; expenses: Expense; health_logs: Health; cars: Car; car_logs: CarLog; goals: Goal; goal_logs: GoalLog }
+export interface Checkin extends Base { week: string; close: number | null; heard: number | null; fun: number | null; load: number | null; thanks: string | null; wish: string | null }
+export interface Tables { tasks: Task; events: Event; habits: Habit; habit_logs: HabitLog; moods: Mood; diary_pages: DiaryPage; shopping_items: Shop; answers: Answer; expenses: Expense; health_logs: Health; cars: Car; car_logs: CarLog; goals: Goal; goal_logs: GoalLog; checkins: Checkin }
 export type Table = keyof Tables
-export const TABLES: Table[] = ['tasks', 'events', 'habits', 'habit_logs', 'moods', 'diary_pages', 'shopping_items', 'answers', 'expenses', 'health_logs', 'cars', 'car_logs', 'goals', 'goal_logs']
+export const TABLES: Table[] = ['tasks', 'events', 'habits', 'habit_logs', 'moods', 'diary_pages', 'shopping_items', 'answers', 'expenses', 'health_logs', 'cars', 'car_logs', 'goals', 'goal_logs', 'checkins']
 type Db = { [K in Table]: Record<string, Tables[K]> }
-const emptyDb = (): Db => ({ tasks: {}, events: {}, habits: {}, habit_logs: {}, moods: {}, diary_pages: {}, shopping_items: {}, answers: {}, expenses: {}, health_logs: {}, cars: {}, car_logs: {}, goals: {}, goal_logs: {} })
+const emptyDb = (): Db => ({ tasks: {}, events: {}, habits: {}, habit_logs: {}, moods: {}, diary_pages: {}, shopping_items: {}, answers: {}, expenses: {}, health_logs: {}, cars: {}, car_logs: {}, goals: {}, goal_logs: {}, checkins: {} })
 export interface Layout { hidden?: string[]; tiles?: string[]; sizes?: Record<string, 's' | 'w' | 'l'>; cards?: string[] }
 export interface Look { mode: 'auto' | 'light' | 'dark'; accent: string; bg: string }
 export interface Profile { id: string; email: string; n: string; a: string; home: string; cur: string }
-export type Route = 'budget' | 'health' | 'garage' | 'goals' | 'hub' | 'feed' | 'shopping' | 'question' | 'today' | 'tasks' | 'planner' | 'habits' | 'mood' | 'diary' | 'people' | 'profile'
+export type Route = 'checkin' | 'insights' | 'year' | 'budget' | 'health' | 'garage' | 'goals' | 'hub' | 'feed' | 'shopping' | 'question' | 'today' | 'tasks' | 'planner' | 'habits' | 'mood' | 'diary' | 'people' | 'profile'
 
 export interface State {
   ready: boolean; profile: Profile | null; spaces: Space[]; cur: string
@@ -116,7 +117,7 @@ async function pull() {
   const uids = [...new Set(ids.flatMap(id => by[id]))]
   const since = (tb: Table) => state.cursor[tb]
   // answers: always re-read the last 30 days, because a partner's older answer becomes visible only after I answer
-  const q = (tb: Table) => tb === 'answers' ? sb.from(tb).select('*').in('space_id', ids).gte('day', new Date(Date.now() - 30 * 864e5).toISOString().slice(0, 10)) : since(tb) ? sb.from(tb).select('*').in('space_id', ids).gt('updated_at', since(tb)!) : sb.from(tb).select('*').in('space_id', ids).is('deleted_at', null)
+  const q = (tb: Table) => tb === 'answers' || tb === 'checkins' ? sb.from(tb).select('*').in('space_id', ids).gte(tb === 'answers' ? 'day' : 'week', new Date(Date.now() - (tb === 'answers' ? 30 : 400) * 864e5).toISOString().slice(0, 10)) : since(tb) ? sb.from(tb).select('*').in('space_id', ids).gt('updated_at', since(tb)!) : sb.from(tb).select('*').in('space_id', ids).is('deleted_at', null)
   const [sp, pf, lo, ...got] = await Promise.all([
     sb.from('spaces').select('id,type,name,code,owner,data').in('id', ids),
     sb.from('profiles').select('id,n,a').in('id', uids),

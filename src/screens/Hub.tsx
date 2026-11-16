@@ -1,7 +1,7 @@
 import { useRef, useState, useEffect } from 'react'
 import { rows, useStore, curSpace, spaceTasks, setLayout, go, switchSpace, createSpace, joinSpace, toast, type SpaceType } from '../store'
 import { t, tn } from '../lib/i18n'
-import { today, diffDays, weekday, fmtFull, num } from '../lib/dates'
+import { today, diffDays, weekday, fmtFull, fmtDay, weekStart, num } from '../lib/dates'
 import { spaceName, spaceIcon } from '../lib/space'
 import { Sheet } from '../ui/Sheet'
 import { useSortable } from '../ui/useSortable'
@@ -14,9 +14,9 @@ import { questionFor, questionText } from '../lib/questions'
 import { unread } from './Feed'
 import { sortTasks, dueLabel } from './Tasks'
 
-const TILES = ['question', 'tasks', 'shopping', 'planner', 'habits', 'mood', 'diary', 'budget', 'health', 'garage', 'goals', 'people', 'classic'] as const
-const PERSONAL = ['habits', 'mood', 'diary', 'health']
-const SHARED = ['question', 'shopping']
+const TILES = ['question', 'checkin', 'tasks', 'shopping', 'planner', 'habits', 'mood', 'diary', 'budget', 'health', 'garage', 'goals', 'insights', 'year', 'people', 'classic'] as const
+const PERSONAL = ['habits', 'mood', 'diary', 'health', 'insights']
+const SHARED = ['question', 'shopping', 'checkin']
 const CARDS = ['today', 'together', 'invite'] as const
 const order = <T extends string>(saved: string[] | undefined, all: readonly T[]) => [...(saved || []).filter((x): x is T => (all as readonly string[]).includes(x)), ...all.filter(x => !(saved || []).includes(x))]
 
@@ -51,12 +51,15 @@ export function Hub() {
     if (id === 'shopping') { const left = rows('shopping_items', s.cur, s).filter(x => !x.done)
       return <button key={id} data-id={id} className={'tile ' + size} onClick={() => go('shopping')}><b>{t('shopping')}</b><small>{left.length ? tn('shop_left', left.length) : t('shop_empty')}</small>{big && <ul>{left.slice(0, size === 'l' ? 8 : 2).map(x => <li key={x.id}>{x.title}</li>)}</ul>}<span className="em">🛒</span></button> }
     if (id === 'people') return <button key={id} data-id={id} className={'tile ' + size} onClick={() => go('people')}><b>{t('people')}</b><small>{tn('people_info', sp.members.length)}</small>{big && <ul>{sp.members.slice(0, 8).map(m => <li key={m.id}>{m.a} {m.n}</li>)}</ul>}<span className="em">{spaceIcon(sp)}</span></button>
-    const simple: Record<string, [string, string, string]> = { budget: ['budget', '💸', ''], health: ['health', '❤️', ''], garage: ['garage', '🚗', ''], goals: ['goals', '🎯', ''], planner: ['planner', '🗓️', ''], habits: ['habits', '🌱', ''], mood: ['mood', '🙂', ''], diary: ['diary', '📓', ''] }
+    const simple: Record<string, [string, string, string]> = { checkin: ['checkin', '🫶', ''], insights: ['insights', '🔗', ''], year: ['year', '✨', ''], budget: ['budget', '💸', ''], health: ['health', '❤️', ''], garage: ['garage', '🚗', ''], goals: ['goals', '🎯', ''], planner: ['planner', '🗓️', ''], habits: ['habits', '🌱', ''], mood: ['mood', '🙂', ''], diary: ['diary', '📓', ''] }
     if (simple[id]) { const [r, em] = simple[id]; const hs = rows('habits', s.cur, s).filter(x => !x.archived), lg = rows('habit_logs', s.cur, s), md = s.db.moods[s.profile!.id + ':' + now], pg = s.db.diary_pages[s.profile!.id + ':' + now]
       const up = Object.values(s.db.events).filter(e => e.space_id === s.cur && !e.deleted_at && e.day === now)
       const sub = id === 'planner' ? (up.length ? up.map(e => (e.time ? e.time + ' ' : '') + e.title).join(' · ') : t('day_empty'))
         : id === 'habits' ? (hs.length ? t('habits_today', hs.filter(x => lg.some(l => l.habit_id === x.id && l.day === now && l.done)).length, hs.length) : t('habit_new'))
         : id === 'mood' ? (md && !md.deleted_at ? MOOD_FACE[md.score] + ' ' + t(('mood_' + md.score) as 'mood_1') : t('mood_q'))
+        : id === 'checkin' ? (s.db.checkins[sp.id + ':' + weekStart(now) + ':' + s.profile!.id] ? '✓ ' + t('ci_week', fmtDay(weekStart(now))) : t('checkin_sub'))
+        : id === 'insights' ? t('insights_sub')
+        : id === 'year' ? (sp.type === 'solo' ? t('my_year') : t('our_year')) + ' ' + now.slice(0, 4)
         : id === 'budget' ? (() => { const cur = pickCur(s.lang), m = byCategory(rows('expenses', s.cur, s), now.slice(0, 7), cur).reduce((a, [, v]) => a + v, 0); return t('this_month') + ': ' + money(m, cur) })()
         : id === 'health' ? (() => { const x = s.db.health_logs[s.profile!.id + ':' + now]; return x ? [x.sleep != null && '😴 ' + x.sleep, x.water != null && '💧 ' + x.water, x.steps != null && '👟 ' + num(x.steps)].filter(Boolean).join('  ') || '—' : t('health_hint').split('.')[0] })()
         : id === 'garage' ? (() => { const cs = rows('cars', s.cur, s); if (!cs.length) return t('car_new'); const st = carStatus(cs[0], rows('car_logs', s.cur, s)); return cs[0].name + (st.serviceLeft != null ? ' · ' + (st.serviceLeft <= 0 ? '⚠️ ' + t('service_due') : t('next_service', num(st.serviceLeft))) : '') })()

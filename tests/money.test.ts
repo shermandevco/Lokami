@@ -20,3 +20,13 @@ describe('debts', () => {
     expect(balances([e(10, 'a', ['b'], { currency: 'EUR' }), e(10, 'a', ['b'], { deleted_at: 'x' })], 'PLN')).toEqual({})
   })
 })
+import { connections } from '../src/lib/insights'
+describe('connections', () => {
+  const day = (i: number) => '2026-10-' + String(i + 1).padStart(2, '0')
+  it('reports a factor only with enough days on both sides', () => {
+    const moods = Array.from({ length: 12 }, (_, i) => ({ day: day(i), score: i % 2 ? 5 : 2, tags: i % 2 ? ['sport'] : [] })) as never[]
+    const r = connections(moods, [], [], [], [], t => t)
+    expect(r[0].key).toBe('tag:sport'); expect(r[0].withAvg).toBe(5); expect(r[0].withoutAvg).toBe(2)
+    expect(connections(moods.slice(0, 6), [], [], [], [], t => t)).toEqual([])
+  })
+})
