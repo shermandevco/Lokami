@@ -722,6 +722,17 @@ h2{font-size:17px}h3{font-size:13px}
   .apgrid{grid-template-columns:repeat(auto-fill,minmax(96px,1fr))}
   #screen[data-s="home"]>.card{max-width:520px}
 }
+
+/* widget sizes */
+.hgrid{grid-auto-flow:dense}
+.mt.w{grid-column:span 2}.mt.l{grid-column:span 2;height:268px}
+.mt ul{list-style:none;margin:6px 0 0;padding:0;display:flex;flex-direction:column;gap:3px;max-width:calc(100% - 64px);border:0}
+.mt li{display:block;padding:0 0 0 10px;border:0;border-left:2px solid var(--line);font-size:13px;line-height:1.35;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;font-weight:600}
+.mt.w small,.mt.l small{max-width:calc(100% - 64px);-webkit-line-clamp:1}
+.mt.l .mte{font-size:52px}
+.dt{padding:11px 15px;font-size:13px;gap:6px}
+.car>.cc{-webkit-touch-callout:none;-webkit-user-select:none;user-select:none}
+@media (min-width:960px){.mt.l{height:270px}}
 </style>
 </head>
 <body>
@@ -2029,16 +2040,16 @@ function lpSort(box,onDone,opts){if(!box||box._lp)return;box._lp=true;opts=opts|
     const kids=()=>[...box.children].filter(c=>c.dataset&&c.dataset.id);
     const place=()=>{it.style.transform='none';const r=it.getBoundingClientRect();it.style.transform=`translate(${px-gx-r.left}px,${py-gy-r.top}px) scale(1.03)`};
     const flip=fn=>{const sib=kids().filter(c=>c!==it),bf=new Map(sib.map(c=>[c,c.getBoundingClientRect()]));fn();sib.forEach(c=>{const a=bf.get(c),b=c.getBoundingClientRect(),dx=a.left-b.left,dy=a.top-b.top;if(!dx&&!dy)return;c.style.transition='none';c.style.transform=`translate(${dx}px,${dy}px)`;requestAnimationFrame(()=>{c.style.transition='transform .3s cubic-bezier(.2,.8,.2,1)';c.style.transform=''})})};
-    const hit=()=>{for(const c of kids()){if(c===it)continue;const r=c.getBoundingClientRect();if(px>=r.left&&px<=r.right&&py>=r.top&&py<=r.bottom){const wide=r.width>r.height*1.6,after=wide?py>r.top+r.height/2:(px>r.left+r.width/2);const ref=after?c.nextSibling:c;if(ref!==it&&it.nextSibling!==ref)flip(()=>box.insertBefore(it,ref));return}}};
-    const start=()=>{if(done)return;active=true;const r=it.getBoundingClientRect();gx=px-r.left;gy=py-r.top;kids().forEach(c=>c.style.animation='none');it.classList.add('dragging');box.classList.add('sorting');document.body.classList.add('nosel');try{if(navigator.vibrate)navigator.vibrate(12)}catch(_){}
+    const hit=()=>{for(const c of kids()){if(c===it)continue;const r=c.getBoundingClientRect();if(px>=r.left&&px<=r.right&&py>=r.top&&py<=r.bottom){const wide=opts.axis?opts.axis==='y':r.width>r.height*1.6,after=wide?py>r.top+r.height/2:(px>r.left+r.width/2);const ref=after?c.nextSibling:c;if(ref!==it&&it.nextSibling!==ref)flip(()=>box.insertBefore(it,ref));return}}};
+    const start=()=>{if(done)return;active=true;const r=it.getBoundingClientRect();gx=px-r.left;gy=py-r.top;kids().forEach(c=>c.style.animation='none');it.classList.add('dragging');box.classList.add('sorting');document.body.classList.add('nosel');if(opts.axis==='x'){const sl=box.scrollLeft;box.style.scrollSnapType='none';box.scrollLeft=sl}try{if(navigator.vibrate)navigator.vibrate(12)}catch(_){}
       if(opts.bar)dropBar(opts.bar(it.dataset.id));place()};
     const tick=()=>{raf=0;if(!active)return;place();dropHit(px,py,true)||hit();place()};
     const mv=ev=>{px=ev.clientX;py=ev.clientY;if(!active){if(Math.hypot(px-sx,py-sy)>(mouse?6:9)){if(mouse)start();else fin(false)}return}
-      if(!raf)raf=requestAnimationFrame(tick);clearInterval(scT);const edge=64;if(py<edge||py>innerHeight-edge){const dir=py<edge?-1:1;scT=setInterval(()=>{window.scrollBy(0,dir*12);place()},16)}};
+      if(!raf)raf=requestAnimationFrame(tick);clearInterval(scT);const edge=64;if(opts.axis==='x'){if(px<48||px>innerWidth-48){const dir=px<48?-1:1;scT=setInterval(()=>{box.scrollLeft+=dir*10;place();hit();place()},16)}}else if(py<edge||py>innerHeight-edge){const dir=py<edge?-1:1;scT=setInterval(()=>{window.scrollBy(0,dir*12);place()},16)}};
     const tm=ev=>{if(active&&ev.cancelable)ev.preventDefault()};
     const fin=ok=>{if(done)return;done=true;clearTimeout(timer);clearInterval(scT);if(raf)cancelAnimationFrame(raf);removeEventListener('pointermove',mv);removeEventListener('pointerup',up);removeEventListener('pointercancel',cancel);document.removeEventListener('touchmove',tm);
       if(!active)return;const tgt=ok?dropHit(px,py):null;dropBar(null);const stop=ev=>{ev.stopPropagation();ev.preventDefault()};addEventListener('click',stop,true);setTimeout(()=>removeEventListener('click',stop,true),80);
-      it.style.transition='transform .25s cubic-bezier(.2,.8,.2,1)';it.style.transform='';setTimeout(()=>{it.style.transition='';it.classList.remove('dragging')},260);box.classList.remove('sorting');document.body.classList.remove('nosel');
+      it.style.transition='transform .25s cubic-bezier(.2,.8,.2,1)';it.style.transform='';setTimeout(()=>{it.style.transition='';it.classList.remove('dragging')},260);box.classList.remove('sorting');document.body.classList.remove('nosel');if(opts.axis==='x')setTimeout(()=>box.style.scrollSnapType='',300);
       if(tgt)tgt.fn(it.dataset.id);else onDone(kids().map(c=>c.dataset.id))};
     const up=()=>fin(true),cancel=()=>fin(false);
     if(!mouse)timer=setTimeout(start,350);
@@ -2153,6 +2164,23 @@ function modInfo(m){const td=today(),c=modCnt();switch(m){
   case'budget':return money(S.exp.filter(e=>e.d.startsWith(td.slice(0,7))).reduce((a,e)=>a+e.a,0));
   case'movies':return c.movies?c.movies+' · '+t('mv0'):modDesc(m);
   default:return modDesc(m)}}
+T.lo_size=['Розмір','Size','Rozmiar'];
+function tileRows(m,n){const td=today(),un=a=>(a||[]).filter(i=>!i.done).map(i=>i.t);let r=[];switch(m){
+  case'shop':r=un(S.shop);break;case'chores':r=un(S.chores);break;case'wishes':r=un(S.wishes);break;case'dreams':r=un(S.bucket);break;case'dates':r=un(S.dates);break;
+  case'plan':r=S.plans.filter(p=>p.d===td&&!p.done).sort((a,b)=>(a.tm||'99')<(b.tm||'99')?-1:1).map(p=>(p.tm?p.tm+' ':'')+p.t);break;
+  case'calendar':r=upcoming(n).map(e=>(e.e||'📌')+' '+e.t+' · '+fmt(e.o));break;
+  case'movies':r=S.movies.filter(x=>x.s<2).map(x=>x.t);break;
+  case'notes':r=S.notes.slice(-n).reverse().map(x=>wn(x.who)+': '+x.t);break;
+  case'coupons':r=S.coupons.filter(x=>!x.used).map(x=>x.t+' → '+wn(x.to));break;
+  case'diary':{const e=H().diary[td];r=e&&e.t?e.t.split('\n').filter(Boolean):[t('diary_cta')];break}
+  case'budget':{const ym=td.slice(0,7),by={};S.exp.filter(e=>e.d.startsWith(ym)).forEach(e=>by[e.c]=(by[e.c]||0)+e.a);r=Object.entries(by).sort((a,b)=>b[1]-a[1]).map(([k,v])=>cn(BCATS,+k)+' · '+money(v));if(S.bud)r.unshift(t('of_lim',money(S.bud)));break}
+  case'garage':r=S.cars.map(x=>x.em+' '+x.name+(x.inspNext?' · '+t('car_insp')+' '+fmt(x.inspNext):''));break;
+  case'mood':r=M().map(u=>u.a+' '+u.n+' '+(moodOf(u.id,td)||'·'));break;
+  case'live':r=(S.type==='solo'?(H().sessions||[]):(S.sessions||[])).slice(-n).reverse().map(x=>(STS[x.k||'sex']||{em:''}).em+' '+wn(x.who)+' · '+dur(new Date(x.end)-new Date(x.start)));break;
+  case'poo':r=(S.poo||[]).slice(-n).reverse().map(x=>'💩 '+wn(x.who)+' · '+fmt(x.at.slice(0,10)));break;
+  case'intim':r=(S.intim||[]).slice(-n).reverse().map(x=>fmt(x.d)+' '+'♥'.repeat(x.r||0));break;
+  case'cards':r=S.favQ.slice(-n).reverse();break}
+  return r.slice(0,n)}
 const treeDone=ids=>{const tree=modTree(),by={};tree.forEach(e=>by[typeof e==='string'?e:e.f]=e);const nt=ids.map(id=>by[id]).filter(Boolean);tree.forEach(e=>{if(!ids.includes(typeof e==='string'?e:e.f))nt.push(e)});saveTree(nt);sync();chrome()};
 const treeBar=id=>modTree().some(e=>e.f===id)?[{em:'✏️',label:t('lo_ren'),fn:x=>A.foEdit({v:x})}]:[{em:'📁',label:t('lo_folder'),fn:x=>A.foMove({v:x})},...(id==='cards'||PSEUDO[id]?[]:[{em:'🚫',label:t('lo_off'),fn:x=>{S.mods[x]=false;save();sync();refresh();toast(t('lo_off')+': '+clean(modName(x)),t('undo'),()=>{S.mods[x]=true;save();refresh()})}}])];
 
@@ -2161,20 +2189,23 @@ R.home=()=>{const tpl=document.createElement('template');tpl.innerHTML=_homeL();
   const items=[...S.plans.filter(p=>p.d===td&&!p.done).map(p=>({t:p.t,s:p.tm||''})),...eventsOn(td).map(e=>({t:e.t,s:e.e||''}))];
   const my=moodOf(ME.id,td),wk=Math.floor(Date.now()/6048e5),ch=CHAL[g][wk%CHAL[g].length][L],cd=S.chal.w===wk&&S.chal.done;
   const pool=[];decksFor().forEach(k=>{if(DECKS[k].lvl<3)DECKS[k].q.forEach((q,i)=>pool.push([k,i]))});const doy=Math.floor((now-new Date(now.getFullYear(),0,0))/864e5),[qk,qi]=pool[(doy*7)%pool.length];
-  const cards=[`<button class="cc c0" data-a="go" data-v="${modOn('plan')?'plan':'calendar'}" data-dir="fwd"><div class="cch">${wdL(now)}<br>${fmt(td)}</div>${items.slice(0,2).map(i=>`<div class="cci"><b>${esc(i.t)}</b>${i.s?`<small>${esc(i.s)}</small>`:''}</div>`).join('')}${items.length>2?`<div class="cci more"><b>${t('c_more',items.length-2)}</b></div>`:''}${items.length?'':`<p class="ccs">${t('c_noplans')}</p>`}<span class="ccd">🗓️</span></button>`];
-  if(modOn('mood'))cards.push(`<div class="cc c2"><div class="cch sm">${t('how_today',esc(ME.n))}</div><div class="ccm">${Object.keys(MOODS).slice(0,6).map(m=>`<button class="${my===m?'on':''}" data-a="mood" data-v="${m}" aria-label="${MOODS[m][L]}">${m}</button>`).join('')}</div><p class="ccs">${my&&MOODS[my]?MOODS[my][L]:''}</p></div>`);
-  if(S.type!=='solo')cards.push(S.since?`<button class="cc c1" data-a="go" data-v="us"><div class="ccs up">${t('hero_'+S.type)}</div><div class="ccn num">${num(Math.max(0,diff(S.since,td)))}</div><p class="ccs">${pl(Math.max(0,diff(S.since,td)),'day')} · ${fmtY(S.since)}</p><span class="ccd">${TYPES[S.type].em}</span></button>`:`<button class="cc c1" data-a="go" data-v="us"><div class="cch sm">${t('hero_cta')}</div><p class="ccs">${t('set_date')}</p><span class="ccd">${TYPES[S.type].em}</span></button>`);
-  cards.push(`<div class="cc c3"><div class="ccs up">${t('chal')} · 🏆 ${S.chalN}</div><div class="cch sm">${esc(ch)}</div>${cd?`<p class="ccs">✓ ${t('chal_done')}</p>`:`<button class="ccb" data-a="chalDone">${t('done_btn')}</button>`}<span class="ccd">🏆</span></div>`);
-  cards.push(`<button class="cc c4" data-a="play" data-v="${qk}" data-i="${qi}"><div class="ccs up">${t('qod')}</div><div class="cch sm">${esc(DECKS[qk].q[qi][L])}</div><span class="ccd">${DECKS[qk].em}</span></button>`);
-  const tile=m=>`<button class="mt" data-id="${m}" data-a="go" data-v="${m}" data-dir="fwd"><b>${esc(clean(modName(m)))}</b><small>${esc(modInfo(m))}</small><span class="mte">${modEm(m)}${c[m]&&['shop','plan','chores','coupons'].includes(m)?'<i></i>':''}</span></button>`;
-  const fold=f=>`<button class="mt" data-id="${f.f}" data-a="foOpen" data-v="${f.f}"><b>${esc(f.n)}</b><small>${esc(f.items.map(x=>clean(modName(x))).slice(0,3).join(', ')||t('fo_empty'))}</small><span class="mte">📁</span></button>`;
+  const cards=[['today',`<button class="cc c0" data-a="go" data-v="${modOn('plan')?'plan':'calendar'}" data-dir="fwd"><div class="cch">${wdL(now)}<br>${fmt(td)}</div>${items.slice(0,2).map(i=>`<div class="cci"><b>${esc(i.t)}</b>${i.s?`<small>${esc(i.s)}</small>`:''}</div>`).join('')}${items.length>2?`<div class="cci more"><b>${t('c_more',items.length-2)}</b></div>`:''}${items.length?'':`<p class="ccs">${t('c_noplans')}</p>`}<span class="ccd">🗓️</span></button>`]];
+  if(modOn('mood'))cards.push(['mood',`<div class="cc c2"><div class="cch sm">${t('how_today',esc(ME.n))}</div><div class="ccm">${Object.keys(MOODS).slice(0,6).map(m=>`<button class="${my===m?'on':''}" data-a="mood" data-v="${m}" aria-label="${MOODS[m][L]}">${m}</button>`).join('')}</div><p class="ccs">${my&&MOODS[my]?MOODS[my][L]:''}</p></div>`]);
+  if(S.type!=='solo')cards.push(['count',S.since?`<button class="cc c1" data-a="go" data-v="us"><div class="ccs up">${t('hero_'+S.type)}</div><div class="ccn num">${num(Math.max(0,diff(S.since,td)))}</div><p class="ccs">${pl(Math.max(0,diff(S.since,td)),'day')} · ${fmtY(S.since)}</p><span class="ccd">${TYPES[S.type].em}</span></button>`:`<button class="cc c1" data-a="go" data-v="us"><div class="cch sm">${t('hero_cta')}</div><p class="ccs">${t('set_date')}</p><span class="ccd">${TYPES[S.type].em}</span></button>`]);
+  cards.push(['chal',`<div class="cc c3"><div class="ccs up">${t('chal')} · 🏆 ${S.chalN}</div><div class="cch sm">${esc(ch)}</div>${cd?`<p class="ccs">✓ ${t('chal_done')}</p>`:`<button class="ccb" data-a="chalDone">${t('done_btn')}</button>`}<span class="ccd">🏆</span></div>`]);
+  cards.push(['qod',`<button class="cc c4" data-a="play" data-v="${qk}" data-i="${qi}"><div class="ccs up">${t('qod')}</div><div class="cch sm">${esc(DECKS[qk].q[qi][L])}</div><span class="ccd">${DECKS[qk].em}</span></button>`]);
+  const co=lay().car||[];cards.sort((a,b)=>(co.indexOf(a[0])<0?99:co.indexOf(a[0]))-(co.indexOf(b[0])<0?99:co.indexOf(b[0])));
+  const sz=id=>(lay().sizes||{})[id]||'s',rows=(m,n)=>{const r=tileRows(m,n);return r.length?`<ul>${r.map(x=>`<li>${esc(x)}</li>`).join('')}</ul>`:''};
+  const tile=m=>{const z=sz(m);return `<button class="mt ${z}" data-id="${m}" data-a="go" data-v="${m}" data-dir="fwd"><b>${esc(clean(modName(m)))}</b><small>${esc(modInfo(m))}</small>${z!=='s'?rows(m,z==='l'?7:2):''}<span class="mte">${modEm(m)}${c[m]&&['shop','plan','chores','coupons'].includes(m)?'<i></i>':''}</span></button>`};
+  const fold=f=>{const z=sz(f.f),nm=f.items.map(x=>clean(modName(x)));return `<button class="mt ${z}" data-id="${f.f}" data-a="foOpen" data-v="${f.f}"><b>${esc(f.n)}</b><small>${z==='s'?esc(nm.slice(0,3).join(', ')||t('fo_empty')):nm.length+''}</small>${z!=='s'&&nm.length?`<ul>${nm.slice(0,z==='l'?7:2).map(x=>`<li>${esc(x)}</li>`).join('')}</ul>`:''}<span class="mte">📁</span></button>`};
   return `<div class="hh st"><button class="spsw" data-a="spSheet"><b>${esc(sname(S))}</b><i>⌄</i></button><div class="mact"><button class="stpill ${STS[st.k].track?'run':''}" data-a="stSheet" aria-label="${t('st_t')}">${STS[st.k].em}${STS[st.k].track?` <b class="livet" data-s="${st.start}">${hms(Date.now()-new Date(st.start))}</b>`:''}</button><button class="bell" data-a="feed" aria-label="${t('f_t')}">🔔${n?`<i>${n>9?'9+':n}</i>`:''}</button><button class="hav" data-a="go" data-v="us" aria-label="${t('tab_us')}">${ME.a}</button></div></div>
-  <div class="car span" id="car">${cards.join('')}</div><div class="cdots span" id="cdots">${cards.map((_,i)=>`<i class="${i===(ui.carI||0)?'on':''}"></i>`).join('')}</div>
+  <div class="car span" id="car">${cards.map(c=>c[1].replace('class="cc ','data-id="'+c[0]+'" class="cc ')).join('')}</div><div class="cdots span" id="cdots">${cards.map((_,i)=>`<i class="${i===(ui.carI||0)?'on':''}"></i>`).join('')}</div>
   ${['invite','now'].map(w=>bl[w]?bl[w].outerHTML:'').join('')}
   <div class="hgrid span" id="hgrid">${modTree().map(e=>typeof e==='string'?tile(e):fold(e)).join('')}</div>
   ${bl.pairs?bl.pairs.outerHTML:''}`};
 AFTER.home=()=>{const c=$('#car');if(c&&c.firstElementChild){const w=()=>c.firstElementChild.offsetWidth+12;c.scrollLeft=(ui.carI||0)*w();c.addEventListener('scroll',()=>{const i=Math.round(c.scrollLeft/w());if(i!==ui.carI){ui.carI=i;document.querySelectorAll('#cdots i').forEach((d,j)=>d.classList.toggle('on',j===i))}},{passive:true})}
-  lpSort($('#hgrid'),treeDone,{bar:treeBar})};
+  lpSort($('#hgrid'),treeDone,{bar:id=>[{em:'⤢',label:t('lo_size'),fn:x=>{const L0=lay();L0.sizes=Object.assign({},L0.sizes||{});L0.sizes[x]={s:'w',w:'l',l:'s'}[L0.sizes[x]||'s'];save();sync();refresh()}},...treeBar(id)]});
+  lpSort($('#car'),ids=>{lay().car=ids;ui.carI=0;save();sync();refresh()},{axis:'x'})};
 
 R.together=()=>{const off=SUB.filter(id=>avail(id,S.type)&&!modOn(id)&&(!MODS[id].adult||true));
   const ap=m=>`<button class="ap" data-id="${m}" data-a="go" data-v="${m}" data-dir="fwd"><span>${modEm(m)}</span><b>${esc(clean(modName(m)))}</b></button>`,fo=f=>`<button class="ap" data-id="${f.f}" data-a="foOpen" data-v="${f.f}"><span>📁</span><b>${esc(f.n)}</b></button>`;
