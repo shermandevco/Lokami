@@ -32,6 +32,18 @@ export const en = {
   delete_hint: 'Your profile, personal space and everything in it will be removed for good. Shared spaces stay for the other members.',
   delete_yes: 'Yes, delete everything', cancel: 'Cancel', save: 'Save', done: 'Done', add: 'Add', delete: 'Delete', undo: 'Undo', deleted: 'Deleted',
   size: 'Size', hold_tip: 'Press and hold, then drag to reorder', offline: 'Offline', syncing: 'Syncing…',
+  hello_morning: 'Good morning, {0}', hello_day: 'Good afternoon, {0}', hello_evening: 'Good evening, {0}',
+  mood: 'Mood', mood_q: 'How are you today?', mood_1: 'Awful', mood_2: 'Bad', mood_3: 'Okay', mood_4: 'Good', mood_5: 'Great',
+  mood_tags: 'What influenced it?', tag_sleep: 'Sleep', tag_work: 'Work', tag_sport: 'Sport', tag_people: 'People', tag_health: 'Health', tag_food: 'Food', tag_weather: 'Weather', tag_rest: 'Rest',
+  mood_note: 'A few words (optional)', mood_avg: 'Average for 30 days', mood_none: 'No mood entries yet',
+  year_cells: 'Year in cells', legend_diary: 'dot = diary page',
+  habits: 'Habits', habit_new: 'New habit', habit_placeholder: 'For example, drink water', habits_empty: 'No habits yet. Start with one small thing.',
+  streak_one: '{0} day in a row', streak_other: '{0} days in a row', habits_today: '{0} of {1} today',
+  planner: 'Planner', event_new: 'New event', event_placeholder: 'What is happening?', time: 'Time', note: 'Note', day_empty: 'Nothing planned for this day',
+  agenda: 'Agenda', week: 'Week',
+  diary: 'Diary', diary_placeholder: 'How was your day? What do you want to remember?', diary_write: 'Write about today', diary_saved: 'Saved',
+  prev_day: 'Previous day', next_day: 'Next day', go_today: 'Today',
+  only_you: 'Only you can see this',
   classic: 'Other modules are still in the classic version', open_classic: 'Open classic Lokami',
 } as const
 export type Key = keyof typeof en

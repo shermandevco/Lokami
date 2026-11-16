@@ -13,7 +13,7 @@ export function t(key: Key, ...args: (string | number)[]): string {
   return s
 }
 /** Plural: picks key_one for 1, key_other otherwise (catalogue keeps two forms per noun). */
-export function tn(base: 'day' | 'tasks_info_left' | 'people_info', n: number): string {
+export function tn(base: 'day' | 'tasks_info_left' | 'people_info' | 'streak', n: number): string {
   const one = cur === 1 ? n === 1 : n % 10 === 1 && n % 100 !== 11
   return t((base + (one ? '_one' : '_other')) as Key, n)
 }

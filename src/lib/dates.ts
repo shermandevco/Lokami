@@ -8,3 +8,7 @@ export const fmtDay = (s: string) => new Intl.DateTimeFormat(locale(), { day: 'n
 export const fmtFull = (s: string) => new Intl.DateTimeFormat(locale(), { day: 'numeric', month: 'long', year: 'numeric' }).format(parse(s))
 export const weekday = (d: Date) => { const w = new Intl.DateTimeFormat(locale(), { weekday: 'long' }).format(d); return w.charAt(0).toUpperCase() + w.slice(1) }
 export const num = (n: number) => new Intl.NumberFormat(locale()).format(n)
+export const addDays = (s: string, n: number) => { const d = parse(s); d.setDate(d.getDate() + n); return ymd(d) }
+export const fmtWeekday = (s: string, style: 'short' | 'long' = 'short') => new Intl.DateTimeFormat(locale(), { weekday: style }).format(parse(s))
+/** Monday-based start of the week that contains `s`. */
+export const weekStart = (s: string) => addDays(s, -((parse(s).getDay() + 6) % 7))

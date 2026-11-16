@@ -1,13 +1,15 @@
 import { useRef, useState, useEffect } from 'react'
-import { useStore, curSpace, spaceTasks, setLayout, go, switchSpace, createSpace, joinSpace, toast, type SpaceType } from '../store'
+import { rows, useStore, curSpace, spaceTasks, setLayout, go, switchSpace, createSpace, joinSpace, toast, type SpaceType } from '../store'
 import { t, tn } from '../lib/i18n'
 import { today, diffDays, weekday, fmtFull, num } from '../lib/dates'
 import { spaceName, spaceIcon } from '../lib/space'
 import { Sheet } from '../ui/Sheet'
 import { useSortable } from '../ui/useSortable'
+import { MOOD_FACE } from '../lib/me'
 import { sortTasks, dueLabel } from './Tasks'
 
-const TILES = ['tasks', 'people', 'classic'] as const
+const TILES = ['tasks', 'planner', 'habits', 'mood', 'diary', 'people', 'classic'] as const
+const PERSONAL = ['habits', 'mood', 'diary']
 const CARDS = ['today', 'together', 'invite'] as const
 const order = <T extends string>(saved: string[] | undefined, all: readonly T[]) => [...(saved || []).filter((x): x is T => (all as readonly string[]).includes(x)), ...all.filter(x => !(saved || []).includes(x))]
 
@@ -17,7 +19,7 @@ export function Hub() {
   const [pick, setPick] = useState(false), [dot, setDot] = useState(0)
   const car = useRef<HTMLDivElement>(null), grid = useRef<HTMLDivElement>(null)
   const shown = order(lay.cards, CARDS).filter(c => c === 'today' || (sp && sp.type !== 'solo'))
-  const tiles = order(lay.tiles, TILES), sizes = lay.sizes || {}
+  const tiles = order(lay.tiles, TILES).filter(x => sp?.type === 'solo' ? x !== 'people' : !PERSONAL.includes(x)), sizes = lay.sizes || {}
   useSortable(car, ids => setLayout({ cards: ids }), { axis: 'x' }, s.cur)
   const sz = (v: 's' | 'w' | 'l', icon: string) => ({ icon, label: t('size') + ' ' + v.toUpperCase(), fn: (id: string) => setLayout({ sizes: { ...sizes, [id]: v } }) })
   useSortable(grid, ids => setLayout({ tiles: ids }), { targets: () => [sz('s', '▫️'), sz('w', '▭'), sz('l', '⬜')] }, s.cur)
@@ -35,6 +37,14 @@ export function Hub() {
     const size = sizes[id] || (id === 'classic' ? 'w' : 's'), big = size !== 's'
     if (id === 'tasks') return <button key={id} data-id={id} className={'tile ' + size} onClick={() => go('tasks')}><b>{t('tasks')}</b><small>{open.length ? tn('tasks_info_left', open.length) : t('tasks_all_done')}</small>{big && <ul>{open.slice(0, size === 'l' ? 8 : 2).map(x => <li key={x.id}>{x.title}{x.due ? ' · ' + dueLabel(x.due) : ''}</li>)}</ul>}<span className="em">✅{todayTasks.length > 0 && <i />}</span></button>
     if (id === 'people') return <button key={id} data-id={id} className={'tile ' + size} onClick={() => go('people')}><b>{t('people')}</b><small>{tn('people_info', sp.members.length)}</small>{big && <ul>{sp.members.slice(0, 8).map(m => <li key={m.id}>{m.a} {m.n}</li>)}</ul>}<span className="em">{spaceIcon(sp)}</span></button>
+    const simple: Record<string, [string, string, string]> = { planner: ['planner', '🗓️', ''], habits: ['habits', '🌱', ''], mood: ['mood', '🙂', ''], diary: ['diary', '📓', ''] }
+    if (simple[id]) { const [r, em] = simple[id]; const hs = rows('habits', s.cur, s).filter(x => !x.archived), lg = rows('habit_logs', s.cur, s), md = s.db.moods[s.profile!.id + ':' + now], pg = s.db.diary_pages[s.profile!.id + ':' + now]
+      const up = Object.values(s.db.events).filter(e => e.space_id === s.cur && !e.deleted_at && e.day === now)
+      const sub = id === 'planner' ? (up.length ? up.map(e => (e.time ? e.time + ' ' : '') + e.title).join(' · ') : t('day_empty'))
+        : id === 'habits' ? (hs.length ? t('habits_today', hs.filter(x => lg.some(l => l.habit_id === x.id && l.day === now && l.done)).length, hs.length) : t('habit_new'))
+        : id === 'mood' ? (md && !md.deleted_at ? MOOD_FACE[md.score] + ' ' + t(('mood_' + md.score) as 'mood_1') : t('mood_q'))
+        : (pg?.body.trim() ? pg.body.trim().slice(0, 60) : t('diary_write'))
+      return <button key={id} data-id={id} className={'tile ' + size} onClick={() => go(r as 'planner')}><b>{t(r as 'planner')}</b><small>{sub}</small><span className="em">{em}</span></button> }
     return <a key={id} data-id={id} className={'tile ' + size} href="../" style={{ textDecoration: 'none', color: 'inherit' }}><b>{t('open_classic')}</b><small>{t('classic')}</small><span className="em">🗂️</span></a>
   }
   return <div className="page">

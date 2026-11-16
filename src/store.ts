@@ -1,26 +1,37 @@
 import { useSyncExternalStore } from 'react'
 import { get as idbGet, set as idbSet, del as idbDel } from 'idb-keyval'
 import { sb } from './lib/supabase'
-import { detectLang, setLang, getLang } from './lib/i18n'
+import { detectLang, setLang, getLang, t } from './lib/i18n'
 import { enqueue, mergeRemote, nextCursor, prune, type Op } from './sync/engine'
 
 export type SpaceType = 'solo' | 'couple' | 'friends' | 'mates' | 'family'
 export interface Member { id: string; n: string; a: string }
 export interface Space { id: string; type: SpaceType; name: string; code: string; owner: string; since: string; members: Member[] }
 export interface Task { id: string; space_id: string; created_by: string | null; title: string; due: string | null; done: boolean; assignee: string | null; edited_at: string; updated_at?: string; deleted_at?: string | null }
+export interface Base { id: string; space_id: string; created_by: string | null; edited_at: string; updated_at?: string; deleted_at?: string | null }
+export interface Event extends Base { title: string; day: string; time: string | null; note: string | null }
+export interface Habit extends Base { title: string; icon: string; sort: number; archived: boolean }
+export interface HabitLog extends Base { habit_id: string; day: string; done: boolean }
+export interface Mood extends Base { day: string; score: number; tags: string[]; note: string | null }
+export interface DiaryPage extends Base { day: string; body: string }
+export interface Tables { tasks: Task; events: Event; habits: Habit; habit_logs: HabitLog; moods: Mood; diary_pages: DiaryPage }
+export type Table = keyof Tables
+export const TABLES: Table[] = ['tasks', 'events', 'habits', 'habit_logs', 'moods', 'diary_pages']
+type Db = { [K in Table]: Record<string, Tables[K]> }
+const emptyDb = (): Db => ({ tasks: {}, events: {}, habits: {}, habit_logs: {}, moods: {}, diary_pages: {} })
 export interface Layout { tiles?: string[]; sizes?: Record<string, 's' | 'w' | 'l'>; cards?: string[] }
 export interface Look { mode: 'auto' | 'light' | 'dark'; accent: string; bg: string }
 export interface Profile { id: string; email: string; n: string; a: string; home: string; cur: string }
-export type Route = 'hub' | 'tasks' | 'people' | 'profile'
+export type Route = 'hub' | 'today' | 'tasks' | 'planner' | 'habits' | 'mood' | 'diary' | 'people' | 'profile'
 
 export interface State {
   ready: boolean; profile: Profile | null; spaces: Space[]; cur: string
-  tasks: Record<string, Task>; layouts: Record<string, Layout>
-  outbox: Op[]; cursor: string; look: Look; lang: number
+  db: Db; layouts: Record<string, Layout>
+  outbox: Op[]; cursor: Partial<Record<Table, string>>; look: Look; lang: number
   route: Route; online: boolean; syncing: boolean; toast: { text: string; action?: string; fn?: () => void } | null
 }
 const LOOK: Look = { mode: 'auto', accent: '#e6336e', bg: 'plain' }
-const initial = (): State => ({ ready: false, profile: null, spaces: [], cur: '', tasks: {}, layouts: {}, outbox: [], cursor: '', look: LOOK, lang: detectLang(), route: 'hub', online: navigator.onLine, syncing: false, toast: null })
+const initial = (): State => ({ ready: false, profile: null, spaces: [], cur: '', db: emptyDb(), layouts: {}, outbox: [], cursor: {}, look: LOOK, lang: detectLang(), route: 'hub', online: navigator.onLine, syncing: false, toast: null })
 
 let state = initial()
 const subs = new Set<() => void>()
@@ -30,7 +41,7 @@ function set(p: Partial<State>, persist = true) { state = { ...state, ...p }; su
 ;(window as unknown as { __store: unknown }).__store = { get: getState, set }
 
 /* ---------- local persistence (works offline) ---------- */
-const PERSIST: (keyof State)[] = ['profile', 'spaces', 'cur', 'tasks', 'layouts', 'outbox', 'cursor', 'look', 'lang']
+const PERSIST: (keyof State)[] = ['profile', 'spaces', 'cur', 'db', 'layouts', 'outbox', 'cursor', 'look', 'lang']
 const key = (uid: string) => 'lokami2:' + uid
 let saveT = 0
 function save() { if (!state.profile) return; clearTimeout(saveT); saveT = window.setTimeout(() => { const s = state; if (!s.profile) return; const o: Record<string, unknown> = {}; PERSIST.forEach(k => (o[k] = s[k])); idbSet(key(s.profile.id), o).catch(() => {}) }, 200) }
@@ -50,7 +61,9 @@ function pushPrefs() { clearTimeout(prefsT); prefsT = window.setTimeout(async ()
 
 /* ---------- helpers ---------- */
 export const curSpace = (s: State = state) => s.spaces.find(x => x.id === s.cur) || s.spaces[0]
-export const spaceTasks = (s: State = state) => Object.values(s.tasks).filter(x => x.space_id === s.cur && !x.deleted_at)
+export const rows = <K extends Table>(table: K, space: string, s: State = state): Tables[K][] => Object.values(s.db[table]).filter(x => x.space_id === space && !x.deleted_at) as Tables[K][]
+export const spaceTasks = (s: State = state) => rows('tasks', s.cur, s)
+export const home = (s: State = state) => s.profile?.home || ''
 export const go = (route: Route) => { set({ route }, false); window.scrollTo(0, 0) }
 export function toast(text: string, action?: string, fn?: () => void) { set({ toast: { text, action, fn } }, false); window.setTimeout(() => { if (state.toast?.text === text) set({ toast: null }, false) }, action ? 4500 : 2400) }
 export const dismissToast = () => set({ toast: null }, false)
@@ -59,12 +72,19 @@ export function updateProfile(p: Partial<Pick<Profile, 'n' | 'a'>>) { if (!state
 
 /* ---------- mutations: local first, then queued for the server ---------- */
 function queue(op: Op) { set({ outbox: enqueue(state.outbox, op) }); schedule() }
-function putTask(tk: Task) { set({ tasks: { ...state.tasks, [tk.id]: tk } }); const { updated_at: _u, ...row } = tk; void _u; queue({ table: 'tasks', key: tk.id, row }) }
+export function put<K extends Table>(table: K, r: Tables[K]) { set({ db: { ...state.db, [table]: { ...state.db[table], [r.id]: r } } }); const { updated_at: _u, ...row } = r as Base; void _u; queue({ table, key: r.id, row }) }
+/** Create or patch a row; new rows get id, owner and timestamps. */
+export function upsert<K extends Table>(table: K, id: string, patch: Partial<Tables[K]>, space: string = state.cur) {
+  const old = state.db[table][id]
+  put(table, { ...(old || { id, space_id: space, created_by: state.profile?.id || null, deleted_at: null }), ...patch, edited_at: new Date().toISOString() } as Tables[K])
+}
+export function remove(table: Table, id: string) { upsert(table, id, { deleted_at: new Date().toISOString() } as never); toast(t('deleted'), t('undo'), () => upsert(table, id, { deleted_at: null } as never)) }
+const putTask = (tk: Task) => put('tasks', tk)
 export function addTask(title: string, due: string | null = null, assignee: string | null = null) {
   const p = state.profile; if (!p || !title.trim()) return
   putTask({ id: crypto.randomUUID(), space_id: state.cur, created_by: p.id, title: title.trim().slice(0, 200), due, done: false, assignee, edited_at: new Date().toISOString(), deleted_at: null })
 }
-export function editTask(id: string, p: Partial<Pick<Task, 'title' | 'due' | 'done' | 'assignee' | 'deleted_at'>>) { const tk = state.tasks[id]; if (tk) putTask({ ...tk, ...p, edited_at: new Date().toISOString() }) }
+export function editTask(id: string, p: Partial<Pick<Task, 'title' | 'due' | 'done' | 'assignee' | 'deleted_at'>>) { const tk = state.db.tasks[id]; if (tk) putTask({ ...tk, ...p, edited_at: new Date().toISOString() }) }
 export function removeTask(id: string, undoLabel: string, deletedLabel: string) { editTask(id, { deleted_at: new Date().toISOString() }); toast(deletedLabel, undoLabel, () => editTask(id, { deleted_at: null })) }
 export function setLayout(p: Partial<Layout>) { const layout = { ...(state.layouts[state.cur] || {}), ...p }; set({ layouts: { ...state.layouts, [state.cur]: layout } }); queue({ table: 'space_layout', key: state.cur, row: { space_id: state.cur, layout } }) }
 
@@ -85,21 +105,28 @@ async function pull() {
   const by: Record<string, string[]> = {}; mem.data.forEach(m => (by[m.space_id] = by[m.space_id] || []).push(m.user_id))
   const ids = Object.keys(by).filter(id => by[id].includes(me.id)); if (!ids.length) return
   const uids = [...new Set(ids.flatMap(id => by[id]))]
-  const [sp, pf, tk, lo] = await Promise.all([
+  const since = (tb: Table) => state.cursor[tb]
+  const q = (tb: Table) => since(tb) ? sb.from(tb).select('*').in('space_id', ids).gt('updated_at', since(tb)!) : sb.from(tb).select('*').in('space_id', ids).is('deleted_at', null)
+  const [sp, pf, lo, ...got] = await Promise.all([
     sb.from('spaces').select('id,type,name,code,owner,data').in('id', ids),
     sb.from('profiles').select('id,n,a').in('id', uids),
-    (state.cursor ? sb.from('tasks').select('*').in('space_id', ids).gt('updated_at', state.cursor) : sb.from('tasks').select('*').in('space_id', ids).is('deleted_at', null)),
     sb.from('space_layout').select('space_id,layout').in('space_id', ids),
+    ...TABLES.map(q),
   ])
-  if (sp.error || pf.error || tk.error || lo.error) throw sp.error || pf.error || tk.error || lo.error
+  if (sp.error || pf.error || lo.error) throw sp.error || pf.error || lo.error
+  for (const g of got) if (g.error) throw g.error
   const people: Record<string, Member> = {}; pf.data!.forEach(p => (people[p.id] = { id: p.id, n: p.n || '—', a: p.a || '🙂' }))
   const spaces: Space[] = sp.data!.map(s => ({ id: s.id, type: s.type, name: s.name || '', code: s.code, owner: s.owner, since: (s.data && s.data.since) || '', members: by[s.id].map(u => people[u] || { id: u, n: '—', a: '🙂' }) }))
     .sort((a, b) => (a.id === me.home ? -1 : b.id === me.home ? 1 : a.name.localeCompare(b.name)))
-  const pending = new Set(state.outbox.filter(o => o.table === 'tasks').map(o => o.key))
-  const tasks = prune(mergeRemote(state.tasks, tk.data as Task[], pending), new Set(ids), new Date())
+  const db = { ...state.db } as Record<Table, Record<string, Base>>, cursor = { ...state.cursor }, idset = new Set(ids)
+  TABLES.forEach((tb, i) => {
+    const data = got[i].data as Base[], pending = new Set(state.outbox.filter(o => o.table === tb).map(o => o.key))
+    db[tb] = prune(mergeRemote(state.db[tb] as Record<string, Base>, data, pending), idset, new Date())
+    cursor[tb] = nextCursor(cursor[tb] || '', data)
+  })
   const layouts = { ...state.layouts }; const pl = new Set(state.outbox.filter(o => o.table === 'space_layout').map(o => o.key))
   lo.data!.forEach(l => { if (!pl.has(l.space_id)) layouts[l.space_id] = l.layout || {} })
-  set({ spaces, tasks, layouts, cursor: nextCursor(state.cursor, tk.data as Task[]), cur: spaces.some(s => s.id === state.cur) ? state.cur : me.home })
+  set({ spaces, db: db as Db, layouts, cursor, cur: spaces.some(s => s.id === state.cur) ? state.cur : me.home })
 }
 export async function syncNow() {
   if (!state.profile) return; if (busy) { again = true; return }
@@ -110,7 +137,7 @@ export async function syncNow() {
 let chan: ReturnType<typeof sb.channel> | null = null, poll = 0
 function listen() {
   if (chan) sb.removeChannel(chan)
-  chan = sb.channel('lokami2').on('postgres_changes', { event: '*', schema: 'public', table: 'tasks' }, () => schedule(150)).on('postgres_changes', { event: '*', schema: 'public', table: 'space_layout' }, () => schedule(150)).on('postgres_changes', { event: '*', schema: 'public', table: 'space_members' }, () => schedule(150)).on('postgres_changes', { event: 'UPDATE', schema: 'public', table: 'profiles' }, () => schedule(800)).subscribe()
+  chan = sb.channel('lokami2'); TABLES.forEach(tb => { chan!.on('postgres_changes', { event: '*', schema: 'public', table: tb }, () => schedule(150)) }); chan.on('postgres_changes', { event: '*', schema: 'public', table: 'space_layout' }, () => schedule(150)).on('postgres_changes', { event: '*', schema: 'public', table: 'space_members' }, () => schedule(150)).on('postgres_changes', { event: 'UPDATE', schema: 'public', table: 'profiles' }, () => schedule(800)).subscribe()
   clearInterval(poll); poll = window.setInterval(syncNow, 30000)
 }
 window.addEventListener('online', () => syncNow()); window.addEventListener('offline', () => set({ online: false }, false))
@@ -119,6 +146,8 @@ document.addEventListener('visibilitychange', () => { if (document.visibilitySta
 /* ---------- session ---------- */
 async function enter(user: { id: string; email?: string; user_metadata?: { n?: string } }) {
   const cached = (await idbGet(key(user.id)).catch(() => null)) as Partial<State> | null
+  if (cached && (cached as { tasks?: Db['tasks'] }).tasks) { cached.db = { ...emptyDb(), tasks: (cached as { tasks: Db['tasks'] }).tasks }; cached.cursor = {} }   // v2.0 cache shape
+  if (cached) cached.db = { ...emptyDb(), ...(cached.db || {}) }
   if (cached?.profile) { set({ ...cached, ready: true }, false); setLang(state.lang); applyLook() }
   try {
     const name = user.user_metadata?.n || (user.email || '').split('@')[0]

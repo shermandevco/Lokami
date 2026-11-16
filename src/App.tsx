@@ -6,12 +6,17 @@ import { Tasks } from './screens/Tasks'
 import { People } from './screens/People'
 import { Profile } from './screens/Profile'
 import { Nav } from './ui/Nav'
+import { Today } from './screens/Today'
+import { Planner } from './screens/Planner'
+import { Habits } from './screens/Habits'
+import { Mood } from './screens/Mood'
+import { Diary } from './screens/Diary'
 
 export function App() {
   const s = useStore()
   if (!s.ready) return null
   if (!s.profile) return <Auth />
-  const Screen = { hub: Hub, tasks: Tasks, people: People, profile: Profile }[s.route]
+  const Screen = { hub: Hub, today: Today, tasks: Tasks, planner: Planner, habits: Habits, mood: Mood, diary: Diary, people: People, profile: Profile }[s.route]
   return <>
     {!s.online && <div className="status">{t('offline')}</div>}
     <Screen key={s.route + s.cur} />
