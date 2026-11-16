@@ -22,6 +22,7 @@ export function Profile() {
       <div className="label">{t('background')}<div className="chips">{BGS.map(b => <button key={b} aria-label={b} data-bg={b} className={'bgsw' + (s.look.bg === b ? ' on' : '')} style={bgStyle(b)} onClick={() => setLook({ bg: b })} />)}</div></div>
       <div className="label">{t('language')}<div className="seg">{LANGS.map((l, i) => <button key={l.code} className={s.lang === i ? 'on' : ''} onClick={() => changeLang(i)}>{l.label}</button>)}</div></div>
     </div>
+    {'Notification' in window && Notification.permission === 'default' && <button className="btn ghost" onClick={() => Notification.requestPermission().then(() => toast('🔔'))}>🔔 {t('notif_on')}</button>}
     <div className="row wrap"><button className="btn ghost" onClick={() => signOut()}>{t('sign_out')}</button><button className="btn danger" onClick={() => setDel(true)}>{t('delete_account')}</button></div>
     <p className="sm mut">Lokami 2.0 · <a href="../" style={{ color: 'inherit' }}>{t('open_classic')}</a></p>
     {del && <Sheet onClose={() => setDel(false)}><h2>{t('delete_q')}</h2><p className="mut">{t('delete_hint')}</p>

@@ -155,3 +155,12 @@ body.nosel{user-select:none;-webkit-user-select:none}
 @keyframes turnR{from{transform:rotateY(-24deg);opacity:0}}@keyframes turnL{from{transform:rotateY(18deg) translateX(-12px);opacity:0}}
 .lines{min-height:340px;resize:none;border:0;outline:0;background:repeating-linear-gradient(to bottom,transparent 0 31px,var(--line) 31px 32px);line-height:32px;font-size:16px;padding:0 4px}
 .icon:disabled{opacity:.35}
+
+/* we */
+.bell{position:relative}.bell b{position:absolute;top:-2px;right:-2px;min-width:18px;height:18px;padding:0 5px;border-radius:9px;background:var(--accent);color:#fff;font-size:11px;font-weight:800;display:grid;place-items:center;box-shadow:0 0 0 2px var(--bg)}
+.ans{display:flex;gap:var(--s3);align-items:flex-start;animation:page var(--slow) var(--ease) both}.ans p{margin-top:2px;white-space:pre-wrap}
+.cc.party{background:linear-gradient(135deg,var(--accent),#f0a43a)}
+.confetti{position:absolute;inset:0;pointer-events:none;overflow:hidden}
+.confetti i{position:absolute;top:-10px;width:7px;height:12px;border-radius:2px;background:#fff;opacity:.9;animation:fall 2.4s var(--ease) infinite}
+.confetti i:nth-child(3n){background:#ffd166}.confetti i:nth-child(3n+1){background:#ff8fab}
+@keyframes fall{to{transform:translateY(230px) rotate(320deg);opacity:0}}

@@ -14,26 +14,29 @@ export interface Habit extends Base { title: string; icon: string; sort: number;
 export interface HabitLog extends Base { habit_id: string; day: string; done: boolean }
 export interface Mood extends Base { day: string; score: number; tags: string[]; note: string | null }
 export interface DiaryPage extends Base { day: string; body: string }
-export interface Tables { tasks: Task; events: Event; habits: Habit; habit_logs: HabitLog; moods: Mood; diary_pages: DiaryPage }
+export interface Shop extends Base { title: string; qty: string | null; done: boolean }
+export interface Answer extends Base { day: string; q: number; body: string }
+export interface Tables { tasks: Task; events: Event; habits: Habit; habit_logs: HabitLog; moods: Mood; diary_pages: DiaryPage; shopping_items: Shop; answers: Answer }
 export type Table = keyof Tables
-export const TABLES: Table[] = ['tasks', 'events', 'habits', 'habit_logs', 'moods', 'diary_pages']
+export const TABLES: Table[] = ['tasks', 'events', 'habits', 'habit_logs', 'moods', 'diary_pages', 'shopping_items', 'answers']
 type Db = { [K in Table]: Record<string, Tables[K]> }
-const emptyDb = (): Db => ({ tasks: {}, events: {}, habits: {}, habit_logs: {}, moods: {}, diary_pages: {} })
+const emptyDb = (): Db => ({ tasks: {}, events: {}, habits: {}, habit_logs: {}, moods: {}, diary_pages: {}, shopping_items: {}, answers: {} })
 export interface Layout { tiles?: string[]; sizes?: Record<string, 's' | 'w' | 'l'>; cards?: string[] }
 export interface Look { mode: 'auto' | 'light' | 'dark'; accent: string; bg: string }
 export interface Profile { id: string; email: string; n: string; a: string; home: string; cur: string }
-export type Route = 'hub' | 'today' | 'tasks' | 'planner' | 'habits' | 'mood' | 'diary' | 'people' | 'profile'
+export type Route = 'hub' | 'feed' | 'shopping' | 'question' | 'today' | 'tasks' | 'planner' | 'habits' | 'mood' | 'diary' | 'people' | 'profile'
 
 export interface State {
   ready: boolean; profile: Profile | null; spaces: Space[]; cur: string
   db: Db; layouts: Record<string, Layout>
   outbox: Op[]; cursor: Partial<Record<Table, string>>; look: Look; lang: number
-  route: Route; online: boolean; syncing: boolean; toast: { text: string; action?: string; fn?: () => void } | null
+  lastSeen: string; route: Route; online: boolean; syncing: boolean; toast: { text: string; action?: string; fn?: () => void } | null
 }
 const LOOK: Look = { mode: 'auto', accent: '#e6336e', bg: 'plain' }
-const initial = (): State => ({ ready: false, profile: null, spaces: [], cur: '', db: emptyDb(), layouts: {}, outbox: [], cursor: {}, look: LOOK, lang: detectLang(), route: 'hub', online: navigator.onLine, syncing: false, toast: null })
+const initial = (): State => ({ ready: false, profile: null, spaces: [], cur: '', db: emptyDb(), layouts: {}, outbox: [], cursor: {}, lastSeen: '', look: LOOK, lang: detectLang(), route: 'hub', online: navigator.onLine, syncing: false, toast: null })
 
 let state = initial()
+export const markSeen = () => set({ lastSeen: new Date().toISOString() })
 const subs = new Set<() => void>()
 export const getState = () => state
 export function useStore(): State { return useSyncExternalStore(f => { subs.add(f); return () => subs.delete(f) }, () => state) }
@@ -41,7 +44,7 @@ function set(p: Partial<State>, persist = true) { state = { ...state, ...p }; su
 ;(window as unknown as { __store: unknown }).__store = { get: getState, set }
 
 /* ---------- local persistence (works offline) ---------- */
-const PERSIST: (keyof State)[] = ['profile', 'spaces', 'cur', 'db', 'layouts', 'outbox', 'cursor', 'look', 'lang']
+const PERSIST: (keyof State)[] = ['profile', 'spaces', 'cur', 'db', 'layouts', 'outbox', 'cursor', 'look', 'lang', 'lastSeen']
 const key = (uid: string) => 'lokami2:' + uid
 let saveT = 0
 function save() { if (!state.profile) return; clearTimeout(saveT); saveT = window.setTimeout(() => { const s = state; if (!s.profile) return; const o: Record<string, unknown> = {}; PERSIST.forEach(k => (o[k] = s[k])); idbSet(key(s.profile.id), o).catch(() => {}) }, 200) }
@@ -106,7 +109,8 @@ async function pull() {
   const ids = Object.keys(by).filter(id => by[id].includes(me.id)); if (!ids.length) return
   const uids = [...new Set(ids.flatMap(id => by[id]))]
   const since = (tb: Table) => state.cursor[tb]
-  const q = (tb: Table) => since(tb) ? sb.from(tb).select('*').in('space_id', ids).gt('updated_at', since(tb)!) : sb.from(tb).select('*').in('space_id', ids).is('deleted_at', null)
+  // answers: always re-read the last 30 days, because a partner's older answer becomes visible only after I answer
+  const q = (tb: Table) => tb === 'answers' ? sb.from(tb).select('*').in('space_id', ids).gte('day', new Date(Date.now() - 30 * 864e5).toISOString().slice(0, 10)) : since(tb) ? sb.from(tb).select('*').in('space_id', ids).gt('updated_at', since(tb)!) : sb.from(tb).select('*').in('space_id', ids).is('deleted_at', null)
   const [sp, pf, lo, ...got] = await Promise.all([
     sb.from('spaces').select('id,type,name,code,owner,data').in('id', ids),
     sb.from('profiles').select('id,n,a').in('id', uids),

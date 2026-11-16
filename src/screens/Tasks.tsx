@@ -47,14 +47,17 @@ function Row({ tk }: { tk: Task }) {
 }
 
 export function Tasks() {
-  const s = useStore(), all = spaceTasks(s), open = all.filter(x => !x.done).sort(sortTasks), done = all.filter(x => x.done).sort((a, b) => b.edited_at.localeCompare(a.edited_at))
-  const [q, setQ] = useState('')
+  const s = useStore(), all0 = spaceTasks(s), open0 = all0.filter(x => !x.done), done0 = all0.filter(x => x.done)
+  const [q, setQ] = useState(''), [f, setF] = useState<'all' | 'me' | 'others'>('all'), me = s.profile!.id, multi = (curSpace(s)?.members.length || 0) > 1
+  const keep = (x: Task) => f === 'all' || (f === 'me' ? x.assignee === me : !!x.assignee && x.assignee !== me)
+  const all = all0.filter(keep), open = open0.filter(keep).sort(sortTasks), done = done0.filter(keep).sort((a, b) => b.edited_at.localeCompare(a.edited_at))
   return <div className="page">
     <div className="head"><div><h1>{t('tasks')}</h1><p className="sm mut">{open.length ? tn('tasks_info_left', open.length) : all.length ? t('tasks_all_done') : ''}</p></div></div>
     <form className="row" onSubmit={e => { e.preventDefault(); addTask(q); setQ('') }}>
       <input className="inp grow" placeholder={t('task_placeholder')} value={q} onChange={e => setQ(e.target.value)} maxLength={200} />
       <button className="btn" disabled={!q.trim()}>{t('add')}</button>
     </form>
+    {multi && <div className="seg">{(['all', 'me', 'others'] as const).map(k => <button key={k} className={f === k ? 'on' : ''} onClick={() => setF(k)}>{t(k === 'all' ? 'all' : k === 'me' ? 'for_me' : 'from_me')}{k === 'me' && open0.some(x => x.assignee === me) ? ' · ' + open0.filter(x => x.assignee === me).length : ''}</button>)}</div>}
     {!all.length ? <div className="empty"><b>✅</b>{t('tasks_empty')}</div> : <>
       {open.length > 0 && <div className="card" style={{ paddingTop: 4, paddingBottom: 4 }}>{open.map(x => <Row key={x.id} tk={x} />)}</div>}
       {done.length > 0 && <><p className="cap">{t('done_section')}</p><div className="card" style={{ paddingTop: 4, paddingBottom: 4 }}>{done.map(x => <Row key={x.id} tk={x} />)}</div></>}

@@ -18,3 +18,16 @@ describe('personal stats', () => {
     expect(weekStart('2026-11-22')).toBe('2026-11-16')
   })
 })
+import { milestones } from '../src/lib/milestones'
+import { questionFor, QUESTIONS } from '../src/lib/questions'
+describe('we', () => {
+  it('lists upcoming milestones in order, day 1 = start date', () => {
+    const m = milestones('2026-01-01', '2026-01-01')
+    expect(m[0]).toEqual({ day: '2026-04-10', kind: 'days', n: 100 })
+    expect(m.find(x => x.kind === 'years')!.day).toBe('2027-01-01')
+  })
+  it('picks the same question for everyone in a space on a day, and a new one the next day', () => {
+    const a = questionFor('abc', '2026-11-16', '2026-01-01'), b = questionFor('abc', '2026-11-17', '2026-01-01')
+    expect(a).toBe(questionFor('abc', '2026-11-16', '2026-01-01')); expect(b).toBe((a + 1) % QUESTIONS); expect(a).toBeGreaterThanOrEqual(0)
+  })
+})
