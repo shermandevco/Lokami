@@ -5,7 +5,7 @@ import { go, useStore, setLook, changeLang, updateProfile, signOut, deleteAccoun
 import { t, LANGS } from '../lib/i18n'
 import { Sheet } from '../ui/Sheet'
 
-const ACCENTS = ['#e6336e', '#7c5cff', '#3b82f6', '#19a57a', '#f08a24', '#17171a']
+const ACCENTS = ['#ff5c8a', '#c6f432', '#ffc93c', '#7cc6ff', '#b9a6ff', '#5fe0b5', '#ffab7a']
 const BGS = ['plain', 'accent', 'aurora', 'sunset', 'ocean', 'forest']
 const AVATARS = ['🦊', '🐻', '🐼', '🐨', '🐯', '🦁', '🐸', '🐵', '🦄', '🐙', '🌸', '🌻', '🍀', '⭐', '🌙', '🔥']
 

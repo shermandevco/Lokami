@@ -1,5 +1,7 @@
 import { useRef, useState, useEffect } from 'react'
-import { type Route, rows, useStore, curSpace, spaceTasks, setLayout, go, switchSpace, createSpace, joinSpace, toast, type SpaceType } from '../store'
+import { type Route, rows, useStore, curSpace, spaceTasks, setLayout, go, switchSpace, createSpace, joinSpace, toast, editTask, upsert, home, type SpaceType } from '../store'
+import { tap } from '../lib/native'
+import { toggleHabit } from './Habits'
 import { t, tn } from '../lib/i18n'
 import { today, diffDays, weekday, fmtFull, fmtDay, weekStart, num } from '../lib/dates'
 import { spaceName, spaceIcon } from '../lib/space'
@@ -22,68 +24,89 @@ const CARDS = ['today', 'together', 'invite'] as const
 const order = <T extends string>(saved: string[] | undefined, all: readonly T[]) => [...(saved || []).filter((x): x is T => (all as readonly string[]).includes(x)), ...all.filter(x => !(saved || []).includes(x))]
 
 export function Hub() {
-  const s = useStore(), sp = curSpace(s), lay = s.layouts[s.cur] || {}, tasks = spaceTasks(s)
+  const s = useStore(), sp = curSpace(s), lay = s.layouts[s.cur] || {}, tasks = spaceTasks(s), me = s.profile!
   const open = tasks.filter(x => !x.done).sort(sortTasks), now = today(), todayTasks = open.filter(x => x.due && x.due <= now)
   const [pick, setPick] = useState(false), [dot, setDot] = useState(0)
   const car = useRef<HTMLDivElement>(null), grid = useRef<HTMLDivElement>(null)
   const shown = order(lay.cards, CARDS).filter(c => c === 'today' || (sp && sp.type !== 'solo'))
-  const sizes = lay.sizes || {}, hidden = lay.hidden || [], tiles = order(lay.tiles, TILES).filter(x => (() => { const m = MODULES.find(y => y.id === x)!; return fits(m, sp?.type || 'solo', !!s.profile?.adult) && onHome(m, lay) })())
-
+  const sizes = lay.sizes || {}, hidden = lay.hidden || [], tiles = order(lay.tiles, TILES).filter(x => { const m = MODULES.find(y => y.id === x)!; return fits(m, sp?.type || 'solo', !!me.adult) && onHome(m, lay) })
   useSortable(car, ids => setLayout({ cards: ids }), { axis: 'x' }, s.cur)
-  const sz = (v: 's' | 'w' | 'l', icon: string) => ({ icon, label: t('size') + ' ' + v.toUpperCase(), fn: (id: string) => setLayout({ sizes: { ...sizes, [id]: v } }) })
+  const sz = (v: 's' | 'w' | 'l', icon: string) => ({ icon, label: v.toUpperCase(), fn: (id: string) => setLayout({ sizes: { ...sizes, [id]: v } }) })
   useSortable(grid, ids => setLayout({ tiles: ids }), { targets: () => [sz('s', '▫️'), sz('w', '▭'), sz('l', '⬜'), { icon: '🙈', label: t('hide'), fn: (id: string) => { const m = MODULES.find(y => y.id === id); if (m && !m.home) setLayout({ added: (lay.added || []).filter(x => x !== id) }); else setLayout({ hidden: [...hidden, id] }) } }] }, s.cur)
   useEffect(() => { const el = car.current; if (!el) return; const f = () => setDot(Math.round(el.scrollLeft / Math.max(1, el.clientWidth))); el.addEventListener('scroll', f, { passive: true }); return () => el.removeEventListener('scroll', f) }, [])
   if (!sp) return null
-  const days = sp.since ? diffDays(sp.since, now) + 1 : 0
+  const days = sp.since ? diffDays(sp.since, now) + 1 : 0, hr = new Date().getHours()
+  const hello = t(hr < 12 ? 'hello_morning' : hr < 18 ? 'hello_day' : 'hello_evening', me.n)
+  const stop = (e: React.SyntheticEvent) => e.stopPropagation()
+  const pop = (e: React.SyntheticEvent) => { const el = (e.currentTarget as HTMLElement).closest('.tile') as HTMLElement | null; if (el) { el.classList.remove('pop'); void el.offsetWidth; el.classList.add('pop') } tap() }
 
-  const extraSub = (id: string) => { const its = rows('items', s.cur, s), k = ({ movies: 'movie', wishes: 'wish', dreams: 'dream', notes: 'note', coupons: 'coupon', dates: 'date' } as Record<string, string>)[id]
-    if (k) { const open = its.filter(i => i.kind === k && (k === 'note' || !i.done)); return k === 'note' ? (open.sort((a, b) => b.edited_at.localeCompare(a.edited_at))[0]?.title || '') : String(open.length || '') }
-    if (id === 'status') { const x = rows('statuses', s.cur, s).filter(z => z.created_by !== s.profile!.id); return x.length ? x.length + ' 🟢' : '' }
-    return '' }
   const card = (c: typeof CARDS[number], i: number) => {
     const cls = 'cc c' + (i % 4)
-    if (c === 'today') return <div key={c} data-id={c} className={cls}><span className="up">{weekday(new Date())}</span><h3>{todayTasks.length ? tn('tasks_info_left', todayTasks.length) : t('nothing_today')}</h3>{todayTasks.slice(0, 2).map(x => <div key={x.id} className="line ell">{x.title}</div>)}<span className="deco">☀️</span></div>
+    if (c === 'today') return <div key={c} data-id={c} className={cls} onClick={() => go('today')}><span className="up">{weekday(new Date())}</span><h3>{todayTasks.length ? tn('tasks_info_left', todayTasks.length) : t('nothing_today')}</h3>{todayTasks.slice(0, 2).map(x => <div key={x.id} className="line ell">{x.title}</div>)}<span className="deco">☀️</span></div>
     if (c === 'together') { const ms = milestones(sp.since, now, 1)[0], party = ms && ms.day === now, label = ms && (ms.kind === 'years' ? t('anniv', ms.n) : t('days_n', num(ms.n)))
       return <div key={c} data-id={c} className={cls + (party ? ' party' : '')}><span className="up">{t('together_for')}</span>{days > 0 ? <><div className="big num">{num(days)}</div><div style={{ fontWeight: 700 }}>{tn('day', days)} · {fmtFull(sp.since)}</div>
         {ms && <div className="line" style={{ marginTop: 'auto' }}>{party ? '🎉 ' + t('milestone_today', label) : label + ' — ' + tn('in_days', daysUntil(ms, now))}</div>}</> : <h3>{t('set_date')}</h3>}<span className="deco">{party ? '🎉' : spaceIcon(sp)}</span>{party && <div className="confetti" aria-hidden="true">{Array.from({ length: 14 }, (_, i) => <i key={i} style={{ left: (i * 7 + 3) + '%', animationDelay: (i % 5) * 120 + 'ms' }} />)}</div>}</div> }
     return <div key={c} data-id={c} className={cls}><span className="up">{t('invite_title')}</span><div className="code">{sp.code}</div><button className="btn sm ghost" style={{ marginTop: 'auto' }} onClick={() => { navigator.clipboard?.writeText(sp.code).then(() => toast(t('copied'))).catch(() => {}) }}>{t('copy')}</button><span className="deco">💌</span></div>
   }
-  const tile = (id: typeof TILES[number]) => {
-    const size = sizes[id] || (id === 'classic' ? 'w' : 's'), big = size !== 's'
-    if (id === 'tasks') return <button key={id} data-id={id} className={'tile ' + size} onClick={() => go('tasks')}><b>{t('tasks')}</b><small>{open.length ? tn('tasks_info_left', open.length) : t('tasks_all_done')}</small>{big && <ul>{open.slice(0, size === 'l' ? 8 : 2).map(x => <li key={x.id}>{x.title}{x.due ? ' · ' + dueLabel(x.due) : ''}</li>)}</ul>}<span className="em">✅{todayTasks.length > 0 && <i />}</span></button>
-    if (id === 'question') { const q = questionFor(sp.id, now, sp.since), mine = s.db.answers[sp.id + ':' + now + ':' + s.profile!.id]
-      return <button key={id} data-id={id} className={'tile ' + (sizes[id] || 'w')} onClick={() => go('question')}><b>{t('question')}</b><small style={{ maxWidth: 'calc(100% - 56px)' }}>{questionText(q)}</small><span className="em">💬{!mine && <i />}</span></button> }
-    if (id === 'shopping') { const left = rows('shopping_items', s.cur, s).filter(x => !x.done)
-      return <button key={id} data-id={id} className={'tile ' + size} onClick={() => go('shopping')}><b>{t('shopping')}</b><small>{left.length ? tn('shop_left', left.length) : t('shop_empty')}</small>{big && <ul>{left.slice(0, size === 'l' ? 8 : 2).map(x => <li key={x.id}>{x.title}</li>)}</ul>}<span className="em">🛒</span></button> }
-    if (id === 'people') return <button key={id} data-id={id} className={'tile ' + size} onClick={() => go('people')}><b>{t('people')}</b><small>{tn('people_info', sp.members.length)}</small>{big && <ul>{sp.members.slice(0, 8).map(m => <li key={m.id}>{m.a} {m.n}</li>)}</ul>}<span className="em">{spaceIcon(sp)}</span></button>
-    const simple: Record<string, [string, string, string]> = { checkin: ['checkin', '🫶', ''], insights: ['insights', '🔗', ''], year: ['year', '✨', ''], budget: ['budget', '💸', ''], health: ['health', '❤️', ''], garage: ['garage', '🚗', ''], goals: ['goals', '🎯', ''], planner: ['planner', '🗓️', ''], habits: ['habits', '🌱', ''], mood: ['mood', '🙂', ''], diary: ['diary', '📓', ''] }
-    if (simple[id]) { const [r, em] = simple[id]; const hs = rows('habits', s.cur, s).filter(x => !x.archived), lg = rows('habit_logs', s.cur, s), md = s.db.moods[s.profile!.id + ':' + now], pg = s.db.diary_pages[s.profile!.id + ':' + now]
-      const up = Object.values(s.db.events).filter(e => e.space_id === s.cur && !e.deleted_at && e.day === now)
-      const sub = id === 'planner' ? (up.length ? up.map(e => (e.time ? e.time + ' ' : '') + e.title).join(' · ') : t('day_empty'))
-        : id === 'habits' ? (hs.length ? t('habits_today', hs.filter(x => lg.some(l => l.habit_id === x.id && l.day === now && l.done)).length, hs.length) : t('habit_new'))
-        : id === 'mood' ? (md && !md.deleted_at ? MOOD_FACE[md.score] + ' ' + t(('mood_' + md.score) as 'mood_1') : t('mood_q'))
-        : id === 'checkin' ? (s.db.checkins[sp.id + ':' + weekStart(now) + ':' + s.profile!.id] ? '✓ ' + t('ci_week', fmtDay(weekStart(now))) : t('checkin_sub'))
-        : id === 'insights' ? t('insights_sub')
-        : id === 'year' ? (sp.type === 'solo' ? t('my_year') : t('our_year')) + ' ' + now.slice(0, 4)
-        : id === 'budget' ? (() => { const cur = pickCur(s.lang), m = byCategory(rows('expenses', s.cur, s), now.slice(0, 7), cur).reduce((a, [, v]) => a + v, 0); return t('this_month') + ': ' + money(m, cur) })()
-        : id === 'health' ? (() => { const x = s.db.health_logs[s.profile!.id + ':' + now]; return x ? [x.sleep != null && '😴 ' + x.sleep, x.water != null && '💧 ' + x.water, x.steps != null && '👟 ' + num(x.steps)].filter(Boolean).join('  ') || '—' : t('health_hint').split('.')[0] })()
-        : id === 'garage' ? (() => { const cs = rows('cars', s.cur, s); if (!cs.length) return t('car_new'); const st = carStatus(cs[0], rows('car_logs', s.cur, s)); return cs[0].name + (st.serviceLeft != null ? ' · ' + (st.serviceLeft <= 0 ? '⚠️ ' + t('service_due') : t('next_service', num(st.serviceLeft))) : '') })()
-        : id === 'goals' ? (() => { const gs = rows('goals', s.cur, s); return gs.length ? gs.slice(0, 2).map(g => g.icon + ' ' + g.title).join(' · ') : t('goal_new') })()
-        : (pg?.body.trim() ? pg.body.trim().slice(0, 60) : t('diary_write'))
-      return <button key={id} data-id={id} className={'tile ' + size} onClick={() => go(r as 'planner')}><b>{t(r as 'planner')}</b><small>{sub}</small><span className="em">{em}</span></button> }
-    const mod = MODULES.find(m => m.id === id)
-    if (mod) return <button key={id} data-id={id} className={'tile ' + size} onClick={() => go(id as Route)}><b>{t(mod.label)}</b><small>{extraSub(id)}</small><span className="em">{mod.em}</span></button>
-    return null
+  const extraSub = (id: string) => { const its = rows('items', s.cur, s), k = ({ movies: 'movie', wishes: 'wish', dreams: 'dream', notes: 'note', coupons: 'coupon', dates: 'date' } as Record<string, string>)[id]
+    if (k) { const o = its.filter(i => i.kind === k && (k === 'note' || !i.done)); return k === 'note' ? (o.sort((a, b) => b.edited_at.localeCompare(a.edited_at))[0]?.title || '') : String(o.length || '') }
+    if (id === 'status') { const x = rows('statuses', s.cur, s).filter(z => z.created_by !== me.id); return x.length ? x.length + ' 🟢' : '' }
+    return '' }
+  const sub = (id: string): string => {
+    const hs = rows('habits', s.cur, s).filter(x => !x.archived), lg = rows('habit_logs', s.cur, s), md = s.db.moods[me.id + ':' + now], pg = s.db.diary_pages[me.id + ':' + now]
+    switch (id) {
+      case 'planner': { const up = Object.values(s.db.events).filter(e => e.space_id === s.cur && !e.deleted_at && e.day === now); return up.length ? up.map(e => (e.time ? e.time + ' ' : '') + e.title).join(' · ') : t('day_empty') }
+      case 'habits': return hs.length ? t('habits_today', hs.filter(x => lg.some(l => l.habit_id === x.id && l.day === now && l.done)).length, hs.length) : t('habit_new')
+      case 'mood': return md && !md.deleted_at ? MOOD_FACE[md.score] + ' ' + t(('mood_' + md.score) as 'mood_1') : t('mood_q')
+      case 'checkin': return s.db.checkins[sp.id + ':' + weekStart(now) + ':' + me.id] ? '✓ ' + t('ci_week', fmtDay(weekStart(now))) : t('checkin_sub')
+      case 'insights': return t('insights_sub')
+      case 'year': return (sp.type === 'solo' ? t('my_year') : t('our_year')) + ' ' + now.slice(0, 4)
+      case 'budget': { const cur = pickCur(s.lang), m = byCategory(rows('expenses', s.cur, s), now.slice(0, 7), cur).reduce((a, [, v]) => a + v, 0); return money(m, cur) }
+      case 'garage': { const cs = rows('cars', s.cur, s); if (!cs.length) return t('car_new'); const st = carStatus(cs[0], rows('car_logs', s.cur, s)); return cs[0].name + (st.serviceLeft != null ? ' · ' + (st.serviceLeft <= 0 ? '⚠️ ' + t('service_due') : t('next_service', num(st.serviceLeft))) : '') }
+      case 'goals': { const gs = rows('goals', s.cur, s); return gs.length ? gs.slice(0, 2).map(g => g.icon + ' ' + g.title).join(' · ') : t('goal_new') }
+      case 'diary': return pg?.body.trim() ? pg.body.trim().slice(0, 60) : t('diary_write')
+      case 'people': return tn('people_info', sp.members.length)
+      default: return extraSub(id)
+    }
   }
-  return <div className="page">
+  const tile = (id: string) => {
+    const mod = MODULES.find(m => m.id === id)!, def = ({ tasks: 'w', question: 'w', mood: 'w', habits: 'w' } as Record<string, string>)[id] || 's', size = sizes[id] || def, big = size !== 's'
+    const style = { '--c': mod.color } as React.CSSProperties, openIt = () => go(id as Route)
+    const wrap = (body: React.ReactNode, cls = '') => <div key={id} data-id={id} role="button" tabIndex={0} className={'tile tap ' + size + ' ' + cls} style={style} onClick={openIt} onKeyDown={e => e.key === 'Enter' && openIt()}>{body}</div>
+    if (id === 'tasks') return wrap(<><span className="k">{t('tasks')}</span><b>{open.length ? tn('tasks_info_left', open.length) : t('tasks_all_done') + ' 🎉'}</b>
+      <div className="tl" onClick={stop}>{open.slice(0, size === 'l' ? 7 : big ? 3 : 2).map(x => { const w = x.assignee ? sp.members.find(m => m.id === x.assignee) : null
+        return <div key={x.id} className="t" onClick={e => { pop(e); editTask(x.id, { done: true }); toast('✓ ' + x.title) }}><span className="mini-check">✓</span><span className="ell">{x.title}</span>{w && <span className="who">{w.a}</span>}</div> })}</div>
+      {!open.length && <span className="em">✅</span>}</>)
+    if (id === 'mood') { const mid = me.id + ':' + now, md = s.db.moods[mid], cur = md && !md.deleted_at ? md.score : 0
+      return wrap(<><span className="k">{t('mood')}</span><b>{cur ? t(('mood_' + cur) as 'mood_1') : t('mood_q')}</b>
+        <div className="qrow" onClick={stop}>{[1, 2, 3, 4, 5].map(n => <button key={n} className={cur === n ? 'on' : ''} aria-label={t(('mood_' + n) as 'mood_1')} onClick={e => { pop(e); upsert('moods', mid, { day: now, score: n, tags: md?.tags || [], note: md?.note || null, deleted_at: null }, home(s)) }}>{MOOD_FACE[n]}</button>)}</div></>) }
+    if (id === 'health') { const hid = me.id + ':' + now, h = s.db.health_logs[hid], w = (h?.water as number) || 0
+      return wrap(<><span className="k">💧 {t('water').split(',')[0]}</span><div className="v num">{w}<small style={{ fontSize: 18 }}>/8</small></div>
+        <div className="drops">{Array.from({ length: 8 }, (_, i) => <i key={i} className={i < w ? 'on' : ''} />)}</div>
+        <button className="go" aria-label="+1" onClick={e => { stop(e); pop(e); upsert('health_logs', hid, { day: now, water: w + 1, deleted_at: null }, home(s)); if (w + 1 === 8) toast('💧 🎉') }}>+</button></>) }
+    if (id === 'habits') { const hs = rows('habits', s.cur, s).filter(x => !x.archived).sort((a, b) => a.sort - b.sort), lg = rows('habit_logs', s.cur, s), done = (hid: string) => lg.some(l => l.habit_id === hid && l.day === now && l.done)
+      const n = hs.filter(x => done(x.id)).length, pct = hs.length ? n / hs.length : 0
+      return wrap(<><span className="k">{t('habits')}</span><div className="row" style={{ gap: 8 }}><svg className="ring" viewBox="0 0 36 36" aria-hidden="true"><circle cx="18" cy="18" r="14" fill="none" stroke="var(--surface)" strokeWidth="6" /><circle cx="18" cy="18" r="14" fill="none" stroke="#1d1a16" strokeWidth="6" strokeDasharray={`${pct * 88} 88`} strokeLinecap="round" transform="rotate(-90 18 18)" /></svg><b>{hs.length ? `${n}/${hs.length}` : t('habit_new')}</b></div>
+        {big && hs.length > 0 && <div className="hchips" onClick={stop}>{hs.slice(0, 6).map(h => { const on = done(h.id); return <button key={h.id} className={on ? 'on' : ''} onClick={e => { pop(e); toggleHabit(h, now, !on, s.cur) }}>{h.icon} {h.title}</button> })}</div>}</>) }
+    if (id === 'question') { const q = questionFor(sp.id, now, sp.since), mine = s.db.answers[sp.id + ':' + now + ':' + me.id]
+      return wrap(<><span className="k">{t('question')}</span><b style={{ fontSize: 21, maxWidth: 'calc(100% - 56px)', marginTop: 4 }}>{questionText(q)}</b><span className="pill" style={{ alignSelf: 'flex-start', marginTop: 'auto', background: 'var(--surface)' }}>{mine ? '✓ ' + t('answer_edit') : t('answer_send') + ' →'}</span><span className="em">💬{!mine && <i />}</span></>) }
+    if (id === 'shopping') { const left = rows('shopping_items', s.cur, s).filter(x => !x.done)
+      return wrap(<><span className="k">{t('shopping')}</span><div className="v num">{left.length}</div><small className="ell">{left.length ? left.slice(0, 3).map(x => x.title).join(', ') : t('shop_empty')}</small>
+        {big && <div className="tl" onClick={stop}>{left.slice(0, size === 'l' ? 7 : 3).map(x => <div key={x.id} className="t" onClick={e => { pop(e); upsert('shopping_items', x.id, { done: true }) }}><span className="mini-check">✓</span><span className="ell">{x.title}</span></div>)}</div>}<span className="em">🛒</span></>) }
+    if (id === 'people') return wrap(<><span className="k">{t('people')}</span><b>{tn('people_info', sp.members.length)}</b>{big && <ul>{sp.members.slice(0, 8).map(m => <li key={m.id}>{m.a} {m.n}</li>)}</ul>}<span className="em">{spaceIcon(sp)}</span></>)
+    return wrap(<><span className="k">{t(mod.label)}</span><b className="ell" style={{ whiteSpace: 'normal', maxWidth: 'calc(100% - 52px)' }}>{sub(id) || t('open')}</b><span className="em">{mod.em}</span></>)
+  }
+  const word = hello.split(' ').pop()!
+  return <div className="page wide">
     <div className="head">
-      <button className="switch" onClick={() => setPick(true)}><span className="ell">{spaceName(sp)}</span><i>▾</i></button>
+      <button className="switch" onClick={() => setPick(true)}><span className="duo">{sp.members.slice(0, 3).map(m => <span key={m.id}>{m.a}</span>)}</span><span className="ell">{spaceName(sp)}</span><i>▾</i></button>
       <button className="icon bell" aria-label={t('feed')} onClick={() => go('feed')}>🔔{unread(s) > 0 && <b>{Math.min(99, unread(s))}</b>}</button>
     </div>
+    <h1 className="hello">{hello.slice(0, hello.length - word.length)}<mark>{word}</mark></h1>
     <div className="car" ref={car}>{shown.map(card)}</div>
     {shown.length > 1 && <div className="dots">{shown.map((c, i) => <i key={c} className={i === dot ? 'on' : ''} />)}</div>}
     <div className="grid" ref={grid}>{tiles.map(tile)}</div>
-    <div className="row" style={{ justifyContent: 'center' }}><button className="chip" onClick={() => go('all')}>⊞ {t('all_modules')}</button></div>
+    <div className="row" style={{ justifyContent: 'center' }}><button className="btn ghost sm" onClick={() => go('all')}>🧩 {t('all_modules')}</button></div>
     <p className="sm mut" style={{ textAlign: 'center' }}>{t('hold_tip')}</p>
     {pick && <Spaces onClose={() => setPick(false)} />}
   </div>

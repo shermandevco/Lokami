@@ -9,7 +9,7 @@ import type { Key } from '../i18n/en'
 const defCur = () => { try { return localStorage.getItem('lokami_cur') || '' } catch { return '' } }
 export const pickCur = (lang: number) => defCur() || ['UAH', 'EUR', 'PLN'][lang]
 
-function ExpenseEdit({ ex, cur, onClose }: { ex?: Expense; cur: string; onClose: () => void }) {
+export function ExpenseEdit({ ex, cur, onClose }: { ex?: Expense; cur: string; onClose: () => void }) {
   const s = useStore(), sp = curSpace(s)!, me = s.profile!.id, multi = sp.members.length > 1
   const [title, setTitle] = useState(ex?.title || ''), [amount, setAmount] = useState(ex ? String(ex.amount) : ''), [currency, setCurrency] = useState(ex?.currency || cur)
   const [category, setCategory] = useState(ex?.category || 'food'), [day, setDay] = useState(ex?.day || today()), [paid, setPaid] = useState(ex?.paid_by || me), [split, setSplit] = useState<string[]>(ex?.split_ids || sp.members.map(m => m.id))

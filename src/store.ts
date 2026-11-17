@@ -41,9 +41,9 @@ export interface State {
   ready: boolean; profile: Profile | null; spaces: Space[]; cur: string
   db: Db; layouts: Record<string, Layout>
   outbox: Op[]; cursor: Partial<Record<Table, string>>; look: Look; lang: number
-  lastSeen: string; recent: string[]; route: Route; online: boolean; syncing: boolean; toast: { text: string; action?: string; fn?: () => void } | null
+  lastSeen: string; recent: string[]; route: Route; prev?: Route; online: boolean; syncing: boolean; toast: { text: string; action?: string; fn?: () => void } | null
 }
-const LOOK: Look = { mode: 'auto', accent: '#e6336e', bg: 'plain' }
+const LOOK: Look = { mode: 'auto', accent: '#ff5c8a', bg: 'plain' }
 const initial = (): State => ({ ready: false, profile: null, spaces: [], cur: '', db: emptyDb(), layouts: {}, outbox: [], cursor: {}, lastSeen: '', recent: [], look: LOOK, lang: detectLang(), route: 'hub', online: navigator.onLine, syncing: false, toast: null })
 
 let state = initial()
@@ -64,7 +64,7 @@ function save() { if (!state.profile) return; clearTimeout(saveT); saveT = windo
 export function applyLook() {
   const r = document.documentElement, l = state.look
   const dark = l.mode === 'dark' || (l.mode === 'auto' && window.matchMedia('(prefers-color-scheme:dark)').matches)
-  r.dataset.mode = dark ? 'dark' : 'light'; r.dataset.bg = l.bg; r.style.setProperty('--accent', l.accent)
+  r.dataset.mode = dark ? 'dark' : 'light'; r.dataset.bg = l.bg; r.style.setProperty('--accent', ['#e6336e', '#7c5cff', '#3b82f6', '#19a57a', '#f08a24', '#17171a'].includes(l.accent) ? '#ff5c8a' : l.accent)
   document.querySelector('meta[name=theme-color]')?.setAttribute('content', dark ? '#0e0e10' : '#f5f5f6')
 }
 window.matchMedia('(prefers-color-scheme:dark)').addEventListener('change', applyLook)
@@ -80,7 +80,7 @@ export const spaceTasks = (s: State = state) => rows('tasks', s.cur, s)
 export const home = (s: State = state) => s.profile?.home || ''
 const CORE: Route[] = ['hub', 'today', 'planner', 'profile', 'all', 'feed', 'people']
 /** Navigate; modules opened from anywhere are remembered so “All modules” can offer them as recent. */
-export const go = (route: Route) => { if (CORE.includes(route)) set({ route }, false); else set({ route, recent: [route, ...(state.recent || []).filter(r => r !== route)].slice(0, 6) }); window.scrollTo(0, 0) }
+export const go = (route: Route) => { if (CORE.includes(route)) set({ route, prev: state.route }, false); else set({ route, prev: CORE.includes(state.route) ? state.route : state.prev, recent: [route, ...(state.recent || []).filter(r => r !== route)].slice(0, 6) }); window.scrollTo(0, 0) }
 export function toast(text: string, action?: string, fn?: () => void) { set({ toast: { text, action, fn } }, false); window.setTimeout(() => { if (state.toast?.text === text) set({ toast: null }, false) }, action ? 4500 : 2400) }
 export const dismissToast = () => set({ toast: null }, false)
 export function switchSpace(id: string) { if (!state.spaces.some(s => s.id === id)) return; set({ cur: id, route: 'hub' }); window.scrollTo(0, 0); pushPrefs() }

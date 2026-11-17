@@ -23,6 +23,7 @@ export function Auth() {
       <div className="brand"><span className="logo" />Lokami</div>
       <h1>{t('auth_title')}</h1>
       <p className="mut">{t('auth_sub')}</p>
+      <div className="auth-art">{([['✅', 'tasks', 'var(--mint)'], ['💬', 'question', 'var(--lav)'], ['🛒', 'shopping', 'var(--lime)'], ['📓', 'diary', 'var(--peach)'], ['💸', 'budget', 'var(--sun)'], ['🃏', 'cards', 'var(--pink)']] as const).map(([e, k, c], i) => <span key={k} style={{ background: c, transform: `rotate(${[-3, 2, -1, 3, -2, 1][i]}deg)` }}>{e} {t(k)}</span>)}</div>
       <p className="sm mut">{t('auth_meaning')}</p>
     </div>
     <form className="card col" onSubmit={submit} noValidate>

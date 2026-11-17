@@ -1,6 +1,7 @@
 import { useEffect, useRef } from 'react'
 import { useStore, dismissToast, toast, go } from './store'
 import { feed } from './screens/Feed'
+import { modColor } from './lib/modules'
 import { t } from './lib/i18n'
 import { Auth } from './screens/Auth'
 import { Hub } from './screens/Hub'
@@ -44,6 +45,7 @@ export function App() {
     checkin: Checkin, insights: Insights, year: Year, budget: Budget, health: Health, garage: Garage, goals: Goals, hub: Hub, feed: Feed, shopping: Shopping, question: Question, today: Today, tasks: Tasks, planner: Planner, habits: Habits, mood: Mood, diary: Diary, people: People, profile: Profile }[s.route]
   return <>
     {!s.online && <div className="status">{t('offline')}</div>}
+    {!['hub', 'today', 'profile', 'all', 'feed'].includes(s.route) && <div className="crumb"><button onClick={() => go(s.prev && s.prev !== s.route ? s.prev : 'hub')}><span aria-hidden="true">‹</span><i className="dot" style={{ '--c': modColor(s.route) } as React.CSSProperties} />{s.prev === 'all' ? t('all_modules') : s.prev === 'today' ? t('today') : 'Lokami'}</button></div>}
     <Screen key={s.route + s.cur} />
     <Nav />
     {s.toast && <div className="toast" role="status"><span className="grow">{s.toast.text}</span>{s.toast.action && <button onClick={() => { s.toast!.fn?.(); dismissToast() }}>{s.toast.action}</button>}</div>}
