@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react'
+import { sb } from '../lib/supabase'
 import { pushSupported, enablePush, pushEnabled } from '../lib/push'
-import { useStore, setLook, changeLang, updateProfile, signOut, deleteAccount, toast } from '../store'
+import { go, useStore, setLook, changeLang, updateProfile, signOut, deleteAccount, toast } from '../store'
 import { t, LANGS } from '../lib/i18n'
 import { Sheet } from '../ui/Sheet'
 
@@ -11,6 +12,8 @@ const AVATARS = ['🦊', '🐻', '🐼', '🐨', '🐯', '🦁', '🐸', '🐵',
 export function Profile() {
   const s = useStore(), me = s.profile!, [name, setName] = useState(me.n), [del, setDel] = useState(false), [push, setPush] = useState(false)
   useEffect(() => { pushEnabled().then(setPush) }, [])
+  const [admin, setAdmin] = useState(false)
+  useEffect(() => { sb.rpc('is_admin').then(({ data }) => setAdmin(data === true), () => {}) }, [])
   return <div className="page">
     <div className="head"><h1>{t('profile')}</h1></div>
     <div className="card col">
@@ -26,6 +29,8 @@ export function Profile() {
     </div>
     {pushSupported() && !push && <button className="btn ghost" onClick={async () => { const r = await enablePush(); if (r === 'ok') { setPush(true); toast(t('notif_ok')) } else toast(t(r === 'denied' ? 'notif_denied' : 'err_net')) }}>🔔 {t('notif_on')}</button>}
     {push && <p className="sm mut">🔔 {t('notif_ok')}</p>}
+    <div className="card col"><label className="row" style={{ cursor: 'pointer' }}><input type="checkbox" checked={!!me.adult} onChange={e => updateProfile({ adult: e.target.checked })} style={{ width: 22, height: 22, accentColor: 'var(--accent)' }} /><b className="grow">🔞 {t('adult_q')}</b></label><p className="sm mut">{t('adult_hint')}</p></div>
+    {admin && <button className="btn ghost" onClick={() => go('admin')}>🛡️ {t('admin')}</button>}
     <div className="row wrap"><button className="btn ghost" onClick={() => signOut()}>{t('sign_out')}</button><button className="btn danger" onClick={() => setDel(true)}>{t('delete_account')}</button></div>
     <p className="sm mut">Lokami 2.0 · <a href="../" style={{ color: 'inherit' }}>{t('open_classic')}</a></p>
     {del && <Sheet onClose={() => setDel(false)}><h2>{t('delete_q')}</h2><p className="mut">{t('delete_hint')}</p>

@@ -1,11 +1,12 @@
 import { useRef, useState, useEffect } from 'react'
-import { rows, useStore, curSpace, spaceTasks, setLayout, go, switchSpace, createSpace, joinSpace, toast, type SpaceType } from '../store'
+import { type Route, rows, useStore, curSpace, spaceTasks, setLayout, go, switchSpace, createSpace, joinSpace, toast, type SpaceType } from '../store'
 import { t, tn } from '../lib/i18n'
 import { today, diffDays, weekday, fmtFull, fmtDay, weekStart, num } from '../lib/dates'
 import { spaceName, spaceIcon } from '../lib/space'
 import { Sheet } from '../ui/Sheet'
 import { useSortable } from '../ui/useSortable'
 import { MOOD_FACE } from '../lib/me'
+import { MODULES, fits, onHome } from '../lib/modules'
 import { money, byCategory } from '../lib/money'
 import { pickCur } from './Budget'
 import { carStatus } from './Garage'
@@ -14,9 +15,9 @@ import { questionFor, questionText } from '../lib/questions'
 import { unread } from './Feed'
 import { sortTasks, dueLabel } from './Tasks'
 
-const TILES = ['question', 'checkin', 'tasks', 'shopping', 'planner', 'habits', 'mood', 'diary', 'budget', 'health', 'garage', 'goals', 'insights', 'year', 'people', 'classic'] as const
-const PERSONAL = ['habits', 'mood', 'diary', 'health', 'insights']
-const SHARED = ['question', 'shopping', 'checkin']
+const TILES = [...MODULES.map(m => m.id), 'classic']
+
+
 const CARDS = ['today', 'together', 'invite'] as const
 const order = <T extends string>(saved: string[] | undefined, all: readonly T[]) => [...(saved || []).filter((x): x is T => (all as readonly string[]).includes(x)), ...all.filter(x => !(saved || []).includes(x))]
 
@@ -26,15 +27,19 @@ export function Hub() {
   const [pick, setPick] = useState(false), [dot, setDot] = useState(0)
   const car = useRef<HTMLDivElement>(null), grid = useRef<HTMLDivElement>(null)
   const shown = order(lay.cards, CARDS).filter(c => c === 'today' || (sp && sp.type !== 'solo'))
-  const avail = order(lay.tiles, TILES).filter(x => sp?.type === 'solo' ? x !== 'people' && !SHARED.includes(x) : !PERSONAL.includes(x)), hidden = lay.hidden || [], tiles = avail.filter(x => !hidden.includes(x)), sizes = lay.sizes || {}
-  const [mods, setMods] = useState(false)
+  const sizes = lay.sizes || {}, hidden = lay.hidden || [], tiles = order(lay.tiles, TILES).filter(x => x === 'classic' ? !hidden.includes(x) : (() => { const m = MODULES.find(y => y.id === x)!; return fits(m, sp?.type || 'solo', !!s.profile?.adult) && onHome(m, lay) })())
+
   useSortable(car, ids => setLayout({ cards: ids }), { axis: 'x' }, s.cur)
   const sz = (v: 's' | 'w' | 'l', icon: string) => ({ icon, label: t('size') + ' ' + v.toUpperCase(), fn: (id: string) => setLayout({ sizes: { ...sizes, [id]: v } }) })
-  useSortable(grid, ids => setLayout({ tiles: ids }), { targets: () => [sz('s', '▫️'), sz('w', '▭'), sz('l', '⬜'), { icon: '🙈', label: t('hide'), fn: (id: string) => setLayout({ hidden: [...hidden, id] }) }] }, s.cur)
+  useSortable(grid, ids => setLayout({ tiles: ids }), { targets: () => [sz('s', '▫️'), sz('w', '▭'), sz('l', '⬜'), { icon: '🙈', label: t('hide'), fn: (id: string) => { const m = MODULES.find(y => y.id === id); if (m && !m.home) setLayout({ added: (lay.added || []).filter(x => x !== id) }); else setLayout({ hidden: [...hidden, id] }) } }] }, s.cur)
   useEffect(() => { const el = car.current; if (!el) return; const f = () => setDot(Math.round(el.scrollLeft / Math.max(1, el.clientWidth))); el.addEventListener('scroll', f, { passive: true }); return () => el.removeEventListener('scroll', f) }, [])
   if (!sp) return null
   const days = sp.since ? diffDays(sp.since, now) + 1 : 0
 
+  const extraSub = (id: string) => { const its = rows('items', s.cur, s), k = ({ movies: 'movie', wishes: 'wish', dreams: 'dream', notes: 'note', coupons: 'coupon', dates: 'date' } as Record<string, string>)[id]
+    if (k) { const open = its.filter(i => i.kind === k && (k === 'note' || !i.done)); return k === 'note' ? (open.sort((a, b) => b.edited_at.localeCompare(a.edited_at))[0]?.title || '') : String(open.length || '') }
+    if (id === 'status') { const x = rows('statuses', s.cur, s).filter(z => z.created_by !== s.profile!.id); return x.length ? x.length + ' 🟢' : '' }
+    return '' }
   const card = (c: typeof CARDS[number], i: number) => {
     const cls = 'cc c' + (i % 4)
     if (c === 'today') return <div key={c} data-id={c} className={cls}><span className="up">{weekday(new Date())}</span><h3>{todayTasks.length ? tn('tasks_info_left', todayTasks.length) : t('nothing_today')}</h3>{todayTasks.slice(0, 2).map(x => <div key={x.id} className="line ell">{x.title}</div>)}<span className="deco">☀️</span></div>
@@ -66,6 +71,8 @@ export function Hub() {
         : id === 'goals' ? (() => { const gs = rows('goals', s.cur, s); return gs.length ? gs.slice(0, 2).map(g => g.icon + ' ' + g.title).join(' · ') : t('goal_new') })()
         : (pg?.body.trim() ? pg.body.trim().slice(0, 60) : t('diary_write'))
       return <button key={id} data-id={id} className={'tile ' + size} onClick={() => go(r as 'planner')}><b>{t(r as 'planner')}</b><small>{sub}</small><span className="em">{em}</span></button> }
+    const mod = MODULES.find(m => m.id === id)
+    if (mod) return <button key={id} data-id={id} className={'tile ' + size} onClick={() => go(id as Route)}><b>{t(mod.label)}</b><small>{extraSub(id)}</small><span className="em">{mod.em}</span></button>
     return <a key={id} data-id={id} className={'tile ' + size} href="../" style={{ textDecoration: 'none', color: 'inherit' }}><b>{t('open_classic')}</b><small>{t('classic')}</small><span className="em">🗂️</span></a>
   }
   return <div className="page">
@@ -76,11 +83,8 @@ export function Hub() {
     <div className="car" ref={car}>{shown.map(card)}</div>
     {shown.length > 1 && <div className="dots">{shown.map((c, i) => <i key={c} className={i === dot ? 'on' : ''} />)}</div>}
     <div className="grid" ref={grid}>{tiles.map(tile)}</div>
-    <div className="row" style={{ justifyContent: 'center' }}><button className="chip" onClick={() => setMods(true)}>⚙️ {t('modules')}{hidden.length ? ' · +' + hidden.length : ''}</button></div>
+    <div className="row" style={{ justifyContent: 'center' }}><button className="chip" onClick={() => go('all')}>⊞ {t('all_modules')}</button></div>
     <p className="sm mut" style={{ textAlign: 'center' }}>{t('hold_tip')}</p>
-    {mods && <Sheet onClose={() => setMods(false)}><h2>{t('modules')}</h2><p className="sm mut">{t('modules_hint')}</p>
-      <div className="chips">{avail.map(x => { const on = !hidden.includes(x); return <button key={x} aria-pressed={on} className={'chip' + (on ? ' on' : '')} onClick={() => setLayout({ hidden: on ? [...hidden, x] : hidden.filter(y => y !== x) })}>{on ? '✓ ' : ''}{x === 'classic' ? t('open_classic') : t(x as 'tasks')}</button> })}</div>
-      <button className="btn" onClick={() => setMods(false)}>{t('done')}</button></Sheet>}
     {pick && <Spaces onClose={() => setPick(false)} />}
   </div>
 }

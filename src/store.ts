@@ -23,15 +23,19 @@ export interface CarLog extends Base { car_id: string; day: string; kind: 'fuel'
 export interface Goal extends Base { title: string; icon: string; target: number | null; unit: string | null; due: string | null; done: boolean }
 export interface GoalLog extends Base { goal_id: string; day: string; amount: number; note: string | null }
 export interface Checkin extends Base { week: string; close: number | null; heard: number | null; fun: number | null; load: number | null; thanks: string | null; wish: string | null }
-export interface Tables { tasks: Task; events: Event; habits: Habit; habit_logs: HabitLog; moods: Mood; diary_pages: DiaryPage; shopping_items: Shop; answers: Answer; expenses: Expense; health_logs: Health; cars: Car; car_logs: CarLog; goals: Goal; goal_logs: GoalLog; checkins: Checkin }
+export type ItemKind = 'movie' | 'wish' | 'dream' | 'note' | 'coupon' | 'date' | 'fav' | 'challenge'
+export interface Item extends Base { kind: ItemKind; title: string; note: string | null; done: boolean; rating: number | null; for_user: string | null; data: Record<string, unknown> }
+export interface Log extends Base { kind: 'intim' | 'dlog' | 'poo'; day: string; started_at: string | null; ended_at: string | null; data: Record<string, unknown> }
+export interface Status extends Base { status: string; started_at: string; note: string | null }
+export interface Tables { tasks: Task; events: Event; habits: Habit; habit_logs: HabitLog; moods: Mood; diary_pages: DiaryPage; shopping_items: Shop; answers: Answer; expenses: Expense; health_logs: Health; cars: Car; car_logs: CarLog; goals: Goal; goal_logs: GoalLog; checkins: Checkin; items: Item; logs: Log; statuses: Status }
 export type Table = keyof Tables
-export const TABLES: Table[] = ['tasks', 'events', 'habits', 'habit_logs', 'moods', 'diary_pages', 'shopping_items', 'answers', 'expenses', 'health_logs', 'cars', 'car_logs', 'goals', 'goal_logs', 'checkins']
+export const TABLES: Table[] = ['tasks', 'events', 'habits', 'habit_logs', 'moods', 'diary_pages', 'shopping_items', 'answers', 'expenses', 'health_logs', 'cars', 'car_logs', 'goals', 'goal_logs', 'checkins', 'items', 'logs', 'statuses']
 type Db = { [K in Table]: Record<string, Tables[K]> }
-const emptyDb = (): Db => ({ tasks: {}, events: {}, habits: {}, habit_logs: {}, moods: {}, diary_pages: {}, shopping_items: {}, answers: {}, expenses: {}, health_logs: {}, cars: {}, car_logs: {}, goals: {}, goal_logs: {}, checkins: {} })
-export interface Layout { hidden?: string[]; tiles?: string[]; sizes?: Record<string, 's' | 'w' | 'l'>; cards?: string[] }
+const emptyDb = (): Db => ({ tasks: {}, events: {}, habits: {}, habit_logs: {}, moods: {}, diary_pages: {}, shopping_items: {}, answers: {}, expenses: {}, health_logs: {}, cars: {}, car_logs: {}, goals: {}, goal_logs: {}, checkins: {}, items: {}, logs: {}, statuses: {} })
+export interface Layout { added?: string[]; hidden?: string[]; tiles?: string[]; sizes?: Record<string, 's' | 'w' | 'l'>; cards?: string[] }
 export interface Look { mode: 'auto' | 'light' | 'dark'; accent: string; bg: string }
-export interface Profile { id: string; email: string; n: string; a: string; home: string; cur: string }
-export type Route = 'checkin' | 'insights' | 'year' | 'budget' | 'health' | 'garage' | 'goals' | 'hub' | 'feed' | 'shopping' | 'question' | 'today' | 'tasks' | 'planner' | 'habits' | 'mood' | 'diary' | 'people' | 'profile'
+export interface Profile { id: string; email: string; n: string; a: string; home: string; cur: string; adult?: boolean }
+export type Route = 'all' | 'cards' | 'movies' | 'wishes' | 'dreams' | 'notes' | 'coupons' | 'dates' | 'wheel' | 'challenge' | 'status' | 'intim' | 'dlog' | 'poo' | 'admin' | 'checkin' | 'insights' | 'year' | 'budget' | 'health' | 'garage' | 'goals' | 'hub' | 'feed' | 'shopping' | 'question' | 'today' | 'tasks' | 'planner' | 'habits' | 'mood' | 'diary' | 'people' | 'profile'
 
 export interface State {
   ready: boolean; profile: Profile | null; spaces: Space[]; cur: string
@@ -67,7 +71,7 @@ window.matchMedia('(prefers-color-scheme:dark)').addEventListener('change', appl
 export function setLook(p: Partial<Look>) { set({ look: { ...state.look, ...p } }); applyLook(); pushPrefs() }
 export function changeLang(i: number) { setLang(i); set({ lang: i }); try { localStorage.setItem('lokami_lang', String(i)) } catch { /* private mode */ } pushPrefs() }
 let prefsT = 0
-function pushPrefs() { clearTimeout(prefsT); prefsT = window.setTimeout(async () => { const p = state.profile; if (!p) return; const { data } = await sb.from('profiles').select('ui').eq('id', p.id).maybeSingle(); await sb.from('profiles').update({ ui: { ...(data?.ui || {}), v2: state.look }, lang: state.lang === 0 ? 0 : state.lang === 1 ? 1 : 2, n: p.n, a: p.a, cur: state.cur }).eq('id', p.id) }, 600) }
+function pushPrefs() { clearTimeout(prefsT); prefsT = window.setTimeout(async () => { const p = state.profile; if (!p) return; const { data } = await sb.from('profiles').select('ui').eq('id', p.id).maybeSingle(); await sb.from('profiles').update({ ui: { ...(data?.ui || {}), v2: state.look }, lang: state.lang === 0 ? 0 : state.lang === 1 ? 1 : 2, n: p.n, a: p.a, adult: !!p.adult, cur: state.cur }).eq('id', p.id) }, 600) }
 
 /* ---------- helpers ---------- */
 export const curSpace = (s: State = state) => s.spaces.find(x => x.id === s.cur) || s.spaces[0]
@@ -78,7 +82,7 @@ export const go = (route: Route) => { set({ route }, false); window.scrollTo(0, 
 export function toast(text: string, action?: string, fn?: () => void) { set({ toast: { text, action, fn } }, false); window.setTimeout(() => { if (state.toast?.text === text) set({ toast: null }, false) }, action ? 4500 : 2400) }
 export const dismissToast = () => set({ toast: null }, false)
 export function switchSpace(id: string) { if (!state.spaces.some(s => s.id === id)) return; set({ cur: id, route: 'hub' }); window.scrollTo(0, 0); pushPrefs() }
-export function updateProfile(p: Partial<Pick<Profile, 'n' | 'a'>>) { if (!state.profile) return; const profile = { ...state.profile, ...p }; set({ profile, spaces: state.spaces.map(s => ({ ...s, members: s.members.map(m => (m.id === profile.id ? { ...m, n: profile.n, a: profile.a } : m)) })) }); pushPrefs() }
+export function updateProfile(p: Partial<Pick<Profile, 'n' | 'a' | 'adult'>>) { if (!state.profile) return; const profile = { ...state.profile, ...p }; set({ profile, spaces: state.spaces.map(s => ({ ...s, members: s.members.map(m => (m.id === profile.id ? { ...m, n: profile.n, a: profile.a } : m)) })) }); pushPrefs() }
 
 /* ---------- mutations: local first, then queued for the server ---------- */
 function queue(op: Op) { set({ outbox: enqueue(state.outbox, op) }); schedule() }
@@ -163,8 +167,8 @@ async function enter(user: { id: string; email?: string; user_metadata?: { n?: s
   try {
     const name = user.user_metadata?.n || (user.email || '').split('@')[0]
     const home = await sb.rpc('ensure_profile', { p_name: name, p_lang: getLang() }); if (home.error) throw home.error
-    const p = await sb.from('profiles').select('id,n,a,home,cur,lang,ui').eq('id', user.id).single(); if (p.error) throw p.error
-    const profile: Profile = { id: user.id, email: user.email || '', n: cached?.profile?.n || p.data.n, a: cached?.profile?.a || p.data.a || '🦊', home: p.data.home, cur: p.data.cur || p.data.home }
+    const p = await sb.from('profiles').select('id,n,a,home,cur,lang,ui,adult').eq('id', user.id).single(); if (p.error) throw p.error
+    const profile: Profile = { id: user.id, email: user.email || '', n: cached?.profile?.n || p.data.n, a: cached?.profile?.a || p.data.a || '🦊', home: p.data.home, cur: p.data.cur || p.data.home, adult: !!p.data.adult }
     const look: Look = cached?.look || { ...LOOK, ...(p.data.ui?.v2 || {}) }
     const lang = cached?.lang ?? (typeof p.data.lang === 'number' ? p.data.lang : state.lang)
     set({ profile, look, lang, cur: cached?.cur || profile.cur, ready: true }); setLang(lang); applyLook()
