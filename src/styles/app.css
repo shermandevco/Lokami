@@ -120,9 +120,13 @@ body.nosel{user-select:none;-webkit-user-select:none}
 .langs button{padding:6px 10px;border-radius:9px;font-size:12px;font-weight:800;color:var(--mut)}.langs button.on{background:var(--surface);color:var(--ink)}
 
 @media (min-width:900px){
-  .page{max-width:880px;padding-top:var(--s6)}
-  .car{margin:0;padding:0;scroll-padding:0}.cc{flex:0 0 360px}.dots{display:none}
-  .grid{grid-template-columns:repeat(4,1fr)}
+  .page{max-width:1080px;padding-top:var(--s6);padding-bottom:120px}
+  /* desktop: carousel cards share the row evenly (3 visible, the rest scroll), tiles get a 4-column grid */
+  .car{margin:0;padding:0 0 4px;scroll-padding:0;display:grid;grid-auto-flow:column;grid-auto-columns:calc((100% - 2 * var(--s3)) / 3)}
+  .cc{flex:none;min-width:0;height:200px}.cc h3{font-size:24px;max-width:100%}.cc .line{max-width:100%}
+  .dots{display:none}
+  .grid{grid-template-columns:repeat(4,minmax(0,1fr))}
+  .tile{height:140px}.tile.l{height:296px}
   .scrim{align-items:center}.sheet{border-radius:28px;animation:page var(--mid) var(--ease)}.sheet .grab{display:none}
   .auth{grid-template-columns:1.1fr .9fr;align-content:center;align-items:center;column-gap:56px;padding:40px}
   .langs{position:absolute;top:28px;right:40px}
