@@ -66,6 +66,16 @@ function useLogs(kind: Log['kind']) { const s = useStore(), ids = new Set(s.spac
 const pad = (n: number) => String(n).padStart(2, '0')
 const hms = (ms: number) => { const s = Math.max(0, Math.floor(ms / 1000)), h = Math.floor(s / 3600), m = Math.floor((s % 3600) / 60); return (h ? h + ':' + pad(m) : m) + ':' + pad(s % 60) }
 const MEDAL = ['🥇', '🥈', '🥉']
+/** Month grid used by the trackers: `mark` returns what to show on a day (or null to show the date). */
+function MonthCal({ mark }: { mark: (day: string) => string | null }) {
+  const d = today(), [month, setMonth] = useState(d.slice(0, 7)), [y, mo] = month.split('-').map(Number)
+  const first = (new Date(y, mo - 1, 1).getDay() + 6) % 7, n = new Date(y, mo, 0).getDate(), shift = (k: number) => { const z = new Date(y, mo - 1 + k, 1); setMonth(z.getFullYear() + '-' + pad(z.getMonth() + 1)) }
+  const wd = Array.from({ length: 7 }, (_, i) => new Intl.DateTimeFormat(document.documentElement.lang, { weekday: 'narrow' }).format(new Date(2026, 10, 16 + i)))
+  return <div className="card col"><div className="row between"><button className="icon" aria-label={t('prev_day')} onClick={() => shift(-1)}>‹</button><b style={{ textTransform: 'capitalize' }}>{new Intl.DateTimeFormat(document.documentElement.lang, { month: 'long', year: 'numeric' }).format(new Date(y, mo - 1, 1))}</b><button className="icon" aria-label={t('next_day')} onClick={() => shift(1)}>›</button></div>
+    <div className="pcal">{wd.map((w, i) => <small key={i}>{w}</small>)}{Array.from({ length: first }, (_, i) => <span key={'e' + i} />)}{Array.from({ length: n }, (_, i) => { const ds = month + '-' + pad(i + 1), m = mark(ds)
+      return <span key={ds} className={'pd' + (ds === d ? ' now' : '') + (m ? ' on' : '')}>{m || i + 1}</span> })}</div></div>
+}
+
 const Hearts = ({ v, on }: { v: number; on: (n: number) => void }) => <div className="hearts">{[1, 2, 3, 4, 5].map(n => <button key={n} type="button" aria-label={n + '/5'} onClick={() => on(n)}>{n <= v ? '❤️' : '🤍'}</button>)}</div>
 function burst(el: HTMLElement | null, em: string[]) {
   if (!el || matchMedia('(prefers-reduced-motion: reduce)').matches) return
@@ -99,6 +109,7 @@ export function Intim() {
     <div className="card col"><h2>{t('intim_stats')}</h2>{stats.map((x, i) => <div key={x.m?.id || i} className="lvst"><span className="rank">{x.c ? MEDAL[i] || '·' : '·'}</span><span className="av">{x.m?.a || '🙂'}</span>
       <div className="grow"><b>{x.m?.n || '—'}</b><div className="sm mut">{x.c} · {x.mc} {t('intim_month')}</div></div>
       <div className="sm" style={{ textAlign: 'right' }}>{x.c ? <><div>{t('intim_avg')} <b>{dur(x.avg)}</b></div><div className="mut">max {dur(x.mx)}</div></> : '—'}</div></div>)}</div>
+    <MonthCal mark={ds => { const c = done.filter(l => l.day === ds).length; return c ? (c > 2 ? '🔥' + c : '🔥'.repeat(c)) : null }} />
     {couples.length > 0 && <div className="card col"><b>{t('intim_share')}</b><p className="sm mut">{t('intim_share_hint')}</p><div className="chips">{[home(s), ...couples.map(c => c.id)].map(id => <button key={id} className={'chip' + (where === id ? ' on' : '')} onClick={() => { setWhere(id); try { localStorage.setItem('lokami_intim_space', id) } catch { /* ignore */ } }}>{id === home(s) ? '🔒 ' : '💞 '}{spaceName(s.spaces.find(x => x.id === id))}</button>)}</div></div>}
     <div className="card col" style={{ gap: 4 }}><div className="row between"><h2>{t('history')}</h2><button className="btn ghost sm" onClick={() => setMan(true)}>{t('intim_add')}</button></div>
       {!done.length ? <p className="sm mut">{t('intim_empty')}</p> : done.slice(0, 30).map(l => <div key={l.id} className="item"><span className="av">{who(l.created_by)?.a || '·'}</span>
@@ -166,22 +177,17 @@ const POO = ['😌', '😐', '😣', '🔥', '💀']
 /** Poo tracker: the classic brown hero with a big button, streak, monthly ranking and a calendar of 💩. */
 export function Poo() {
   const s = useStore(), sp = curSpace(s)!, me = s.profile!.id, logs = useLogs('poo').filter(l => l.space_id === sp.id), d = today()
-  const [month, setMonth] = useState(d.slice(0, 7)), [ask, setAsk] = useState(false)
+  const month = d.slice(0, 7), [ask, setAsk] = useState(false)
   const mine = logs.filter(l => l.created_by === me), days = new Set(mine.map(l => l.day))
   let streak = 0; for (let x = d; days.has(x); x = addDays(x, -1)) streak++
   const rank = sp.members.map(m => ({ m, c: logs.filter(l => l.created_by === m.id && l.day.startsWith(month)).length })).sort((a, b) => b.c - a.c)
-  const [y, mo] = month.split('-').map(Number), first = (new Date(y, mo - 1, 1).getDay() + 6) % 7, n = new Date(y, mo, 0).getDate()
-  const cnt = (ds: string) => logs.filter(l => l.day === ds).length, shift = (k: number) => { const z = new Date(y, mo - 1 + k, 1); setMonth(z.getFullYear() + '-' + pad(z.getMonth() + 1)) }
-  const wd = Array.from({ length: 7 }, (_, i) => new Intl.DateTimeFormat(document.documentElement.lang, { weekday: 'narrow' }).format(new Date(2026, 10, 16 + i)))
   const who = (id: string | null) => sp.members.find(m => m.id === id)
   return <div className="page">
     <div className="head"><h1>{t('poo')}</h1></div>
     <div className="poohero"><div><span className="up">{t('poo_today')}</span><div className="big num">{mine.filter(l => l.day === d).length}</div><div style={{ fontWeight: 700 }}>🔥 {streak} {t('poo_streak')}</div></div>
       <button className="poobtn" aria-label={t('poo_log')} onClick={e => { tap(); burst(e.currentTarget, ['💩', '✨', '🧻']); setAsk(true) }}>💩</button></div>
     {sp.members.length > 1 && <div className="card col"><h2>{t('poo_rank')}</h2>{rank.map((x, i) => <div key={x.m.id} className="lvst"><span className="rank">{x.c ? MEDAL[i] || '·' : '·'}</span><span className="av">{x.m.a}</span><b className="grow">{x.m.n}</b><b className="num">{x.c} 💩</b></div>)}</div>}
-    <div className="card col"><div className="row between"><button className="icon" aria-label={t('prev_day')} onClick={() => shift(-1)}>‹</button><b style={{ textTransform: 'capitalize' }}>{new Intl.DateTimeFormat(document.documentElement.lang, { month: 'long', year: 'numeric' }).format(new Date(y, mo - 1, 1))}</b><button className="icon" aria-label={t('next_day')} onClick={() => shift(1)}>›</button></div>
-      <div className="pcal">{wd.map((w, i) => <small key={i}>{w}</small>)}{Array.from({ length: first }, (_, i) => <span key={'e' + i} />)}{Array.from({ length: n }, (_, i) => { const ds = month + '-' + pad(i + 1), c = cnt(ds)
-        return <span key={ds} className={'pd' + (ds === d ? ' now' : '')}>{c ? (c > 2 ? '💩' + c : '💩'.repeat(c)) : i + 1}</span> })}</div></div>
+    <MonthCal mark={ds => { const c = logs.filter(l => l.day === ds).length; return c ? (c > 2 ? '💩' + c : '💩'.repeat(c)) : null }} />
     <div className="card col" style={{ gap: 4 }}><h2>{t('history')}</h2>{!logs.length ? <p className="sm mut">{t('poo_empty')}</p> : logs.slice(0, 25).map(l => <div key={l.id} className="item"><span className="av">{who(l.created_by)?.a || '·'}</span>
       <span className="grow"><b>{who(l.created_by)?.n}</b> {l.data.r != null ? POO[l.data.r as number] : ''}<span className="sm mut" style={{ display: 'block' }}>{fmtDay(l.day)} · {l.started_at ? new Date(l.started_at).toTimeString().slice(0, 5) : ''}</span></span>
       {l.created_by === me && <button className="x" aria-label={t('delete')} onClick={() => remove('logs', l.id)}>×</button>}</div>)}</div>
