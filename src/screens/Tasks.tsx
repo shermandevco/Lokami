@@ -61,7 +61,7 @@ export function Tasks() {
     {multi && <div className="seg">{(['all', 'me', 'others'] as const).map(k => <button key={k} className={f === k ? 'on' : ''} onClick={() => setF(k)}>{t(k === 'all' ? 'all' : k === 'me' ? 'for_me' : 'from_me')}{k === 'me' && open0.some(x => x.assignee === me) ? ' · ' + open0.filter(x => x.assignee === me).length : ''}</button>)}</div>}
     {!all.length ? <div className="empty"><b>✅</b>{t('tasks_empty')}</div> : <>
       {open.length > 0 && <div className="card" style={{ paddingTop: 4, paddingBottom: 4 }}>{open.map(x => <Row key={x.id} tk={x} />)}</div>}
-      {done.length > 0 && <><p className="cap">{t('done_section')}</p><div className="card" style={{ paddingTop: 4, paddingBottom: 4 }}>{done.map(x => <Row key={x.id} tk={x} />)}</div></>}
+      {done.length > 0 && <><p className="cap">{t('done_section')} · {done.length}</p><div className="card" style={{ paddingTop: 4, paddingBottom: 4 }}>{done.map(x => <Row key={x.id} tk={x} />)}</div></>}
     </>}
   </div>
 }

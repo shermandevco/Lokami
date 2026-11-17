@@ -64,6 +64,8 @@ export function Hub() {
       case 'budget': { const cur = pickCur(s.lang), m = byCategory(rows('expenses', s.cur, s), now.slice(0, 7), cur).reduce((a, [, v]) => a + v, 0); return money(m, cur) }
       case 'garage': { const cs = rows('cars', s.cur, s); if (!cs.length) return t('car_new'); const st = carStatus(cs[0], rows('car_logs', s.cur, s)); return cs[0].name + (st.serviceLeft != null ? ' · ' + (st.serviceLeft <= 0 ? '⚠️ ' + t('service_due') : t('next_service', num(st.serviceLeft))) : '') }
       case 'goals': { const gs = rows('goals', s.cur, s); return gs.length ? gs.slice(0, 2).map(g => g.icon + ' ' + g.title).join(' · ') : t('goal_new') }
+      case 'health': { const x = s.db.health_logs[me.id + ':' + now]; return x ? [x.sleep != null && '😴 ' + x.sleep, x.steps != null && '👟 ' + num(x.steps), x.weight != null && '⚖️ ' + x.weight].filter(Boolean).join('  ') || t('health_hint').split('.')[0] : t('health_hint').split('.')[0] }
+      case 'quit': { const q = rows('items', s.cur, s).filter(i => i.kind === 'quit'); return q.length ? q.slice(0, 2).map(i => i.title + ' · ' + Math.floor((Date.now() - new Date((i.data as { since: string }).since).getTime()) / 864e5) + ' ' + t('days_short')).join('\n') : t('quit_new') }
       case 'diary': return pg?.body.trim() ? pg.body.trim().slice(0, 60) : t('diary_write')
       case 'people': return tn('people_info', sp.members.length)
       default: return extraSub(id)
@@ -74,15 +76,16 @@ export function Hub() {
     const style = { '--c': mod.color } as React.CSSProperties, openIt = () => go(id as Route)
     const wrap = (body: React.ReactNode, cls = '') => <div key={id} data-id={id} role="button" tabIndex={0} className={'tile tap ' + size + ' ' + cls} style={style} onClick={openIt} onKeyDown={e => e.key === 'Enter' && openIt()}>{body}</div>
     const evToday = Object.values(s.db.events).filter(e => e.space_id === s.cur && !e.deleted_at && e.day === now).sort((a, b) => (a.time || '99').localeCompare(b.time || '99'))
+    const doneToday = tasks.filter(x => x.done && x.edited_at.slice(0, 10) === now)
     if (id === 'tasks') return wrap(<><span className="k">{t('tasks')}</span><b>{open.length ? tn('tasks_info_left', open.length) : t('tasks_all_done') + ' 🎉'}</b>
       <div className="tl" onClick={stop}>{evToday.slice(0, big ? 2 : 1).map(e => <div key={e.id} className="ev" onClick={() => go('planner')}><time>{e.time || '•'}</time><span className="ell">{e.title}</span></div>)}{open.slice(0, size === 'l' ? 7 : big ? 4 : 2).map(x => { const w = x.assignee ? sp.members.find(m => m.id === x.assignee) : null
-        return <div key={x.id} className="t" onClick={e => { pop(e); editTask(x.id, { done: true }); toast('✓ ' + x.title) }}><span className="mini-check">✓</span><span className="ell">{x.title}</span>{w && <span className="who">{w.a}</span>}</div> })}</div>
+        return <div key={x.id} className="t" onClick={e => { pop(e); editTask(x.id, { done: true }); toast('✓ ' + x.title) }}><span className="mini-check">✓</span><span className="ell">{x.title}</span>{w && <span className="who">{w.a}</span>}</div> })}{doneToday.slice(0, big ? 3 : 1).map(x => <div key={x.id} className="t done" onClick={e => { pop(e); editTask(x.id, { done: false }) }}><span className="mini-check">✓</span><span className="ell">{x.title}</span></div>)}</div>
       {!open.length && !evToday.length && <span className="em">✅</span>}</>)
     if (id === 'mood') { const mid = me.id + ':' + now, md = s.db.moods[mid], cur = md && !md.deleted_at ? md.score : 0
       return wrap(<><span className="k">{t('mood')}</span><b>{cur ? t(('mood_' + cur) as 'mood_1') : t('mood_q')}</b>
         <div className="qrow" onClick={stop}>{[1, 2, 3, 4, 5].map(n => <button key={n} className={cur === n ? 'on' : ''} aria-label={t(('mood_' + n) as 'mood_1')} onClick={e => { pop(e); upsert('moods', mid, { day: now, score: n, tags: md?.tags || [], note: md?.note || null, deleted_at: null }, home(s)) }}>{MOOD_FACE[n]}</button>)}</div></>) }
-    if (id === 'health') { const hid = me.id + ':' + now, h = s.db.health_logs[hid], w = (h?.water as number) || 0
-      return wrap(<><span className="k">💧 {t('water').split(',')[0]}</span><div className="v num">{w}<small style={{ fontSize: 18 }}>/8</small></div>
+    if (id === 'water') { const hid = me.id + ':' + now, h = s.db.health_logs[hid], w = (h?.water as number) || 0
+      return wrap(<><span className="k">{t('water_t')}</span><div className="v num">{w}<small style={{ fontSize: 18 }}>/8</small></div>
         <div className="drops">{Array.from({ length: 8 }, (_, i) => <i key={i} className={i < w ? 'on' : ''} />)}</div>
         <button className="go" aria-label="+1" onClick={e => { stop(e); pop(e); upsert('health_logs', hid, { day: now, water: w + 1, deleted_at: null }, home(s)); if (w + 1 === 8) toast('💧 🎉') }}>+</button></>) }
     if (id === 'habits') { const hs = rows('habits', s.cur, s).filter(x => !x.archived).sort((a, b) => a.sort - b.sort), lg = rows('habit_logs', s.cur, s), done = (hid: string) => lg.some(l => l.habit_id === hid && l.day === now && l.done)

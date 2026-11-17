@@ -14,6 +14,7 @@ import { Planner } from './screens/Planner'
 import { Habits } from './screens/Habits'
 import { Mood } from './screens/Mood'
 import { Diary } from './screens/Diary'
+import { Water, Quit } from './screens/Wellbeing'
 import { All } from './screens/All'
 import { ListScreen } from './screens/Lists'
 import { Cards } from './screens/Cards'
@@ -40,7 +41,7 @@ export function App() {
   }, [top?.at])  // eslint-disable-line react-hooks/exhaustive-deps
   if (!s.ready) return null
   if (!s.profile) return <Auth />
-  const Screen = { all: All, cards: Cards, wheel: Wheel, challenge: Challenge, status: Status, intim: Intim, dlog: Dlog, poo: Poo, admin: Admin,
+  const Screen = { water: Water, quit: Quit, all: All, cards: Cards, wheel: Wheel, challenge: Challenge, status: Status, intim: Intim, dlog: Dlog, poo: Poo, admin: Admin,
     movies: () => <ListScreen route="movies" />, wishes: () => <ListScreen route="wishes" />, dreams: () => <ListScreen route="dreams" />, notes: () => <ListScreen route="notes" />, coupons: () => <ListScreen route="coupons" />, dates: () => <ListScreen route="dates" />,
     checkin: Checkin, insights: Insights, year: Year, budget: Budget, health: Health, garage: Garage, goals: Goals, hub: Hub, feed: Feed, shopping: Shopping, question: Question, today: Today, tasks: Tasks, planner: Planner, habits: Habits, mood: Mood, diary: Diary, people: People, profile: Profile }[s.route]
   return <>

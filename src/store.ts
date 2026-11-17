@@ -23,7 +23,7 @@ export interface CarLog extends Base { car_id: string; day: string; kind: 'fuel'
 export interface Goal extends Base { title: string; icon: string; target: number | null; unit: string | null; due: string | null; done: boolean }
 export interface GoalLog extends Base { goal_id: string; day: string; amount: number; note: string | null }
 export interface Checkin extends Base { week: string; close: number | null; heard: number | null; fun: number | null; load: number | null; thanks: string | null; wish: string | null }
-export type ItemKind = 'movie' | 'wish' | 'dream' | 'note' | 'coupon' | 'date' | 'fav' | 'challenge'
+export type ItemKind = 'movie' | 'wish' | 'dream' | 'note' | 'coupon' | 'date' | 'fav' | 'challenge' | 'quit'
 export interface Item extends Base { kind: ItemKind; title: string; note: string | null; done: boolean; rating: number | null; for_user: string | null; data: Record<string, unknown> }
 export interface Log extends Base { kind: 'intim' | 'dlog' | 'poo'; day: string; started_at: string | null; ended_at: string | null; data: Record<string, unknown> }
 export interface Status extends Base { status: string; started_at: string; note: string | null }
@@ -35,7 +35,7 @@ const emptyDb = (): Db => ({ tasks: {}, events: {}, habits: {}, habit_logs: {}, 
 export interface Layout { added?: string[]; hidden?: string[]; tiles?: string[]; sizes?: Record<string, 's' | 'w' | 'l'>; cards?: string[] }
 export interface Look { mode: 'auto' | 'light' | 'dark'; accent: string; bg: string }
 export interface Profile { id: string; email: string; n: string; a: string; home: string; cur: string; adult?: boolean }
-export type Route = 'all' | 'cards' | 'movies' | 'wishes' | 'dreams' | 'notes' | 'coupons' | 'dates' | 'wheel' | 'challenge' | 'status' | 'intim' | 'dlog' | 'poo' | 'admin' | 'checkin' | 'insights' | 'year' | 'budget' | 'health' | 'garage' | 'goals' | 'hub' | 'feed' | 'shopping' | 'question' | 'today' | 'tasks' | 'planner' | 'habits' | 'mood' | 'diary' | 'people' | 'profile'
+export type Route = 'water' | 'quit' | 'all' | 'cards' | 'movies' | 'wishes' | 'dreams' | 'notes' | 'coupons' | 'dates' | 'wheel' | 'challenge' | 'status' | 'intim' | 'dlog' | 'poo' | 'admin' | 'checkin' | 'insights' | 'year' | 'budget' | 'health' | 'garage' | 'goals' | 'hub' | 'feed' | 'shopping' | 'question' | 'today' | 'tasks' | 'planner' | 'habits' | 'mood' | 'diary' | 'people' | 'profile'
 
 export interface State {
   ready: boolean; profile: Profile | null; spaces: Space[]; cur: string

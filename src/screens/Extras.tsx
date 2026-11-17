@@ -97,6 +97,7 @@ export function Intim() {
   const ids = [...new Set([me.id, ...done.map(l => l.created_by!)])]
   const stats = ids.map(id => { const a = done.filter(l => l.created_by === id), d = a.map(len); return { m: who(id), c: a.length, mc: a.filter(l => l.day.startsWith(ym)).length, avg: d.length ? d.reduce((x, y) => x + y, 0) / d.length : 0, mx: Math.max(0, ...d) } }).sort((a, b) => b.c - a.c)
   const last = done[0], since = last ? diffDays(last.day, today()) : null
+  const names = [...new Set([...couples.flatMap(c => c.members).filter(m => m.id !== me.id).map(m => m.n), ...done.filter(l => l.created_by === me.id).map(l => (l.data.with as string) || '').filter(Boolean)])].slice(0, 6)
   const start = (e: React.MouseEvent<HTMLElement>) => { tap(); burst(e.currentTarget, ['🔞', '💥', '✨']); upsert('logs', crypto.randomUUID(), { kind: 'intim', day: today(), started_at: new Date().toISOString(), ended_at: null, data: {}, deleted_at: null }, where) }
   const stop = () => { if (!running) return; tap(); setSum({ ...running, ended_at: new Date().toISOString(), data: { rating: 4 } }) }
   return <div className="page">
@@ -114,29 +115,42 @@ export function Intim() {
     <div className="card col" style={{ gap: 4 }}><div className="row between"><h2>{t('history')}</h2><button className="btn ghost sm" onClick={() => setMan(true)}>{t('intim_add')}</button></div>
       {!done.length ? <p className="sm mut">{t('intim_empty')}</p> : done.slice(0, 30).map(l => <div key={l.id} className="item"><span className="av">{who(l.created_by)?.a || '·'}</span>
         <span className="grow"><b>{who(l.created_by)?.n}</b> · {dur(len(l))} <span style={{ color: 'var(--accent)' }}>{'♥'.repeat((l.data.rating as number) || 0)}</span>
-          <span className="sm mut" style={{ display: 'block' }}>{fmtDay(l.day)} · {new Date(l.started_at!).toTimeString().slice(0, 5)}{l.data.note ? ' · ' + l.data.note : ''}</span></span>
+          <span className="sm mut" style={{ display: 'block' }}>{fmtDay(l.day)} · {new Date(l.started_at!).toTimeString().slice(0, 5)}{l.data.with ? ' · 💞 ' + l.data.with : ''}{l.data.protect ? ' · ' + protectIcon(l.data.protect) + ' ' + t(('protect_' + l.data.protect) as Key) : ''}{l.data.note ? ' · ' + l.data.note : ''}</span></span>
         {l.created_by === me.id && <button className="x" aria-label={t('delete')} onClick={() => remove('logs', l.id)}>×</button>}</div>)}</div>
-    {sum && <Summary log={sum} onClose={() => setSum(null)} />}
-    {man && <Manual space={where} onClose={() => setMan(false)} />}
+    {sum && <Summary log={sum} names={names} onClose={() => setSum(null)} />}
+    {man && <Manual space={where} names={names} onClose={() => setMan(false)} />}
   </div>
 }
-function Summary({ log, onClose }: { log: Log; onClose: () => void }) {
-  const [r, setR] = useState(4), [note, setNote] = useState('')
-  const save = () => { upsert('logs', log.id, { ended_at: log.ended_at, data: { rating: r, note: note.trim() || undefined } }); confetti(); onClose() }
+const PROTECT = ['condom', 'pill', 'other', 'none'] as const
+type Det = { with: string; protect: string }
+/** Partner name (with quick picks) and contraception — shared by the summary and manual entry. */
+function Details({ v, set, names }: { v: Det; set: (d: Det) => void; names: string[] }) {
+  return <>
+    <div className="label">{t('intim_with')}<input className="inp" placeholder={t('dlog_ph')} value={v.with} maxLength={40} onChange={e => set({ ...v, with: e.target.value })} />
+      {names.length > 0 && <div className="chips">{names.map(n => <button type="button" key={n} className={'chip' + (v.with === n ? ' on' : '')} onClick={() => set({ ...v, with: v.with === n ? '' : n })}>{n}</button>)}</div>}</div>
+    <div className="label">{t('protect')}<div className="chips">{PROTECT.map(k => <button type="button" key={k} className={'chip' + (v.protect === k ? ' on' : '')} onClick={() => set({ ...v, protect: v.protect === k ? '' : k })}>{t(('protect_' + k) as Key)}</button>)}</div></div>
+  </>
+}
+const protectIcon = (p?: unknown) => p === 'none' ? '⚠️' : p ? '🛡️' : ''
+function Summary({ log, names, onClose }: { log: Log; names: string[]; onClose: () => void }) {
+  const [r, setR] = useState(4), [note, setNote] = useState(''), [det, setDet] = useState<Det>({ with: names.length === 1 ? names[0] : '', protect: '' })
+  const save = () => { upsert('logs', log.id, { ended_at: log.ended_at, data: { rating: r, note: note.trim() || undefined, with: det.with.trim() || undefined, protect: det.protect || undefined } }); confetti(); onClose() }
   return <Sheet onClose={save}><h2>{t('intim_summary')} 🔞</h2>
     <div className="lvsum"><small>{t('intim_duration')}</small><b className="num">{hms(new Date(log.ended_at!).getTime() - new Date(log.started_at!).getTime())}</b></div>
     <div className="label">{t('intim_rating')}<Hearts v={r} on={setR} /></div>
+    <Details v={det} set={setDet} names={names} />
     <input className="inp" placeholder={t('note')} value={note} maxLength={60} onChange={e => setNote(e.target.value)} />
     <div className="row wrap"><button className="btn" onClick={save}>{t('save')}</button><button className="btn ghost" onClick={() => { remove('logs', log.id); onClose() }}>{t('intim_discard')}</button></div></Sheet>
 }
-function Manual({ space, onClose }: { space: string; onClose: () => void }) {
-  const [d, setD] = useState(today()), [tm, setTm] = useState('21:00'), [min, setMin] = useState(''), [r, setR] = useState(4), [note, setNote] = useState('')
+function Manual({ space, names, onClose }: { space: string; names: string[]; onClose: () => void }) {
+  const [d, setD] = useState(today()), [tm, setTm] = useState('21:00'), [min, setMin] = useState(''), [r, setR] = useState(4), [note, setNote] = useState(''), [det, setDet] = useState<Det>({ with: names.length === 1 ? names[0] : '', protect: '' })
   const m = parseInt(min, 10), ok = m > 0 && m < 1440
-  const save = () => { if (!ok) return; const st = new Date(d + 'T' + tm); upsert('logs', crypto.randomUUID(), { kind: 'intim', day: d, started_at: st.toISOString(), ended_at: new Date(st.getTime() + m * 60000).toISOString(), data: { rating: r, note: note.trim() || undefined }, deleted_at: null }, space); confetti(); onClose() }
+  const save = () => { if (!ok) return; const st = new Date(d + 'T' + tm); upsert('logs', crypto.randomUUID(), { kind: 'intim', day: d, started_at: st.toISOString(), ended_at: new Date(st.getTime() + m * 60000).toISOString(), data: { rating: r, note: note.trim() || undefined, with: det.with.trim() || undefined, protect: det.protect || undefined }, deleted_at: null }, space); confetti(); onClose() }
   return <Sheet onClose={onClose}><h2>{t('intim_add')} 🔞</h2>
     <div className="row"><input className="inp grow" type="date" value={d} max={today()} onChange={e => setD(e.target.value)} /><input className="inp grow" type="time" value={tm} onChange={e => setTm(e.target.value)} /></div>
     <input className="inp" inputMode="numeric" placeholder={t('intim_minutes')} value={min} onChange={e => setMin(e.target.value)} />
     <div className="label">{t('intim_rating')}<Hearts v={r} on={setR} /></div>
+    <Details v={det} set={setDet} names={names} />
     <input className="inp" placeholder={t('note')} value={note} maxLength={60} onChange={e => setNote(e.target.value)} />
     <div className="row"><button className="btn" disabled={!ok} onClick={save}>{t('save')}</button><button className="btn ghost" onClick={onClose}>{t('cancel')}</button></div></Sheet>
 }
