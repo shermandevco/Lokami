@@ -15,7 +15,7 @@ import { questionFor, questionText } from '../lib/questions'
 import { unread } from './Feed'
 import { sortTasks, dueLabel } from './Tasks'
 
-const TILES = [...MODULES.map(m => m.id), 'classic']
+const TILES = MODULES.map(m => m.id)
 
 
 const CARDS = ['today', 'together', 'invite'] as const
@@ -27,7 +27,7 @@ export function Hub() {
   const [pick, setPick] = useState(false), [dot, setDot] = useState(0)
   const car = useRef<HTMLDivElement>(null), grid = useRef<HTMLDivElement>(null)
   const shown = order(lay.cards, CARDS).filter(c => c === 'today' || (sp && sp.type !== 'solo'))
-  const sizes = lay.sizes || {}, hidden = lay.hidden || [], tiles = order(lay.tiles, TILES).filter(x => x === 'classic' ? !hidden.includes(x) : (() => { const m = MODULES.find(y => y.id === x)!; return fits(m, sp?.type || 'solo', !!s.profile?.adult) && onHome(m, lay) })())
+  const sizes = lay.sizes || {}, hidden = lay.hidden || [], tiles = order(lay.tiles, TILES).filter(x => (() => { const m = MODULES.find(y => y.id === x)!; return fits(m, sp?.type || 'solo', !!s.profile?.adult) && onHome(m, lay) })())
 
   useSortable(car, ids => setLayout({ cards: ids }), { axis: 'x' }, s.cur)
   const sz = (v: 's' | 'w' | 'l', icon: string) => ({ icon, label: t('size') + ' ' + v.toUpperCase(), fn: (id: string) => setLayout({ sizes: { ...sizes, [id]: v } }) })
@@ -73,7 +73,7 @@ export function Hub() {
       return <button key={id} data-id={id} className={'tile ' + size} onClick={() => go(r as 'planner')}><b>{t(r as 'planner')}</b><small>{sub}</small><span className="em">{em}</span></button> }
     const mod = MODULES.find(m => m.id === id)
     if (mod) return <button key={id} data-id={id} className={'tile ' + size} onClick={() => go(id as Route)}><b>{t(mod.label)}</b><small>{extraSub(id)}</small><span className="em">{mod.em}</span></button>
-    return <a key={id} data-id={id} className={'tile ' + size} href="classic/" style={{ textDecoration: 'none', color: 'inherit' }}><b>{t('open_classic')}</b><small>{t('classic')}</small><span className="em">🗂️</span></a>
+    return null
   }
   return <div className="page">
     <div className="head">
