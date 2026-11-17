@@ -6,9 +6,9 @@ export interface Mod { id: string; em: string; color: string; label: Key; group:
 export const MODULES: Mod[] = [
   { id: 'question', color: 'var(--lav)', em: '💬', label: 'question', group: 'grp_us', types: 'shared', home: true },
   { id: 'checkin', color: 'var(--peach)', em: '🫶', label: 'checkin', group: 'grp_us', types: 'shared', home: true },
-  { id: 'tasks', color: 'var(--surface)', em: '✅', label: 'tasks', group: 'grp_us', types: 'all', home: true },
+  { id: 'tasks', color: '#fffdf8', em: '✅', label: 'tasks', group: 'grp_us', types: 'all', home: true },
   { id: 'shopping', color: 'var(--lime)', em: '🛒', label: 'shopping', group: 'grp_us', types: 'shared', home: true },
-  { id: 'planner', color: 'var(--sky)', em: '🗓️', label: 'planner', group: 'grp_us', types: 'all', home: true },
+  { id: 'planner', color: 'var(--sky)', em: '🗓️', label: 'planner', group: 'grp_us', types: 'all' },
   { id: 'cards', color: 'var(--pink)', em: '🃏', label: 'cards', group: 'grp_us', types: 'all' },
   { id: 'status', color: 'var(--mint)', em: '🟢', label: 'status', group: 'grp_us', types: 'shared' },
   { id: 'notes', color: 'var(--sun)', em: '💌', label: 'notes', group: 'grp_us', types: 'shared' },

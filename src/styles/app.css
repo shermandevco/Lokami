@@ -116,6 +116,11 @@ button.tile:active,.tile.tap:active{transform:translate(3px,3px);box-shadow:1px 
 .tile .em{position:absolute;right:10px;bottom:6px;font-size:48px;line-height:1;transform:rotate(10deg);filter:drop-shadow(2px 2px 0 rgba(0,0,0,.15));pointer-events:none}
 .tile .em i{position:absolute;top:-2px;right:-2px;width:14px;height:14px;border-radius:50%;background:var(--coral);border:2px solid var(--bdc)}
 .tile .pill{background:#fff;color:#1d1a16;border-color:#1d1a16}
+/* inside coloured tiles everything stays light-paper + ink, also in dark mode */
+.tile{--surface:#fff;--ink:#1d1a16;--bg:#fff6ec}
+.tile .mini-check,.tile .qrow button,.tile .hchips button,.tile .go,.tile .drops i,.tile .em i{border-color:#1d1a16}
+.tile .hchips button.on{background:#1d1a16;color:#fff}
+.tl .ev{display:flex;align-items:center;gap:10px;padding:6px 0;font-weight:700;font-size:14px}.tl .ev time{min-width:44px;padding:2px 6px;border-radius:8px;background:#1d1a16;color:#fff;font-size:12px;text-align:center}
 .tile .go{position:absolute;right:10px;top:10px;width:34px;height:34px;border-radius:50%;background:var(--surface);border:2px solid var(--bdc);display:grid;place-items:center;font-weight:800;font-size:18px;color:var(--ink)}
 .tile.plain{--c:var(--surface);color:var(--ink)}
 /* inline quick actions inside tiles */
