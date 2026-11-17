@@ -63,27 +63,77 @@ export function Status() {
 /* ---------- timed logs: intimacy (18+), dating log, poo ---------- */
 function useLogs(kind: Log['kind']) { const s = useStore(), ids = new Set(s.spaces.map(x => x.id)); return Object.values(s.db.logs).filter(l => l.kind === kind && !l.deleted_at && ids.has(l.space_id) && (kind !== 'intim' || l.created_by === s.profile!.id || s.spaces.find(x => x.id === l.space_id)?.type === 'couple')).sort((a, b) => b.day.localeCompare(a.day) || (b.started_at || '').localeCompare(a.started_at || '')) }
 
+const pad = (n: number) => String(n).padStart(2, '0')
+const hms = (ms: number) => { const s = Math.max(0, Math.floor(ms / 1000)), h = Math.floor(s / 3600), m = Math.floor((s % 3600) / 60); return (h ? h + ':' + pad(m) : m) + ':' + pad(s % 60) }
+const MEDAL = ['🥇', '🥈', '🥉']
+const Hearts = ({ v, on }: { v: number; on: (n: number) => void }) => <div className="hearts">{[1, 2, 3, 4, 5].map(n => <button key={n} type="button" aria-label={n + '/5'} onClick={() => on(n)}>{n <= v ? '❤️' : '🤍'}</button>)}</div>
+function burst(el: HTMLElement | null, em: string[]) {
+  if (!el || matchMedia('(prefers-reduced-motion: reduce)').matches) return
+  const r = el.getBoundingClientRect()
+  for (let i = 0; i < 10; i++) { const s = document.createElement('span'); s.className = 'burst'; s.textContent = em[i % em.length]
+    s.style.left = r.left + r.width / 2 + 'px'; s.style.top = r.top + r.height / 2 + 'px'; const a = (Math.PI * 2 * i) / 10, d = 70 + Math.random() * 40
+    s.style.setProperty('--dx', Math.cos(a) * d + 'px'); s.style.setProperty('--dy', Math.sin(a) * d + 'px'); document.body.appendChild(s); setTimeout(() => s.remove(), 750) }
+}
+
+/** Intimacy tracker (18+): the classic look — gradient hero with a live timer, medals, hearts — plus the choice of where entries are kept. */
 export function Intim() {
   const s = useStore(), me = s.profile!, now = useNow(), logs = useLogs('intim')
   const couples = s.spaces.filter(x => x.type === 'couple'), [where, setWhere] = useState(() => { try { return localStorage.getItem('lokami_intim_space') || home(s) } catch { return home(s) } })
-  const running = logs.find(l => l.created_by === me.id && l.started_at && !l.ended_at), [edit, setEdit] = useState<Log | 'new' | null>(null)
+  const running = logs.find(l => l.started_at && !l.ended_at), mine = running?.created_by === me.id
+  const [sum, setSum] = useState<Log | null>(null), [man, setMan] = useState(false)
   if (!me.adult) return <div className="page"><div className="empty"><b>🔞</b>{t('adult_hint')}</div></div>
-  const last = logs.find(l => l.ended_at || !l.started_at), since = last ? diffDays(last.day, today()) : null, month = logs.filter(l => l.day.startsWith(today().slice(0, 7))).length
-  const timed = logs.filter(l => l.started_at && l.ended_at), avg = timed.length ? timed.reduce((a, l) => a + (new Date(l.ended_at!).getTime() - new Date(l.started_at!).getTime()), 0) / timed.length : 0
-  const start = () => { tap(); upsert('logs', crypto.randomUUID(), { kind: 'intim', day: today(), started_at: new Date().toISOString(), ended_at: null, data: {}, deleted_at: null }, where) }
-  const who = (l: Log) => s.spaces.flatMap(x => x.members).find(m => m.id === l.created_by)
+  const people = s.spaces.flatMap(x => x.members), who = (id: string | null) => people.find(m => m.id === id), ym = today().slice(0, 7)
+  const done = logs.filter(l => l.started_at && l.ended_at), len = (l: Log) => new Date(l.ended_at!).getTime() - new Date(l.started_at!).getTime()
+  const ids = [...new Set([me.id, ...done.map(l => l.created_by!)])]
+  const stats = ids.map(id => { const a = done.filter(l => l.created_by === id), d = a.map(len); return { m: who(id), c: a.length, mc: a.filter(l => l.day.startsWith(ym)).length, avg: d.length ? d.reduce((x, y) => x + y, 0) / d.length : 0, mx: Math.max(0, ...d) } }).sort((a, b) => b.c - a.c)
+  const last = done[0], since = last ? diffDays(last.day, today()) : null
+  const start = (e: React.MouseEvent<HTMLElement>) => { tap(); burst(e.currentTarget, ['🔞', '💥', '✨']); upsert('logs', crypto.randomUUID(), { kind: 'intim', day: today(), started_at: new Date().toISOString(), ended_at: null, data: {}, deleted_at: null }, where) }
+  const stop = () => { if (!running) return; tap(); setSum({ ...running, ended_at: new Date().toISOString(), data: { rating: 4 } }) }
   return <div className="page">
-    <div className="head"><div><h1>{t('intim')}</h1><p className="sm mut">🔒 {spaceName(s.spaces.find(x => x.id === where))}</p></div><button className="btn ghost" onClick={() => setEdit('new')}>{t('intim_add')}</button></div>
-    <div className="cc party" style={{ height: 'auto', minHeight: 160, alignItems: 'center', textAlign: 'center' }}>
-      {running ? <><span className="up">{t('intim_running')}</span><div className="big num">{dur(now - new Date(running.started_at!).getTime()).replace(' min', '′')}</div>
-        <button className="btn ghost" onClick={() => { tap(); setEdit({ ...running, ended_at: new Date().toISOString() }) }}>{t('intim_stop')}</button></>
-        : <><span className="up">{t('intim')}</span><button className="btn ghost" style={{ alignSelf: 'center', marginTop: 12 }} onClick={start}>🔥 {t('intim_start')}</button></>}</div>
-    <div className="grid">{[[since ?? '—', t('intim_days_since')], [month, t('intim_month')], [avg ? dur(avg) : '—', t('intim_avg')]].map(([n, l]) => <div key={l as string} className="card stat"><b className="num">{n}</b><span className="sm mut">{l}</span></div>)}</div>
-    {couples.length > 0 && <div className="card col"><b>{t('intim_share')}</b><p className="sm mut">{t('intim_share_hint')}</p><div className="chips">{[home(s), ...couples.map(c => c.id)].map(id => <button key={id} className={'chip' + (where === id ? ' on' : '')} onClick={() => { setWhere(id); try { localStorage.setItem('lokami_intim_space', id) } catch { /* ignore */ } }}>{spaceName(s.spaces.find(x => x.id === id))}</button>)}</div></div>}
-    {logs.length > 0 && <div className="card" style={{ padding: '4px 16px' }}>{logs.slice(0, 40).map(l => <button key={l.id} className="item" style={{ width: '100%', textAlign: 'left' }} onClick={() => l.created_by === me.id && setEdit(l)}>
-      <span className="av">{l.created_by === me.id ? '🔥' : who(l)?.a}</span><span className="grow"><b style={{ fontWeight: 600 }}>{fmtDay(l.day)}</b><span className="sm mut" style={{ display: 'block' }}>{[l.started_at && l.ended_at ? dur(new Date(l.ended_at).getTime() - new Date(l.started_at).getTime()) : '', l.data.with as string, l.data.rating ? '★'.repeat(l.data.rating as number) : ''].filter(Boolean).join(' · ')}</span></span></button>)}</div>}
-    {edit && <LogEdit kind="intim" log={edit === 'new' ? undefined : edit} space={where} onClose={() => setEdit(null)} />}
+    <div className="head"><div><h1>{t('intim')} 🔞</h1><p className="sm mut">🔒 {spaceName(s.spaces.find(x => x.id === where))}</p></div></div>
+    <div className={'livehero' + (running ? ' on' : '')}>
+      <span className="up">{running ? (mine ? t('intim_running') : t('intim_busy', who(running.created_by)?.n || '—')) : t('intim')}</span>
+      <div className="big num">{running ? hms(now - new Date(running.started_at!).getTime()) : '0:00'}</div>
+      {running ? (mine ? <button className="livebtn" onClick={stop}>⏹ {t('intim_stop')}</button> : null) : <><button className="livebtn" onClick={start}>▶ {t('intim_start')}</button><p className="sm" style={{ opacity: .85 }}>{since !== null ? `${since} ${t('intim_days_since')}` : t('intim_idle')}</p></>}
+    </div>
+    <div className="card col"><h2>{t('intim_stats')}</h2>{stats.map((x, i) => <div key={x.m?.id || i} className="lvst"><span className="rank">{x.c ? MEDAL[i] || '·' : '·'}</span><span className="av">{x.m?.a || '🙂'}</span>
+      <div className="grow"><b>{x.m?.n || '—'}</b><div className="sm mut">{x.c} · {x.mc} {t('intim_month')}</div></div>
+      <div className="sm" style={{ textAlign: 'right' }}>{x.c ? <><div>{t('intim_avg')} <b>{dur(x.avg)}</b></div><div className="mut">max {dur(x.mx)}</div></> : '—'}</div></div>)}</div>
+    {couples.length > 0 && <div className="card col"><b>{t('intim_share')}</b><p className="sm mut">{t('intim_share_hint')}</p><div className="chips">{[home(s), ...couples.map(c => c.id)].map(id => <button key={id} className={'chip' + (where === id ? ' on' : '')} onClick={() => { setWhere(id); try { localStorage.setItem('lokami_intim_space', id) } catch { /* ignore */ } }}>{id === home(s) ? '🔒 ' : '💞 '}{spaceName(s.spaces.find(x => x.id === id))}</button>)}</div></div>}
+    <div className="card col" style={{ gap: 4 }}><div className="row between"><h2>{t('history')}</h2><button className="btn ghost sm" onClick={() => setMan(true)}>{t('intim_add')}</button></div>
+      {!done.length ? <p className="sm mut">{t('intim_empty')}</p> : done.slice(0, 30).map(l => <div key={l.id} className="item"><span className="av">{who(l.created_by)?.a || '·'}</span>
+        <span className="grow"><b>{who(l.created_by)?.n}</b> · {dur(len(l))} <span style={{ color: 'var(--accent)' }}>{'♥'.repeat((l.data.rating as number) || 0)}</span>
+          <span className="sm mut" style={{ display: 'block' }}>{fmtDay(l.day)} · {new Date(l.started_at!).toTimeString().slice(0, 5)}{l.data.note ? ' · ' + l.data.note : ''}</span></span>
+        {l.created_by === me.id && <button className="x" aria-label={t('delete')} onClick={() => remove('logs', l.id)}>×</button>}</div>)}</div>
+    {sum && <Summary log={sum} onClose={() => setSum(null)} />}
+    {man && <Manual space={where} onClose={() => setMan(false)} />}
   </div>
+}
+function Summary({ log, onClose }: { log: Log; onClose: () => void }) {
+  const [r, setR] = useState(4), [note, setNote] = useState('')
+  const save = () => { upsert('logs', log.id, { ended_at: log.ended_at, data: { rating: r, note: note.trim() || undefined } }); confetti(); onClose() }
+  return <Sheet onClose={save}><h2>{t('intim_summary')} 🔞</h2>
+    <div className="lvsum"><small>{t('intim_duration')}</small><b className="num">{hms(new Date(log.ended_at!).getTime() - new Date(log.started_at!).getTime())}</b></div>
+    <div className="label">{t('intim_rating')}<Hearts v={r} on={setR} /></div>
+    <input className="inp" placeholder={t('note')} value={note} maxLength={60} onChange={e => setNote(e.target.value)} />
+    <div className="row wrap"><button className="btn" onClick={save}>{t('save')}</button><button className="btn ghost" onClick={() => { remove('logs', log.id); onClose() }}>{t('intim_discard')}</button></div></Sheet>
+}
+function Manual({ space, onClose }: { space: string; onClose: () => void }) {
+  const [d, setD] = useState(today()), [tm, setTm] = useState('21:00'), [min, setMin] = useState(''), [r, setR] = useState(4), [note, setNote] = useState('')
+  const m = parseInt(min, 10), ok = m > 0 && m < 1440
+  const save = () => { if (!ok) return; const st = new Date(d + 'T' + tm); upsert('logs', crypto.randomUUID(), { kind: 'intim', day: d, started_at: st.toISOString(), ended_at: new Date(st.getTime() + m * 60000).toISOString(), data: { rating: r, note: note.trim() || undefined }, deleted_at: null }, space); confetti(); onClose() }
+  return <Sheet onClose={onClose}><h2>{t('intim_add')} 🔞</h2>
+    <div className="row"><input className="inp grow" type="date" value={d} max={today()} onChange={e => setD(e.target.value)} /><input className="inp grow" type="time" value={tm} onChange={e => setTm(e.target.value)} /></div>
+    <input className="inp" inputMode="numeric" placeholder={t('intim_minutes')} value={min} onChange={e => setMin(e.target.value)} />
+    <div className="label">{t('intim_rating')}<Hearts v={r} on={setR} /></div>
+    <input className="inp" placeholder={t('note')} value={note} maxLength={60} onChange={e => setNote(e.target.value)} />
+    <div className="row"><button className="btn" disabled={!ok} onClick={save}>{t('save')}</button><button className="btn ghost" onClick={onClose}>{t('cancel')}</button></div></Sheet>
+}
+function confetti() {
+  if (matchMedia('(prefers-reduced-motion: reduce)').matches) return
+  const box = document.createElement('div'); box.className = 'confetti'; box.style.position = 'fixed'; box.style.zIndex = '80'
+  for (let i = 0; i < 24; i++) { const c = document.createElement('i'); c.style.left = (i * 4.2) + '%'; c.style.animationDelay = (i % 6) * 70 + 'ms'; box.appendChild(c) }
+  document.body.appendChild(box); setTimeout(() => box.remove(), 2200)
 }
 
 function LogEdit({ kind, log, space, onClose }: { kind: Log['kind']; log?: Log; space: string; onClose: () => void }) {
@@ -112,19 +162,38 @@ export function Dlog() {
   </div>
 }
 
-const POO = ['🪨', '🥜', '🌽', '🍌', '☁️', '💧']
+const POO = ['😌', '😐', '😣', '🔥', '💀']
+/** Poo tracker: the classic brown hero with a big button, streak, monthly ranking and a calendar of 💩. */
 export function Poo() {
   const s = useStore(), sp = curSpace(s)!, me = s.profile!.id, logs = useLogs('poo').filter(l => l.space_id === sp.id), d = today()
-  const mine = logs.filter(l => l.created_by === me), week = addDays(d, -6)
-  const add = (type: number) => { tap(); upsert('logs', crypto.randomUUID(), { kind: 'poo', day: d, started_at: new Date().toISOString(), ended_at: null, data: { type }, deleted_at: null }, sp.id) }
-  const per = sp.members.map(m => ({ m, n: logs.filter(l => l.created_by === m.id && l.day >= week).length })).sort((a, b) => b.n - a.n)
+  const [month, setMonth] = useState(d.slice(0, 7)), [ask, setAsk] = useState(false)
+  const mine = logs.filter(l => l.created_by === me), days = new Set(mine.map(l => l.day))
+  let streak = 0; for (let x = d; days.has(x); x = addDays(x, -1)) streak++
+  const rank = sp.members.map(m => ({ m, c: logs.filter(l => l.created_by === m.id && l.day.startsWith(month)).length })).sort((a, b) => b.c - a.c)
+  const [y, mo] = month.split('-').map(Number), first = (new Date(y, mo - 1, 1).getDay() + 6) % 7, n = new Date(y, mo, 0).getDate()
+  const cnt = (ds: string) => logs.filter(l => l.day === ds).length, shift = (k: number) => { const z = new Date(y, mo - 1 + k, 1); setMonth(z.getFullYear() + '-' + pad(z.getMonth() + 1)) }
+  const wd = Array.from({ length: 7 }, (_, i) => new Intl.DateTimeFormat(document.documentElement.lang, { weekday: 'narrow' }).format(new Date(2026, 10, 16 + i)))
+  const who = (id: string | null) => sp.members.find(m => m.id === id)
   return <div className="page">
     <div className="head"><h1>{t('poo')}</h1></div>
-    <div className="card col"><b>{t('poo_log')}</b><div className="moods" style={{ gridTemplateColumns: 'repeat(6,1fr)' }}>{POO.map((em, i) => <button key={i} className="face" aria-label={t('poo_type') + ' ' + (i + 1)} onClick={() => add(i + 1)}><span>{em}</span></button>)}</div></div>
-    <div className="grid"><div className="card stat"><b className="num">{mine.filter(l => l.day === d).length}</b><span className="sm mut">{t('poo_today')}</span></div><div className="card stat"><b className="num">{mine.filter(l => l.day >= week).length}</b><span className="sm mut">{t('poo_week')}</span></div></div>
-    {sp.members.length > 1 && <div className="card" style={{ padding: '4px 16px' }}>{per.map((x, i) => <div key={x.m.id} className="item"><span className="av">{i === 0 && x.n ? '👑' : x.m.a}</span><b className="grow">{x.m.n}</b><span className="num">{x.n} · {t('poo_week')}</span></div>)}</div>}
-    {mine.length > 0 && <div className="card" style={{ padding: '4px 16px' }}>{mine.slice(0, 15).map(l => <div key={l.id} className="item"><span className="av">{POO[((l.data.type as number) || 1) - 1]}</span><span className="grow sm">{fmtDay(l.day)} · {l.started_at ? new Date(l.started_at).toLocaleTimeString(document.documentElement.lang, { hour: '2-digit', minute: '2-digit' }) : ''}</span><button className="x" aria-label={t('delete')} onClick={() => remove('logs', l.id)}>×</button></div>)}</div>}
+    <div className="poohero"><div><span className="up">{t('poo_today')}</span><div className="big num">{mine.filter(l => l.day === d).length}</div><div style={{ fontWeight: 700 }}>🔥 {streak} {t('poo_streak')}</div></div>
+      <button className="poobtn" aria-label={t('poo_log')} onClick={e => { tap(); burst(e.currentTarget, ['💩', '✨', '🧻']); setAsk(true) }}>💩</button></div>
+    {sp.members.length > 1 && <div className="card col"><h2>{t('poo_rank')}</h2>{rank.map((x, i) => <div key={x.m.id} className="lvst"><span className="rank">{x.c ? MEDAL[i] || '·' : '·'}</span><span className="av">{x.m.a}</span><b className="grow">{x.m.n}</b><b className="num">{x.c} 💩</b></div>)}</div>}
+    <div className="card col"><div className="row between"><button className="icon" aria-label={t('prev_day')} onClick={() => shift(-1)}>‹</button><b style={{ textTransform: 'capitalize' }}>{new Intl.DateTimeFormat(document.documentElement.lang, { month: 'long', year: 'numeric' }).format(new Date(y, mo - 1, 1))}</b><button className="icon" aria-label={t('next_day')} onClick={() => shift(1)}>›</button></div>
+      <div className="pcal">{wd.map((w, i) => <small key={i}>{w}</small>)}{Array.from({ length: first }, (_, i) => <span key={'e' + i} />)}{Array.from({ length: n }, (_, i) => { const ds = month + '-' + pad(i + 1), c = cnt(ds)
+        return <span key={ds} className={'pd' + (ds === d ? ' now' : '')}>{c ? (c > 2 ? '💩' + c : '💩'.repeat(c)) : i + 1}</span> })}</div></div>
+    <div className="card col" style={{ gap: 4 }}><h2>{t('history')}</h2>{!logs.length ? <p className="sm mut">{t('poo_empty')}</p> : logs.slice(0, 25).map(l => <div key={l.id} className="item"><span className="av">{who(l.created_by)?.a || '·'}</span>
+      <span className="grow"><b>{who(l.created_by)?.n}</b> {l.data.r != null ? POO[l.data.r as number] : ''}<span className="sm mut" style={{ display: 'block' }}>{fmtDay(l.day)} · {l.started_at ? new Date(l.started_at).toTimeString().slice(0, 5) : ''}</span></span>
+      {l.created_by === me && <button className="x" aria-label={t('delete')} onClick={() => remove('logs', l.id)}>×</button>}</div>)}</div>
+    {ask && <PooAsk space={sp.id} onClose={() => setAsk(false)} />}
   </div>
+}
+function PooAsk({ space, onClose }: { space: string; onClose: () => void }) {
+  const n = new Date(), [d, setD] = useState(today()), [tm, setTm] = useState(pad(n.getHours()) + ':' + pad(n.getMinutes()))
+  const save = (r: number) => { tap(); const at = new Date(d + 'T' + tm); upsert('logs', crypto.randomUUID(), { kind: 'poo', day: d, started_at: (isNaN(+at) ? new Date() : at).toISOString(), ended_at: null, data: { r }, deleted_at: null }, space); onClose() }
+  return <Sheet onClose={onClose}><h2>{t('poo_q')}</h2>
+    <div className="row" style={{ justifyContent: 'space-between' }}>{POO.map((p, i) => <button key={i} className="pq" onClick={() => save(i)}>{p}</button>)}</div>
+    <div className="label">{t('poo_when')}<div className="row"><input className="inp grow" type="date" value={d} max={today()} onChange={e => setD(e.target.value)} /><input className="inp grow" type="time" value={tm} onChange={e => setTm(e.target.value)} /></div></div></Sheet>
 }
 
 /* ---------- admin ---------- */

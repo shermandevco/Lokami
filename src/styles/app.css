@@ -187,3 +187,22 @@ html.native .page{padding-top:calc(var(--s5) + env(safe-area-inset-top,0px))}
 .wheel{width:100%;height:100%;border-radius:50%;transition:transform 3s cubic-bezier(.15,.8,.15,1);position:relative;box-shadow:0 10px 30px rgba(0,0,0,.15)}
 .wheel span{position:absolute;left:50%;top:50%;width:48%;height:16px;margin-top:-8px;padding-left:16%;transform-origin:0 50%;color:#fff;font-weight:800;font-size:12px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .pin{position:absolute;left:50%;top:-6px;transform:translateX(-50%);width:0;height:0;border:12px solid transparent;border-top:20px solid var(--ink);z-index:2}
+
+/* classic-look trackers */
+.livehero{border-radius:var(--r-card);padding:var(--s5) var(--s4);color:#fff;text-align:center;display:flex;flex-direction:column;align-items:center;gap:var(--s2);background:radial-gradient(120% 140% at 50% 0%,#ff7a59,#e6336e 50%,#5e1f6e)}
+.livehero .up{font-size:12px;font-weight:800;letter-spacing:.08em;text-transform:uppercase;opacity:.9}
+.livehero .big{font-size:68px;font-weight:800;letter-spacing:-.03em;line-height:1}
+.livehero.on{animation:livepulse 1.6s ease-in-out infinite}
+@keyframes livepulse{50%{transform:scale(1.015)}}
+.livebtn{min-height:var(--h);padding:0 24px;border-radius:var(--r-pill);background:#fff;color:#c2185b;font-weight:800;transition:transform var(--fast) var(--ease)}.livebtn:active{transform:scale(.94)}
+.lvst{display:flex;align-items:center;gap:10px}.lvst .rank{width:24px;text-align:center;font-size:18px}
+.lvsum{text-align:center;padding:18px;border-radius:20px;background:var(--soft)}.lvsum small{display:block;font-weight:800;color:var(--mut);text-transform:uppercase;font-size:11px}.lvsum b{font-size:44px;font-weight:800}
+.hearts{display:flex;gap:6px}.hearts button{font-size:26px;transition:transform var(--fast) var(--ease)}.hearts button:active{transform:scale(1.25)}
+.poohero{border-radius:var(--r-card);padding:var(--s5) var(--s4);color:#fff;display:flex;align-items:center;justify-content:space-between;background:radial-gradient(120% 140% at 0% 0%,#c99a6b,#8a5a33 55%,#3d2616)}
+.poohero .up{font-size:12px;font-weight:800;letter-spacing:.08em;text-transform:uppercase;opacity:.9}.poohero .big{font-size:56px;font-weight:800;line-height:1}
+.poobtn{width:96px;height:96px;border-radius:50%;background:rgba(255,255,255,.18);font-size:52px;display:grid;place-items:center;transition:transform var(--fast) var(--ease)}.poobtn:active{transform:scale(.88) rotate(-8deg)}
+.pq{font-size:36px;width:56px;height:56px;border-radius:var(--r-ctl);background:var(--surface2);transition:transform var(--fast) var(--ease)}.pq:active{transform:scale(.88)}
+.pcal{display:grid;grid-template-columns:repeat(7,1fr);gap:4px;text-align:center}.pcal small{font-size:11px;font-weight:800;color:var(--mut);text-transform:uppercase}
+.pd{aspect-ratio:1;display:grid;place-items:center;border-radius:10px;background:var(--surface2);font-size:13px;font-weight:600;color:var(--mut);overflow:hidden}.pd.now{box-shadow:inset 0 0 0 2px var(--ink);color:var(--ink)}
+.burst{position:fixed;z-index:90;pointer-events:none;font-size:22px;transform:translate(-50%,-50%);animation:burst .7s var(--ease) forwards}
+@keyframes burst{to{transform:translate(calc(-50% + var(--dx)),calc(-50% + var(--dy))) scale(.6);opacity:0}}
