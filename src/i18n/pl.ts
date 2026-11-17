@@ -278,5 +278,6 @@ export const pl: Record<Key, string> = {
   adm_private: 'Tylko liczby. Prywatne dane użytkowników są niedostępne.',
   by: 'od {0}',
   open: 'Otwórz',
+  search: 'Szukaj', recent: 'Ostatnie', pin_hint: 'Moduł nie musi być na głównej: zawsze jest tutaj, w menu ⊞.',
   classic: "Pozostałe moduły są jeszcze w wersji klasycznej", open_classic: "Otwórz Lokami w wersji klasycznej",
 }

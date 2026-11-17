@@ -41,10 +41,10 @@ export interface State {
   ready: boolean; profile: Profile | null; spaces: Space[]; cur: string
   db: Db; layouts: Record<string, Layout>
   outbox: Op[]; cursor: Partial<Record<Table, string>>; look: Look; lang: number
-  lastSeen: string; route: Route; online: boolean; syncing: boolean; toast: { text: string; action?: string; fn?: () => void } | null
+  lastSeen: string; recent: string[]; route: Route; online: boolean; syncing: boolean; toast: { text: string; action?: string; fn?: () => void } | null
 }
 const LOOK: Look = { mode: 'auto', accent: '#e6336e', bg: 'plain' }
-const initial = (): State => ({ ready: false, profile: null, spaces: [], cur: '', db: emptyDb(), layouts: {}, outbox: [], cursor: {}, lastSeen: '', look: LOOK, lang: detectLang(), route: 'hub', online: navigator.onLine, syncing: false, toast: null })
+const initial = (): State => ({ ready: false, profile: null, spaces: [], cur: '', db: emptyDb(), layouts: {}, outbox: [], cursor: {}, lastSeen: '', recent: [], look: LOOK, lang: detectLang(), route: 'hub', online: navigator.onLine, syncing: false, toast: null })
 
 let state = initial()
 export const markSeen = () => set({ lastSeen: new Date().toISOString() })
@@ -55,7 +55,7 @@ function set(p: Partial<State>, persist = true) { state = { ...state, ...p }; su
 ;(window as unknown as { __store: unknown }).__store = { get: getState, set }
 
 /* ---------- local persistence (works offline) ---------- */
-const PERSIST: (keyof State)[] = ['profile', 'spaces', 'cur', 'db', 'layouts', 'outbox', 'cursor', 'look', 'lang', 'lastSeen']
+const PERSIST: (keyof State)[] = ['profile', 'spaces', 'cur', 'db', 'layouts', 'outbox', 'cursor', 'look', 'lang', 'lastSeen', 'recent']
 const key = (uid: string) => 'lokami2:' + uid
 let saveT = 0
 function save() { if (!state.profile) return; clearTimeout(saveT); saveT = window.setTimeout(() => { const s = state; if (!s.profile) return; const o: Record<string, unknown> = {}; PERSIST.forEach(k => (o[k] = s[k])); idbSet(key(s.profile.id), o).catch(() => {}) }, 200) }
@@ -78,7 +78,9 @@ export const curSpace = (s: State = state) => s.spaces.find(x => x.id === s.cur)
 export const rows = <K extends Table>(table: K, space: string, s: State = state): Tables[K][] => Object.values(s.db[table]).filter(x => x.space_id === space && !x.deleted_at) as Tables[K][]
 export const spaceTasks = (s: State = state) => rows('tasks', s.cur, s)
 export const home = (s: State = state) => s.profile?.home || ''
-export const go = (route: Route) => { set({ route }, false); window.scrollTo(0, 0) }
+const CORE: Route[] = ['hub', 'today', 'planner', 'profile', 'all', 'feed', 'people']
+/** Navigate; modules opened from anywhere are remembered so “All modules” can offer them as recent. */
+export const go = (route: Route) => { if (CORE.includes(route)) set({ route }, false); else set({ route, recent: [route, ...(state.recent || []).filter(r => r !== route)].slice(0, 6) }); window.scrollTo(0, 0) }
 export function toast(text: string, action?: string, fn?: () => void) { set({ toast: { text, action, fn } }, false); window.setTimeout(() => { if (state.toast?.text === text) set({ toast: null }, false) }, action ? 4500 : 2400) }
 export const dismissToast = () => set({ toast: null }, false)
 export function switchSpace(id: string) { if (!state.spaces.some(s => s.id === id)) return; set({ cur: id, route: 'hub' }); window.scrollTo(0, 0); pushPrefs() }

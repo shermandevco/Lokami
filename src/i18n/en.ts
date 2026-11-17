@@ -278,6 +278,7 @@ export const en = {
   adm_private: 'Counts only. Users’ private data is not accessible.',
   by: 'by {0}',
   open: 'Open',
+  search: 'Search', recent: 'Recent', pin_hint: 'A module does not need to be on home: it is always here in the ⊞ menu.',
   classic: 'Other modules are still in the classic version', open_classic: 'Open classic Lokami',
 } as const
 export type Key = keyof typeof en
