@@ -32,7 +32,7 @@ export function Profile() {
     <div className="card col"><label className="row" style={{ cursor: 'pointer' }}><input type="checkbox" checked={!!me.adult} onChange={e => updateProfile({ adult: e.target.checked })} style={{ width: 22, height: 22, accentColor: 'var(--accent)' }} /><b className="grow">🔞 {t('adult_q')}</b></label><p className="sm mut">{t('adult_hint')}</p></div>
     {admin && <button className="btn ghost" onClick={() => go('admin')}>🛡️ {t('admin')}</button>}
     <div className="row wrap"><button className="btn ghost" onClick={() => signOut()}>{t('sign_out')}</button><button className="btn danger" onClick={() => setDel(true)}>{t('delete_account')}</button></div>
-    <p className="sm mut">Lokami 2.0 · <a href="../" style={{ color: 'inherit' }}>{t('open_classic')}</a></p>
+    <p className="sm mut">Lokami 2.0 · <a href="classic/" style={{ color: 'inherit' }}>{t('open_classic')}</a></p>
     {del && <Sheet onClose={() => setDel(false)}><h2>{t('delete_q')}</h2><p className="mut">{t('delete_hint')}</p>
       <div className="row wrap"><button className="btn" style={{ background: 'var(--bad)' }} onClick={async () => { if (!(await deleteAccount())) toast(t('err_net')) }}>{t('delete_yes')}</button><button className="btn ghost" onClick={() => setDel(false)}>{t('cancel')}</button></div></Sheet>}
   </div>

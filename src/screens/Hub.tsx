@@ -73,7 +73,7 @@ export function Hub() {
       return <button key={id} data-id={id} className={'tile ' + size} onClick={() => go(r as 'planner')}><b>{t(r as 'planner')}</b><small>{sub}</small><span className="em">{em}</span></button> }
     const mod = MODULES.find(m => m.id === id)
     if (mod) return <button key={id} data-id={id} className={'tile ' + size} onClick={() => go(id as Route)}><b>{t(mod.label)}</b><small>{extraSub(id)}</small><span className="em">{mod.em}</span></button>
-    return <a key={id} data-id={id} className={'tile ' + size} href="../" style={{ textDecoration: 'none', color: 'inherit' }}><b>{t('open_classic')}</b><small>{t('classic')}</small><span className="em">🗂️</span></a>
+    return <a key={id} data-id={id} className={'tile ' + size} href="classic/" style={{ textDecoration: 'none', color: 'inherit' }}><b>{t('open_classic')}</b><small>{t('classic')}</small><span className="em">🗂️</span></a>
   }
   return <div className="page">
     <div className="head">
