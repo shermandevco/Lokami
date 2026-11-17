@@ -1,4 +1,1 @@
-{"name":"lokami","private":true,"version":"2.0.0","type":"module",
- "scripts":{"dev":"vite","build":"vite build","typecheck":"tsc --noEmit","test":"vitest run"},
- "dependencies":{"@supabase/supabase-js":"^2.45.4","idb-keyval":"^6.2.1","react":"^18.3.1","react-dom":"^18.3.1"},
- "devDependencies":{"@types/react":"^18.3.3","@types/react-dom":"^18.3.0","@vitejs/plugin-react":"^4.3.1","typescript":"^5.5.4","vite":"^5.4.2","vitest":"^2.0.5"}}
+{"name":"lokami","private":true,"version":"2.0.0","type":"module","scripts":{"dev":"vite","build":"vite build","typecheck":"tsc --noEmit","test":"vitest run"},"dependencies":{"@capacitor/android":"^7.6.10","@capacitor/app":"^7.1.2","@capacitor/core":"^7.6.10","@capacitor/haptics":"^7.0.5","@capacitor/status-bar":"^7.0.6","@supabase/supabase-js":"^2.45.4","idb-keyval":"^6.2.1","react":"^18.3.1","react-dom":"^18.3.1"},"devDependencies":{"@capacitor/cli":"^7.6.10","@types/react":"^18.3.3","@types/react-dom":"^18.3.0","@vitejs/plugin-react":"^4.3.1","typescript":"^5.5.4","vite":"^5.4.2","vitest":"^2.0.5"}}

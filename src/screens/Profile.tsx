@@ -1,4 +1,5 @@
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
+import { pushSupported, enablePush, pushEnabled } from '../lib/push'
 import { useStore, setLook, changeLang, updateProfile, signOut, deleteAccount, toast } from '../store'
 import { t, LANGS } from '../lib/i18n'
 import { Sheet } from '../ui/Sheet'
@@ -8,7 +9,8 @@ const BGS = ['plain', 'accent', 'aurora', 'sunset', 'ocean', 'forest']
 const AVATARS = ['🦊', '🐻', '🐼', '🐨', '🐯', '🦁', '🐸', '🐵', '🦄', '🐙', '🌸', '🌻', '🍀', '⭐', '🌙', '🔥']
 
 export function Profile() {
-  const s = useStore(), me = s.profile!, [name, setName] = useState(me.n), [del, setDel] = useState(false)
+  const s = useStore(), me = s.profile!, [name, setName] = useState(me.n), [del, setDel] = useState(false), [push, setPush] = useState(false)
+  useEffect(() => { pushEnabled().then(setPush) }, [])
   return <div className="page">
     <div className="head"><h1>{t('profile')}</h1></div>
     <div className="card col">
@@ -22,7 +24,8 @@ export function Profile() {
       <div className="label">{t('background')}<div className="chips">{BGS.map(b => <button key={b} aria-label={b} data-bg={b} className={'bgsw' + (s.look.bg === b ? ' on' : '')} style={bgStyle(b)} onClick={() => setLook({ bg: b })} />)}</div></div>
       <div className="label">{t('language')}<div className="seg">{LANGS.map((l, i) => <button key={l.code} className={s.lang === i ? 'on' : ''} onClick={() => changeLang(i)}>{l.label}</button>)}</div></div>
     </div>
-    {'Notification' in window && Notification.permission === 'default' && <button className="btn ghost" onClick={() => Notification.requestPermission().then(() => toast('🔔'))}>🔔 {t('notif_on')}</button>}
+    {pushSupported() && !push && <button className="btn ghost" onClick={async () => { const r = await enablePush(); if (r === 'ok') { setPush(true); toast(t('notif_ok')) } else toast(t(r === 'denied' ? 'notif_denied' : 'err_net')) }}>🔔 {t('notif_on')}</button>}
+    {push && <p className="sm mut">🔔 {t('notif_ok')}</p>}
     <div className="row wrap"><button className="btn ghost" onClick={() => signOut()}>{t('sign_out')}</button><button className="btn danger" onClick={() => setDel(true)}>{t('delete_account')}</button></div>
     <p className="sm mut">Lokami 2.0 · <a href="../" style={{ color: 'inherit' }}>{t('open_classic')}</a></p>
     {del && <Sheet onClose={() => setDel(false)}><h2>{t('delete_q')}</h2><p className="mut">{t('delete_hint')}</p>

@@ -1,3 +1,4 @@
+import { tap } from '../lib/native'
 import { useState } from 'react'
 import { useStore, spaceTasks, curSpace, addTask, editTask, removeTask, type Task } from '../store'
 import { t, tn } from '../lib/i18n'
@@ -36,7 +37,7 @@ function Row({ tk }: { tk: Task }) {
   const who = tk.assignee ? curSpace(s)?.members.find(m => m.id === tk.assignee) : null
   const late = tk.due && !tk.done && tk.due < today()
   return <div className={'item' + (tk.done ? ' done' : '')}>
-    <button className={'check' + (tk.done ? ' on' : '')} aria-label={t('done')} aria-pressed={tk.done} onClick={() => editTask(tk.id, { done: !tk.done })}>✓</button>
+    <button className={'check' + (tk.done ? ' on' : '')} aria-label={t('done')} aria-pressed={tk.done} onClick={() => (tap(), 0) || editTask(tk.id, { done: !tk.done })}>✓</button>
     <button className="grow" style={{ textAlign: 'left' }} onClick={() => setEdit(true)}>
       <div className="title ell" style={{ fontWeight: 600 }}>{tk.title}</div>
       {(tk.due || who) && <div className="row sm mut" style={{ gap: 8 }}>{tk.due && <span className={late ? 'pill bad' : ''}>{dueLabel(tk.due)}</span>}{who && <span>{who.a} {who.n}</span>}</div>}

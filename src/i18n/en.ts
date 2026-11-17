@@ -190,6 +190,7 @@ export const en = {
   y_checkins: 'check-ins',
   y_mood_by_month: 'Mood by month',
   y_empty: 'Your summary will appear here as entries build up.',
+  notif_ok: 'Notifications are on for this device', notif_denied: 'Notifications are blocked in browser settings',
   classic: 'Other modules are still in the classic version', open_classic: 'Open classic Lokami',
 } as const
 export type Key = keyof typeof en

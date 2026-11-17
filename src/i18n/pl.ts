@@ -190,5 +190,6 @@ export const pl: Record<Key, string> = {
   y_checkins: 'check-inów',
   y_mood_by_month: 'Nastrój w miesiącach',
   y_empty: 'Podsumowanie pojawi się, gdy zbiorą się wpisy.',
+  notif_ok: 'Powiadomienia włączone na tym urządzeniu', notif_denied: 'Powiadomienia są zablokowane w ustawieniach przeglądarki',
   classic: "Pozostałe moduły są jeszcze w wersji klasycznej", open_classic: "Otwórz Lokami w wersji klasycznej",
 }

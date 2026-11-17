@@ -1,3 +1,4 @@
+import { tap } from '../lib/native'
 import { useStore, rows, home, go, editTask } from '../store'
 import { t } from '../lib/i18n'
 import { today, weekday, fmtFull } from '../lib/dates'
@@ -19,11 +20,11 @@ export function Today() {
     <div className="head"><div><p className="cap">{weekday(new Date())} · {fmtFull(day)}</p><h1>{hello}</h1></div></div>
     <div className="card col"><h2>{t('mood_q')}</h2><MoodPicker compact /></div>
     {habits.length > 0 && <div className="card col"><div className="row between"><h2>{t('habits')}</h2><button className="sm mut" onClick={() => go('habits')}>{t('habits_today', habits.filter(x => doneDays(logs, x.id).has(day)).length, habits.length)} ›</button></div>
-      <div className="chips">{habits.map(x => { const on = doneDays(logs, x.id).has(day); return <button key={x.id} className={'chip' + (on ? ' on' : '')} aria-pressed={on} onClick={() => toggleHabit(x, day, !on, h)}>{x.icon} {x.title}</button> })}</div></div>}
+      <div className="chips">{habits.map(x => { const on = doneDays(logs, x.id).has(day); return <button key={x.id} className={'chip' + (on ? ' on' : '')} aria-pressed={on} onClick={() => (tap(), 0) || toggleHabit(x, day, !on, h)}>{x.icon} {x.title}</button> })}</div></div>}
     <div className="card col"><div className="row between"><h2>{t('agenda')}</h2><button className="sm mut" onClick={() => go('planner')}>{t('planner')} ›</button></div>
       {!events.length && !tasks.length ? <p className="mut sm">{t('nothing_today')}</p> : <div>
         {events.map(e => <div key={e.id} className="item"><span className="time num">{e.time || '•'}</span><span className="grow ell" style={{ fontWeight: 600 }}>{e.title}</span><span className="sm mut">{spaceName(e.space_id)}</span></div>)}
-        {tasks.map(x => <div key={x.id} className="item"><button className="check" aria-label={t('done')} onClick={() => editTask(x.id, { done: true })}>✓</button><span className="grow ell" style={{ fontWeight: 600 }}>{x.title}</span>{x.due! < day && <span className="pill bad">{dueLabel(x.due)}</span>}<span className="sm mut">{spaceName(x.space_id)}</span></div>)}
+        {tasks.map(x => <div key={x.id} className="item"><button className="check" aria-label={t('done')} onClick={() => (tap(), 0) || editTask(x.id, { done: true })}>✓</button><span className="grow ell" style={{ fontWeight: 600 }}>{x.title}</span>{x.due! < day && <span className="pill bad">{dueLabel(x.due)}</span>}<span className="sm mut">{spaceName(x.space_id)}</span></div>)}
       </div>}</div>
     <button className="card row" style={{ textAlign: 'left' }} onClick={() => go('diary')}><span className="av">📓</span><span className="grow"><b>{t('diary')}</b><span className="sm mut ell" style={{ display: 'block' }}>{page?.body?.trim() ? page.body.trim().slice(0, 80) : t('diary_write')}</span></span><span className="mut">›</span></button>
   </div>

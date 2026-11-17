@@ -1,3 +1,4 @@
+import { tap } from '../lib/native'
 import { useState } from 'react'
 import { useStore, rows, upsert, remove } from '../store'
 import { t, tn } from '../lib/i18n'
@@ -8,7 +9,7 @@ export function Shopping() {
   const who = (id: string | null) => s.spaces.find(x => x.id === s.cur)?.members.find(m => m.id === id)
   function add(e: React.FormEvent) { e.preventDefault(); if (!title.trim()) return; upsert('shopping_items', crypto.randomUUID(), { title: title.trim(), qty: qty.trim() || null, done: false, deleted_at: null }); setTitle(''); setQty('') }
   const row = (x: typeof items[number]) => <div key={x.id} className={'item' + (x.done ? ' done' : '')}>
-    <button className={'check' + (x.done ? ' on' : '')} aria-label={t('bought')} aria-pressed={x.done} onClick={() => upsert('shopping_items', x.id, { done: !x.done })}>✓</button>
+    <button className={'check' + (x.done ? ' on' : '')} aria-label={t('bought')} aria-pressed={x.done} onClick={() => (tap(), 0) || upsert('shopping_items', x.id, { done: !x.done })}>✓</button>
     <span className="grow"><span className="title ell" style={{ display: 'block', fontWeight: 600 }}>{x.title}</span>{(x.qty || (who(x.created_by) && who(x.created_by)!.id !== s.profile!.id)) && <span className="sm mut">{[x.qty, who(x.created_by)?.id !== s.profile!.id ? who(x.created_by)?.a : ''].filter(Boolean).join(' · ')}</span>}</span>
     <button className="x" aria-label={t('delete')} onClick={() => remove('shopping_items', x.id)}>×</button></div>
   return <div className="page">

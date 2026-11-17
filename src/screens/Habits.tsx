@@ -1,3 +1,4 @@
+import { tap } from '../lib/native'
 import { useRef, useState } from 'react'
 import { useStore, rows, upsert, remove, home } from '../store'
 import { t, tn } from '../lib/i18n'
@@ -37,7 +38,7 @@ export function Habits() {
       <div className="col" ref={list}>{habits.map(h => { const dd = doneDays(logs, h.id), n = streak(dd)
         return <div key={h.id} data-id={h.id} className="card habit">
           <button className="row grow" style={{ textAlign: 'left' }} onClick={() => setEdit(h)}><span className="av">{h.icon}</span><span className="grow"><b className="ell" style={{ display: 'block' }}>{h.title}</b><span className="sm mut">{n ? tn('streak', n) : '—'}</span></span></button>
-          <div className="week">{week.map(d => <button key={d} aria-label={h.title + ' ' + d} aria-pressed={dd.has(d)} className={'wd' + (dd.has(d) ? ' on' : '') + (d === day ? ' now' : '')} onClick={() => toggleHabit(h, d, !dd.has(d), sp)}><small>{fmtWeekday(d).slice(0, 2)}</small><i>✓</i></button>)}</div>
+          <div className="week">{week.map(d => <button key={d} aria-label={h.title + ' ' + d} aria-pressed={dd.has(d)} className={'wd' + (dd.has(d) ? ' on' : '') + (d === day ? ' now' : '')} onClick={() => (tap(), 0) || toggleHabit(h, d, !dd.has(d), sp)}><small>{fmtWeekday(d).slice(0, 2)}</small><i>✓</i></button>)}</div>
         </div> })}</div>}
     {edit && <HabitEdit habit={edit === 'new' ? undefined : edit} onClose={() => setEdit(null)} />}
   </div>
