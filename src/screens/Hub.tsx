@@ -43,6 +43,12 @@ export function Hub() {
   const card = (c: typeof CARDS[number], i: number) => {
     const cls = 'cc c' + (i % 4)
     if (c === 'today') return <div key={c} data-id={c} className={cls} onClick={() => go('today')}><span className="up">{weekday(new Date())}</span><h3>{todayTasks.length ? tn('tasks_info_left', todayTasks.length) : t('nothing_today')}</h3>{todayTasks.slice(0, 2).map(x => <div key={x.id} className="line ell">{x.title}</div>)}<span className="deco">☀️</span></div>
+    if (c === 'together' && sp.members.length > 2) { const pd = rows('pair_dates', sp.id, s).filter(d => d.a === me.id || d.b === me.id).map(d => ({ d, m: sp.members.find(x => x.id === (d.a === me.id ? d.b : d.a)), n: diffDays(d.since, now) + 1 })).filter(x => x.m).sort((a, b) => b.n - a.n)
+      const missing = sp.members.filter(x => x.id !== me.id && !pd.some(p => p.m!.id === x.id))
+      return <div key={c} data-id={c} className={cls} onClick={() => go('people')}><span className="up">{t('pairs_title')}</span>
+        {pd.map(p => <div key={p.d.id} className="row" style={{ gap: 10 }}><span style={{ fontSize: 24 }}>{p.m!.a}</span><b className="grow ell">{p.m!.n}</b><b className="num" style={{ fontSize: 24, letterSpacing: '-.03em' }}>{num(p.n)}</b><span style={{ fontWeight: 700 }}>{t('days_short')}</span></div>)}
+        {missing.length > 0 && <div className="line" style={{ marginTop: 'auto' }}>{missing.map(x => x.a).join(' ')} · {t('set_date')} →</div>}
+        <span className="deco" style={{ opacity: pd.length ? .3 : 1 }}>🤝</span></div> }
     if (c === 'together') { const ms = milestones(sp.since, now, 1)[0], party = ms && ms.day === now, label = ms && (ms.kind === 'years' ? t('anniv', ms.n) : t('days_n', num(ms.n)))
       return <div key={c} data-id={c} className={cls + (party ? ' party' : '')}><span className="up">{t('together_for')}</span>{days > 0 ? <><div className="big num">{num(days)}</div><div style={{ fontWeight: 700 }}>{tn('day', days)} · {fmtFull(sp.since)}</div>
         {ms && <div className="line" style={{ marginTop: 'auto' }}>{party ? '🎉 ' + t('milestone_today', label) : label + ' — ' + tn('in_days', daysUntil(ms, now))}</div>}</> : <h3>{t('set_date')}</h3>}<span className="deco">{party ? '🎉' : spaceIcon(sp)}</span>{party && <div className="confetti" aria-hidden="true">{Array.from({ length: 14 }, (_, i) => <i key={i} style={{ left: (i * 7 + 3) + '%', animationDelay: (i % 5) * 120 + 'ms' }} />)}</div>}</div> }
