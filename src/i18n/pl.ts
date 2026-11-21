@@ -317,5 +317,9 @@ export const pl: Record<Key, string> = {
   quit_restarts: 'Nowe starty: {0}',
   days_short: 'dni',
   quit_note: 'To nie jest narzędzie medyczne. Jeśli trudno poradzić sobie samemu, warto porozmawiać z lekarzem lub zadzwonić na infolinię.',
+  pairs_title: 'Ile się znamy',
+  pairs_hint: 'Każda para w grupie ma swoją datę. Zmienić ją mogą tylko te dwie osoby.',
+  pairs_none: 'Brak daty',
+  pairs_since: 'Znamy się od',
   classic: "Pozostałe moduły są jeszcze w wersji klasycznej", open_classic: "Otwórz Lokami w wersji klasycznej",
 }

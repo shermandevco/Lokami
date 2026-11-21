@@ -97,7 +97,9 @@ export function Hub() {
     if (id === 'shopping') { const left = rows('shopping_items', s.cur, s).filter(x => !x.done)
       return wrap(<><span className="k">{t('shopping')}</span><div className="v num">{left.length}</div><small className="ell">{left.length ? left.slice(0, 3).map(x => x.title).join(', ') : t('shop_empty')}</small>
         {big && <div className="tl" onClick={stop}>{left.slice(0, size === 'l' ? 7 : 3).map(x => <div key={x.id} className="t" onClick={e => { pop(e); upsert('shopping_items', x.id, { done: true }) }}><span className="mini-check">✓</span><span className="ell">{x.title}</span></div>)}</div>}<span className="em">🛒</span></>) }
-    if (id === 'people') return wrap(<><span className="k">{t('people')}</span><b>{tn('people_info', sp.members.length)}</b>{big && <ul>{sp.members.slice(0, 8).map(m => <li key={m.id}>{m.a} {m.n}</li>)}</ul>}<span className="em">{spaceIcon(sp)}</span></>)
+    if (id === 'people') { const pd = rows('pair_dates', sp.id, s).filter(d => d.a === me.id || d.b === me.id), other = (d: typeof pd[number]) => sp.members.find(m => m.id === (d.a === me.id ? d.b : d.a))
+      return wrap(<><span className="k">{t('people')}</span><b>{tn('people_info', sp.members.length)}</b>
+        {pd.length > 0 ? <ul>{pd.slice(0, big ? 6 : 2).map(d => <li key={d.id}>{other(d)?.a} {other(d)?.n} · {num(diffDays(d.since, now) + 1)} {t('days_short')}</li>)}</ul> : big && <ul>{sp.members.slice(0, 8).map(m => <li key={m.id}>{m.a} {m.n}</li>)}</ul>}<span className="em">{spaceIcon(sp)}</span></>) }
     return wrap(<><span className="k">{t(mod.label)}</span><b className="ell" style={{ whiteSpace: 'normal', maxWidth: 'calc(100% - 52px)' }}>{sub(id) || t('open')}</b><span className="em">{mod.em}</span></>)
   }
   const word = hello.split(' ').pop()!

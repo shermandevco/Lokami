@@ -317,6 +317,10 @@ export const en = {
   quit_restarts: 'Restarts: {0}',
   days_short: 'd',
   quit_note: 'This is not a medical tool. If it is hard to manage alone, consider talking to a doctor or a helpline.',
+  pairs_title: 'How long we know each other',
+  pairs_hint: 'Each pair in the group has its own date. Only those two can change it.',
+  pairs_none: 'No date yet',
+  pairs_since: 'Know each other since',
   classic: 'Other modules are still in the classic version', open_classic: 'Open classic Lokami',
 } as const
 export type Key = keyof typeof en

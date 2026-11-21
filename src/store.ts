@@ -27,11 +27,12 @@ export type ItemKind = 'movie' | 'wish' | 'dream' | 'note' | 'coupon' | 'date' |
 export interface Item extends Base { kind: ItemKind; title: string; note: string | null; done: boolean; rating: number | null; for_user: string | null; data: Record<string, unknown> }
 export interface Log extends Base { kind: 'intim' | 'dlog' | 'poo'; day: string; started_at: string | null; ended_at: string | null; data: Record<string, unknown> }
 export interface Status extends Base { status: string; started_at: string; note: string | null }
-export interface Tables { tasks: Task; events: Event; habits: Habit; habit_logs: HabitLog; moods: Mood; diary_pages: DiaryPage; shopping_items: Shop; answers: Answer; expenses: Expense; health_logs: Health; cars: Car; car_logs: CarLog; goals: Goal; goal_logs: GoalLog; checkins: Checkin; items: Item; logs: Log; statuses: Status }
+export interface PairDate extends Base { a: string; b: string; since: string }
+export interface Tables { tasks: Task; events: Event; habits: Habit; habit_logs: HabitLog; moods: Mood; diary_pages: DiaryPage; shopping_items: Shop; answers: Answer; expenses: Expense; health_logs: Health; cars: Car; car_logs: CarLog; goals: Goal; goal_logs: GoalLog; checkins: Checkin; items: Item; logs: Log; statuses: Status; pair_dates: PairDate }
 export type Table = keyof Tables
-export const TABLES: Table[] = ['tasks', 'events', 'habits', 'habit_logs', 'moods', 'diary_pages', 'shopping_items', 'answers', 'expenses', 'health_logs', 'cars', 'car_logs', 'goals', 'goal_logs', 'checkins', 'items', 'logs', 'statuses']
+export const TABLES: Table[] = ['tasks', 'events', 'habits', 'habit_logs', 'moods', 'diary_pages', 'shopping_items', 'answers', 'expenses', 'health_logs', 'cars', 'car_logs', 'goals', 'goal_logs', 'checkins', 'items', 'logs', 'statuses', 'pair_dates']
 type Db = { [K in Table]: Record<string, Tables[K]> }
-const emptyDb = (): Db => ({ tasks: {}, events: {}, habits: {}, habit_logs: {}, moods: {}, diary_pages: {}, shopping_items: {}, answers: {}, expenses: {}, health_logs: {}, cars: {}, car_logs: {}, goals: {}, goal_logs: {}, checkins: {}, items: {}, logs: {}, statuses: {} })
+const emptyDb = (): Db => ({ tasks: {}, events: {}, habits: {}, habit_logs: {}, moods: {}, diary_pages: {}, shopping_items: {}, answers: {}, expenses: {}, health_logs: {}, cars: {}, car_logs: {}, goals: {}, goal_logs: {}, checkins: {}, items: {}, logs: {}, statuses: {}, pair_dates: {} })
 export interface Layout { added?: string[]; hidden?: string[]; tiles?: string[]; sizes?: Record<string, 's' | 'w' | 'l'>; cards?: string[] }
 export interface Look { mode: 'auto' | 'light' | 'dark'; accent: string; bg: string }
 export interface Profile { id: string; email: string; n: string; a: string; home: string; cur: string; adult?: boolean }
